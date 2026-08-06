@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Estatisticas - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Estatisticas</h1>
+        <p class="page-subtitle">Sua evolucao em numeros</p>
+    </div>
+
+    <div class="stats-ranking">
+        <div class="ranking-header">
+            <h2 class="ranking-title">&#127942; Ranking Pessoal</h2>
+        </div>
+        <div class="ranking-grid">
+            <div class="ranking-card">
+                <div class="ranking-label">Hoje</div>
+                <div class="ranking-value">{{ today_minutes|int }}min</div>
+                <div class="ranking-comparison {% if today_minutes > yesterday_minutes %}ranking-up{% elif today_minutes < yesterday_minutes %}ranking-down{% else %}ranking-same{% endif %}">
+                    {% if today_minutes > yesterday_minutes %}
+                    &#9650; +{{ (today_minutes - yesterday_minutes)|int }}min vs ontem
+                    {% elif today_minutes < yesterday_minutes %}
+                    &#9660; {{ (today_minutes - yesterday_minutes)|int }}min vs ontem
+                    {% else %}
+                    &#9644; igual a ontem
+                    {% endif %}
+                </div>
+            </div>
+            <div class="ranking-card">
+                <div class="ranking-label">Esta Semana</div>
+                <div class="ranking-value">{{ week_minutes|int }}min</div>
+                <div class="ranking-comparison ranking-sual">{{ "%.1f"|format(daily_avg) }}min/dia</div>
+            </div>
+            <div class="ranking-card">
+                <div class="ranking-label">Este Mes</div>
+                <div class="ranking-value">{{ month_minutes|int }}min</div>
+                <div class="ranking-comparison ranking-sual">{{ "%.1f"|format(month_minutes / 60) }}h total</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card large">
+            <div class="stat-icon">&#128197;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ studied_days }}</span>
+                <span class="stat-label">Dias Estudados</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#128293;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ current_streak }}</span>
+                <span class="stat-label">Sequencia Atual</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#9200;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ total_study_hours }}h</span>
+                <span class="stat-label">Tempo Total</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#128196;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ today_minutes }}min</span>
+                <span class="stat-label">Hoje</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#10004;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ completed_goals }}</span>
+                <span class="stat-label">Metas Concluidas</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#127919;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ completed_projects }}</span>
+                <span class="stat-label">
+                    {% if study_mode == "programacao" %}Projetos
+                    {% else %}Simulados
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {% if subject_stats %}
+    <div class="section">
+        <h2 class="section-title">Tempo por Materia</h2>
+        <div class="progress-list">
+            {% for subject, minutes in subject_stats %}
+            <div class="progress-item">
+                <div class="progress-info">
+                    <span class="progress-name">{{ subject }}</span>
+                    <span class="progress-value">{{ "%.1f"|format(minutes / 60) }}h</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ (minutes / (subject_stats | map(attribute=1) | max) * 100) if subject_stats | map(attribute=1) | max > 0 else 0 }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if phases %}
+    <div class="section">
+        <h2 class="section-title">Progresso por Materia</h2>
+        <div class="progress-list">
+            {% for phase in phases %}
+            <div class="progress-item">
+                <div class="progress-info">
+                    <span class="progress-name">{{ phase.name }}</span>
+                    <span class="progress-value">{{ phase.progress }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ phase.progress }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

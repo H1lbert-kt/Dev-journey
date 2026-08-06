@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Habitos - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Habitos Diarios</h1>
+        <p class="page-subtitle">{{ today.strftime('%d/%m/%Y') }}</p>
+    </div>
+
+    {% if all_completed %}
+    <div class="celebration" id="celebration">
+        <div class="celebration-content">
+            <span class="celebration-icon">&#127881;</span>
+            <h2>Parabens!</h2>
+            <p>Voce completou todos os habitos de hoje!</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Meus Habitos</h2>
+            <button class="btn btn-primary" onclick="openModal('create-habit-modal')">+ Novo Habito</button>
+        </div>
+
+        <div class="habits-list">
+            {% for habit in habits %}
+            <div class="habit-item {% if habit.completed %}completed{% endif %}">
+                <form action="/habits/{{ habit.id }}/toggle" method="post" class="habit-form">
+                    <button type="submit" class="habit-checkbox {% if habit.completed %}checked{% endif %}">
+                        {% if habit.completed %}&#10004;{% else %}&#9744;{% endif %}
+                    </button>
+                </form>
+                <span class="habit-icon">{{ habit.icon or '' }}</span>
+                <span class="habit-name">{{ habit.name }}</span>
+                <div class="habit-actions">
+                    <button class="btn btn-small" onclick="openModal('edit-habit-{{ habit.id }}')">Editar</button>
+                    <form action="/habits/{{ habit.id }}/delete" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-danger btn-small">Excluir</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="edit-habit-{{ habit.id }}" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Editar Habito</h2>
+                        <button class="modal-close" onclick="closeModal('edit-habit-{{ habit.id }}')">×</button>
+                    </div>
+                    <form action="/habits/{{ habit.id }}/update" method="post">
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <input type="text" name="name" value="{{ habit.name }}" required class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Icone (emoji)</label>
+                            <input type="text" name="icon" value="{{ habit.icon or '' }}" class="input">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Salvar</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div id="create-habit-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Novo Habito</h2>
+            <button class="modal-close" onclick="closeModal('create-habit-modal')">×</button>
+        </div>
+        <form action="/habits/create" method="post">
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" name="name" required class="input">
+            </div>
+            <div class="form-group">
+                <label>Icone (emoji)</label>
+                <input type="text" name="icon" placeholder="Ex: &#128187;" class="input">
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Criar Habito</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

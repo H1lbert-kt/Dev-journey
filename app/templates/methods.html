@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Metodos de Estudo - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Metodos de Estudo</h1>
+        <p class="page-subtitle">Tecnicas comprovadas para aprender melhor</p>
+    </div>
+
+    <div class="methods-grid">
+        {% for method in methods %}
+        <div class="method-card">
+            <div class="method-icon">{{ method.icon }}</div>
+            <h3 class="method-name">{{ method.name }}</h3>
+            <p class="method-description">{{ method.description }}</p>
+            <div class="method-tips">
+                <h4>Dicas:</h4>
+                <ul>
+                    {% for tip in method.tips %}
+                    <li>{{ tip }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

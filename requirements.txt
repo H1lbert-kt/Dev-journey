@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+python-dotenv
+jinja2
+python-multipart
+pydantic
+pydantic-settings

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">
+            {% if study_mode == "programacao" %}Seu progresso como desenvolvedor
+            {% else %}Seu progresso nos estudos para concursos
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="dashboard-today">
+        <div class="today-card">
+            <div class="today-info">
+                <h2>Hoje</h2>
+                <span class="today-time">{{ today_minutes }}min</span>
+            </div>
+            <div class="today-progress">
+                <span class="today-goal">Meta: {{ daily_goal }}min</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ (today_minutes / daily_goal * 100) if daily_goal > 0 else 0 }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-section">
+        <div class="progress-header">
+            <h2>
+                {% if study_mode == "programacao" %}Roadmap Geral
+                {% else %}Plano de Estudos
+                {% endif %}
+            </h2>
+            <span class="progress-value">{{ dashboard.total_progress }}%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ dashboard.total_progress }}%"></div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">&#10004;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ dashboard.completed_goals }}</span>
+                <span class="stat-label">Metas Concluidas</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">&#9203;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ dashboard.pending_goals }}</span>
+                <span class="stat-label">Metas Pendentes</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">&#128218;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ dashboard.completed_phases }}</span>
+                <span class="stat-label">
+                    {% if study_mode == "programacao" %}Fases Concluidas
+                    {% else %}Materias Concluidas
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">&#127919;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ dashboard.completed_projects }}</span>
+                <span class="stat-label">
+                    {% if study_mode == "programacao" %}Projetos Concluidos
+                    {% else %}Simulados Realizados
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">&#128197;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ dashboard.studied_days }}</span>
+                <span class="stat-label">Dias Estudando</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">&#128293;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ current_streak }}</span>
+                <span class="stat-label">Sequencia Atual</span>
+            </div>
+        </div>
+    </div>
+
+    {% if phases %}
+    <div class="section">
+        <h2 class="section-title">
+            {% if study_mode == "programacao" %}Fases em Andamento
+            {% else %}Materias em Estudo
+            {% endif %}
+        </h2>
+        <div class="phases-grid">
+            {% for phase in phases %}
+            <div class="phase-card">
+                <div class="phase-header">
+                    <h3>{{ phase.name }}</h3>
+                    <span class="phase-progress-value">{{ phase.progress }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ phase.progress }}%"></div>
+                </div>
+                <a href="/roadmap" class="phase-link">Abrir</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

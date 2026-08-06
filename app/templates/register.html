@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevJourney</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-left">
+            <div class="auth-brand">
+                <h1 class="auth-logo">DevJourney</h1>
+                <p class="auth-tagline">Comece sua jornada agora</p>
+                <div class="auth-features">
+                    <div class="auth-feature">
+                        <span class="feature-icon">&#128200;</span>
+                        <span>Acompanhe sua evolucao</span>
+                    </div>
+                    <div class="auth-feature">
+                        <span class="feature-icon">&#9200;</span>
+                        <span>Cronometre seu tempo</span>
+                    </div>
+                    <div class="auth-feature">
+                        <span class="feature-icon">&#127942;</span>
+                        <span>Desbloqueie conquistas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="auth-right">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>Criar conta</h2>
+                    <p>Escolha seu modo de estudo</p>
+                </div>
+
+                {% if error %}
+                <div class="auth-error">{{ error }}</div>
+                {% endif %}
+
+                <form action="/register" method="post" class="auth-form">
+                    <div class="form-group">
+                        <label>Usuario</label>
+                        <input type="text" name="username" required class="input" placeholder="Escolha um usuario">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" required class="input" placeholder="Seu email">
+                    </div>
+                    <div class="form-group">
+                        <label>Modo de Estudo</label>
+                        <div class="mode-selector">
+                            <label class="mode-option">
+                                <input type="radio" name="study_mode" value="programacao" checked>
+                                <div class="mode-card">
+                                    <span class="mode-icon">&#128187;</span>
+                                    <span class="mode-name">Programacao</span>
+                                    <span class="mode-desc">Desenvolvimento de software</span>
+                                </div>
+                            </label>
+                            <label class="mode-option">
+                                <input type="radio" name="study_mode" value="concursos">
+                                <div class="mode-card">
+                                    <span class="mode-icon">&#127891;</span>
+                                    <span class="mode-name">Concursos</span>
+                                    <span class="mode-desc">Preparacao para provas</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <input type="password" name="password" required class="input" placeholder="Crie uma senha">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmar Senha</label>
+                        <input type="password" name="password_confirm" required class="input" placeholder="Confirme sua senha">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Cadastrar</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Ja tem conta? <a href="/login">Fazer login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

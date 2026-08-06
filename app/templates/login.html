@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevJourney</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-left">
+            <div class="auth-brand">
+                <h1 class="auth-logo">DevJourney</h1>
+                <p class="auth-tagline">Transforme seus estudos em resultados</p>
+                <div class="auth-features">
+                    <div class="auth-feature">
+                        <span class="feature-icon">&#128200;</span>
+                        <span>Acompanhe sua evolucao</span>
+                    </div>
+                    <div class="auth-feature">
+                        <span class="feature-icon">&#9200;</span>
+                        <span>Cronometre seu tempo</span>
+                    </div>
+                    <div class="auth-feature">
+                        <span class="feature-icon">&#127942;</span>
+                        <span>Desbloqueie conquistas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="auth-right">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>Bem-vindo de volta</h2>
+                    <p>Entre na sua conta para continuar</p>
+                </div>
+
+                {% if error %}
+                <div class="auth-error">{{ error }}</div>
+                {% endif %}
+
+                <form action="/login" method="post" class="auth-form">
+                    <div class="form-group">
+                        <label>Usuario</label>
+                        <input type="text" name="username" required class="input" placeholder="Seu usuario">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <input type="password" name="password" required class="input" placeholder="Sua senha">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Entrar</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Nao tem conta? <a href="/register">Cadastre-se</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

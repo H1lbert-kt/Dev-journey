@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DevJourney{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h1 class="logo">DevJourney</h1>
+        </div>
+        <ul class="nav-links">
+            <li>
+                <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
+                    <span class="nav-icon">&#128202;</span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/roadmap" class="nav-link {% if '/roadmap' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128506;</span>
+                    Roadmap
+                </a>
+            </li>
+            <li>
+                <a href="/timer" class="nav-link {% if '/timer' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#9200;</span>
+                    Cronometro
+                </a>
+            </li>
+            <li>
+                <a href="/subjects" class="nav-link {% if '/subjects' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128218;</span>
+                    Materias
+                </a>
+            </li>
+            <li>
+                <a href="/flashcards" class="nav-link {% if '/flashcards' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127183;</span>
+                    Flashcards
+                </a>
+            </li>
+            <li>
+                <a href="/simulados" class="nav-link {% if '/simulados' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128220;</span>
+                    Simulados
+                </a>
+            </li>
+            <li>
+                <a href="/reviews" class="nav-link {% if '/reviews' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128260;</span>
+                    Revisoes
+                </a>
+            </li>
+            <li>
+                <a href="/projects" class="nav-link {% if '/projects' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128640;</span>
+                    Projetos
+                </a>
+            </li>
+            <li>
+                <a href="/habits" class="nav-link {% if '/habits' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#9989;</span>
+                    Habitos
+                </a>
+            </li>
+            <li>
+                <a href="/calendar" class="nav-link {% if '/calendar' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128197;</span>
+                    Calendario
+                </a>
+            </li>
+            <li>
+                <a href="/methods" class="nav-link {% if '/methods' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128214;</span>
+                    Metodos
+                </a>
+            </li>
+            <li>
+                <a href="/stats" class="nav-link {% if '/stats' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128200;</span>
+                    Estatisticas
+                </a>
+            </li>
+            <li>
+                <a href="/achievements" class="nav-link {% if '/achievements' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127942;</span>
+                    Conquistas
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <div class="mode-switch">
+                <form action="/auth/switch-mode" method="post" id="mode-form">
+                    <input type="hidden" name="mode" id="mode-input" value="">
+                </form>
+                <button class="mode-switch-btn" onclick="switchMode('programacao')" id="mode-prog">
+                    &#128187; Programacao
+                </button>
+                <button class="mode-switch-btn" onclick="switchMode('concursos')" id="mode-conc">
+                    &#128218; Concursos
+                </button>
+            </div>
+            <a href="/logout" class="nav-link">
+                <span class="nav-icon">&#9211;</span>
+                Sair
+            </a>
+        </div>
+    </nav>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <div class="floating-timer" id="floating-timer" style="display:none">
+        <div class="floating-timer-content">
+            <div class="floating-timer-left">
+                <span class="floating-timer-icon">&#9200;</span>
+                <span class="floating-timer-subject" id="ft-subject">Programacao</span>
+            </div>
+            <div class="floating-timer-center">
+                <span class="floating-timer-time" id="ft-time">00:00:00</span>
+            </div>
+            <div class="floating-timer-right">
+                <button class="floating-timer-btn" id="ft-pause" onclick="ftPause()">||</button>
+                <button class="floating-timer-btn floating-timer-btn-stop" id="ft-stop" onclick="ftStop()">&#9632;</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+    var ftState = JSON.parse(localStorage.getItem('ftState') || 'null');
+    var ftSeconds = ftState ? ftState.seconds : 0;
+    var ftRunning = false;
+    var ftInterval = null;
+    var ftSubject = ftState ? ftState.subject : 'Programacao';
+
+    function ftSaveState() {
+        localStorage.setItem('ftState', JSON.stringify({
+            seconds: ftSeconds,
+            subject: ftSubject,
+            running: ftRunning
+        }));
+    }
+
+    function ftStart(subject) {
+        ftSubject = subject || 'Programacao';
+        ftRunning = true;
+        ftSeconds = 0;
+        ftSaveState();
+        document.getElementById('ft-subject').textContent = ftSubject;
+        document.getElementById('floating-timer').style.display = 'block';
+        document.getElementById('ft-pause').innerHTML = '||';
+        clearInterval(ftInterval);
+        ftInterval = setInterval(function() {
+            ftSeconds++;
+            ftSaveState();
+            ftUpdateDisplay();
+        }, 1000);
+    }
+
+    function ftPause() {
+        if (ftRunning) {
+            ftRunning = false;
+            clearInterval(ftInterval);
+            ftSaveState();
+            document.getElementById('ft-pause').innerHTML = '&#9654;';
+        } else {
+            ftRunning = true;
+            ftSaveState();
+            ftInterval = setInterval(function() {
+                ftSeconds++;
+                ftSaveState();
+                ftUpdateDisplay();
+            }, 1000);
+            document.getElementById('ft-pause').innerHTML = '||';
+        }
+    }
+
+    function ftStop() {
+        clearInterval(ftInterval);
+        if (ftSeconds > 0) {
+            ftSaveSession(ftSeconds);
+        }
+        ftSeconds = 0;
+        ftRunning = false;
+        localStorage.removeItem('ftState');
+        document.getElementById('floating-timer').style.display = 'none';
+    }
+
+    function ftUpdateDisplay() {
+        var h = Math.floor(ftSeconds / 3600);
+        var m = Math.floor((ftSeconds % 3600) / 60);
+        var s = ftSeconds % 60;
+        document.getElementById('ft-time').textContent =
+            String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+
+    function ftSaveSession(totalSeconds) {
+        var formData = new FormData();
+        formData.append('subject', ftSubject);
+        formData.append('duration', totalSeconds);
+        fetch('/timer/save', { method: 'POST', body: formData });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var ft = document.getElementById('floating-timer');
+        if (!ft) return;
+
+        if (ftState && ftState.seconds > 0) {
+            ft.style.display = 'block';
+            document.getElementById('ft-subject').textContent = ftSubject;
+            ftUpdateDisplay();
+            if (ftState.running) {
+                ftRunning = true;
+                document.getElementById('ft-pause').innerHTML = '||';
+                ftInterval = setInterval(function() {
+                    ftSeconds++;
+                    ftSaveState();
+                    ftUpdateDisplay();
+                }, 1000);
+            }
+        } else {
+            ft.style.display = 'none';
+        }
+    });
+
+    window.addEventListener('beforeunload', function() {
+        if (ftRunning) {
+            ftSaveState();
+        }
+    });
+
+    function switchMode(mode) {
+        document.getElementById('mode-input').value = mode;
+        document.getElementById('mode-form').submit();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/auth/mode').then(function(r) { return r.json(); }).then(function(data) {
+            var mode = data.mode || 'programacao';
+            var progBtn = document.getElementById('mode-prog');
+            var concBtn = document.getElementById('mode-conc');
+            if (mode === 'programacao') {
+                progBtn.classList.add('active');
+                concBtn.classList.remove('active');
+            } else {
+                concBtn.classList.add('active');
+                progBtn.classList.remove('active');
+            }
+        }).catch(function() {
+            document.getElementById('mode-prog').classList.add('active');
+        });
+    });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

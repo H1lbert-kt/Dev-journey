@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Cronometro - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Cronometro de Estudos</h1>
+        <p class="page-subtitle">Hoje: {{ today_minutes }}min | Meta: {{ daily_goal }}min</p>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Meta Diaria</h2>
+        </div>
+        <div class="goal-setting-card">
+            <form action="/timer/set-goal" method="post" style="display: flex; align-items: center; gap: 12px;">
+                <label style="font-size: 14px; color: var(--text-secondary);">Meta de estudo diario:</label>
+                <input type="number" name="daily_goal" value="{{ daily_goal }}" min="10" max="720" class="input" style="width: 100px;">
+                <span style="font-size: 14px; color: var(--text-secondary);">minutos</span>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </form>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Exemplo: 360min = 6 horas, 480min = 8 horas</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Metas por Materia</h2>
+        </div>
+        <div class="subject-goals-list">
+            {% for subject in subjects %}
+            <div class="subject-goal-item">
+                <div class="subject-goal-color" style="background-color: {{ subject.color }}"></div>
+                <div class="subject-goal-info">
+                    <div class="subject-goal-name">{{ subject.name }}</div>
+                    <div class="subject-goal-progress">
+                        {% set goal_minutes = subject_goals.get(subject.id, 60) %}
+                        {% set studied = subject_minutes.get(subject.name, 0) %}
+                        {% set progress = (studied / goal_minutes * 100) if goal_minutes > 0 else 0 %}
+                        <div class="subject-goal-fill" style="width: {{ [progress, 100]|min }}%; background-color: {{ subject.color }}"></div>
+                    </div>
+                </div>
+                <div class="subject-goal-time">{{ studied|round(0)|int }}/{{ goal_minutes }}min</div>
+                <form action="/timer/set-subject-goal" method="post" class="subject-goal-form">
+                    <input type="hidden" name="subject_id" value="{{ subject.id }}">
+                    <input type="number" name="daily_minutes" value="{{ goal_minutes }}" min="5" max="480" class="subject-goal-input">
+                    <button type="submit" class="btn btn-small">Salvar</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="timer-section">
+        <div class="timer-card">
+            <div class="timer-progress-bar">
+                <div class="timer-progress-fill" style="width: {{ (today_minutes / daily_goal * 100) if daily_goal > 0 else 0 }}%"></div>
+            </div>
+
+            <div class="timer-subject-area">
+                <label>Materia</label>
+                <select id="timer-subject" class="input">
+                    {% if study_mode == "programacao" %}
+                    <option value="Programacao">Programacao</option>
+                    <option value="Algoritmos">Algoritmos</option>
+                    <option value="Estrutura de Dados">Estrutura de Dados</option>
+                    <option value="Banco de Dados">Banco de Dados</option>
+                    <option value="Redes">Redes</option>
+                    <option value="Sistemas Operacionais">Sistemas Operacionais</option>
+                    <option value="Ingles">Ingles</option>
+                    <option value="Logica">Logica</option>
+                    <option value="Projeto">Projeto</option>
+                    <option value="Outro">Outro</option>
+                    {% else %}
+                    {% for subject in subjects %}
+                    <option value="{{ subject.name }}">{{ subject.name }}</option>
+                    {% endfor %}
+                    {% if not subjects %}
+                    <option value="Portugues">Portugues</option>
+                    <option value="Raciocinio Logico">Raciocinio Logico</option>
+                    <option value="Direito">Direito</option>
+                    <option value="Administracao">Administracao</option>
+                    <option value="Contabilidade">Contabilidade</option>
+                    <option value="Economia">Economia</option>
+                    <option value="Legislacao">Legislacao</option>
+                    <option value="Informatica">Informatica</option>
+                    <option value="Atualidades">Atualidades</option>
+                    <option value="Ingles">Ingles</option>
+                    {% endif %}
+                    <option value="Outro">Outro</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div class="timer-display">
+                <div class="timer-time" id="timer-display">00:00:00</div>
+                <div class="timer-phase" id="timer-phase">Pronto</div>
+            </div>
+
+            <div class="timer-controls">
+                <button class="btn btn-primary btn-large" id="btn-start" onclick="startTimer()">Iniciar</button>
+                <button class="btn btn-danger btn-large" id="btn-pause" onclick="pauseTimer()" style="display:none">Pausar</button>
+                <button class="btn btn-success btn-large" id="btn-stop" onclick="stopTimer()" style="display:none">Finalizar</button>
+                <button class="btn btn-large" id="btn-reset" onclick="resetTimer()" style="display:none">Resetar</button>
+            </div>
+
+            <div class="timer-pomodoro">
+                <span class="pomodoro-label">Pomodoro:</span>
+                <button class="btn btn-small" onclick="setPomodoro(25)">25min</button>
+                <button class="btn btn-small" onclick="setPomodoro(45)">45min</button>
+                <button class="btn btn-small" onclick="setPomodoro(60)">60min</button>
+                <button class="btn btn-small" onclick="setPomodoro(0)">Livre</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Historico</h2>
+        <div class="sessions-list">
+            {% for session in sessions %}
+            <div class="session-item">
+                <span class="session-subject">{{ session.subject }}</span>
+                <span class="session-duration">{{ "%.1f"|format(session.duration_minutes) }}min</span>
+                <span class="session-date">{{ session.date.strftime('%d/%m/%H:%M') }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+var timerInterval = null;
+var seconds = 0;
+var running = false;
+var pomodoroMinutes = 0;
+var pomodoroSeconds = 0;
+
+function startTimer() {
+    running = true;
+    document.getElementById('btn-start').style.display = 'none';
+    document.getElementById('btn-pause').style.display = 'inline-flex';
+    document.getElementById('btn-stop').style.display = 'inline-flex';
+    document.getElementById('btn-reset').style.display = 'inline-flex';
+    document.getElementById('timer-phase').textContent = 'Estudando...';
+
+    ftStart(document.getElementById('timer-subject').value);
+
+    timerInterval = setInterval(function() {
+        seconds++;
+        updateDisplay();
+
+        if (pomodoroMinutes > 0) {
+            pomodoroSeconds--;
+            if (pomodoroSeconds <= 0) {
+                pomodoroMinutes--;
+                pomodoroSeconds = 59;
+            }
+            if (pomodoroMinutes <= 0 && pomodoroSeconds <= 0) {
+                pauseTimer();
+                document.getElementById('timer-phase').textContent = 'Pomodoro finalizado!';
+                if (Notification.permission === 'granted') {
+                    new Notification('Pomodoro finalizado! Hora de descansar.');
+                }
+            }
+        }
+    }, 1000);
+}
+
+function pauseTimer() {
+    running = false;
+    clearInterval(timerInterval);
+    document.getElementById('btn-start').style.display = 'inline-flex';
+    document.getElementById('btn-start').textContent = 'Continuar';
+    document.getElementById('btn-pause').style.display = 'none';
+    document.getElementById('timer-phase').textContent = 'Pausado';
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+    if (seconds > 0) {
+        saveSession(seconds);
+    }
+    resetTimer();
+}
+
+function resetTimer() {
+    clearInterval(timerInterval);
+    seconds = 0;
+    running = false;
+    pomodoroMinutes = 0;
+    pomodoroSeconds = 0;
+    updateDisplay();
+    document.getElementById('btn-start').style.display = 'inline-flex';
+    document.getElementById('btn-start').textContent = 'Iniciar';
+    document.getElementById('btn-pause').style.display = 'none';
+    document.getElementById('btn-stop').style.display = 'none';
+    document.getElementById('btn-reset').style.display = 'none';
+    document.getElementById('timer-phase').textContent = 'Pronto';
+}
+
+function updateDisplay() {
+    var h = Math.floor(seconds / 3600);
+    var m = Math.floor((seconds % 3600) / 60);
+    var s = seconds % 60;
+    document.getElementById('timer-display').textContent =
+        String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function setPomodoro(minutes) {
+    pomodoroMinutes = minutes;
+    pomodoroSeconds = 0;
+    if (minutes > 0) {
+        document.getElementById('timer-phase').textContent = 'Pomodoro: ' + minutes + 'min';
+    } else {
+        document.getElementById('timer-phase').textContent = running ? 'Estudando...' : 'Modo livre';
+    }
+}
+
+function saveSession(totalSeconds) {
+    var subject = document.getElementById('timer-subject').value;
+    var formData = new FormData();
+    formData.append('subject', subject);
+    formData.append('duration', totalSeconds);
+
+    fetch('/timer/save', {
+        method: 'POST',
+        body: formData
+    }).then(function() {
+        location.reload();
+    });
+}
+
+if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+}
+</script>
+{% endblock %}

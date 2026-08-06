@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Revisoes - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Revisoes Automaticas</h1>
+        <p class="page-subtitle">Baseado em repeticao espacada</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card large">
+            <div class="stat-icon">&#128196;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ due_cards|length }}</span>
+                <span class="stat-label">Revisao Hoje</span>
+            </div>
+        </div>
+
+        {% for review in upcoming_reviews %}
+        <div class="stat-card large">
+            <div class="stat-icon">&#128197;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ review.count }}</span>
+                <span class="stat-label">Em {{ review.days }} dia(s)</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if subject_reviews %}
+    <div class="section">
+        <h2 class="section-title">Revisao por Materia</h2>
+        <div class="reviews-subject-list">
+            {% for subject, count in subject_reviews.items() %}
+            <div class="review-subject-item">
+                <span class="review-subject-name">{{ subject }}</span>
+                <span class="review-subject-count">{{ count }} card(s)</span>
+                <a href="/flashcards" class="btn btn-small">Revisar</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="section">
+        <h2 class="section-title">Como Funciona</h2>
+        <div class="review-explanation">
+            <div class="review-step">
+                <span class="step-number">1</span>
+                <div class="step-content">
+                    <h3>Estude o assunto</h3>
+                    <p>Registre suas sessoes de estudo no cronometro</p>
+                </div>
+            </div>
+            <div class="review-step">
+                <span class="step-number">2</span>
+                <div class="step-content">
+                    <h3>Crie flashcards</h3>
+                    <p>Adicione perguntas e respostas para revisao</p>
+                </div>
+            </div>
+            <div class="review-step">
+                <span class="step-number">3</span>
+                <div class="step-content">
+                    <h3>Revise nos prazos</h3>
+                    <p>O sistema sugere revisao em 1, 7 e 30 dias</p>
+                </div>
+            </div>
+            <div class="review-step">
+                <span class="step-number">4</span>
+                <div class="step-content">
+                    <h3>Fixe o conteudo</h3>
+                    <p>A repeticao espacada aumenta a retencao em ate 200%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

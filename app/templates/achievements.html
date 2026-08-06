@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Conquistas - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Conquistas</h1>
+        <p class="page-subtitle">Suas realizacoes</p>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Todas as Conquistas</h2>
+            <button class="btn btn-primary" onclick="openModal('create-achievement-modal')">+ Nova Conquista</button>
+        </div>
+
+        <div class="achievements-grid">
+            {% for achievement in achievements %}
+            <div class="achievement-card {% if achievement.unlocked %}unlocked{% endif %}">
+                <div class="achievement-icon">{{ achievement.icon or '&#127942;' }}</div>
+                <h3 class="achievement-name">{{ achievement.name }}</h3>
+                {% if achievement.description %}
+                <p class="achievement-description">{{ achievement.description }}</p>
+                {% endif %}
+                {% if achievement.unlocked %}
+                <span class="achievement-status">&#10004; Desbloqueada</span>
+                {% else %}
+                <form action="/achievements/{{ achievement.id }}/unlock" method="post">
+                    <button type="submit" class="btn btn-small">Desbloquear</button>
+                </form>
+                {% endif %}
+                <form action="/achievements/{{ achievement.id }}/delete" method="post" class="achievement-delete">
+                    <button type="submit" class="delete-btn" title="Excluir">&times;</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div id="create-achievement-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Nova Conquista</h2>
+            <button class="modal-close" onclick="closeModal('create-achievement-modal')">&times;</button>
+        </div>
+        <form action="/achievements/create" method="post">
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" name="name" required class="input">
+            </div>
+            <div class="form-group">
+                <label>Descricao</label>
+                <input type="text" name="description" class="input">
+            </div>
+            <div class="form-group">
+                <label>Icone (emoji)</label>
+                <input type="text" name="icon" placeholder="&#127942;" class="input">
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Criar Conquista</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

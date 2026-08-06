@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Calendario - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Calendario</h1>
+        <p class="page-subtitle">Acompanhe seus dias de estudo</p>
+    </div>
+
+    <div class="heatmap-section">
+        <h2 class="section-title">Mapa de Atividade</h2>
+        <div class="heatmap-container">
+            <div class="heatmap-grid" id="heatmap"></div>
+            <div class="heatmap-legend">
+                <span class="heatmap-legend-label">Menos</span>
+                <div class="heatmap-legend-day" style="background-color: var(--bg-tertiary)"></div>
+                <div class="heatmap-legend-day" style="background-color: #0e4429"></div>
+                <div class="heatmap-legend-day" style="background-color: #006d32"></div>
+                <div class="heatmap-legend-day" style="background-color: #26a641"></div>
+                <div class="heatmap-legend-day" style="background-color: #39d353"></div>
+                <span class="heatmap-legend-label">Mais</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="calendar-nav">
+        <a href="/calendar?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-small">&#9664; Anterior</a>
+        <h2 class="calendar-month">{{ month }}/{{ year }}</h2>
+        <a href="/calendar?year={{ next_year }}&month={{ next_month }}" class="btn btn-small">Proximo &#9654;</a>
+    </div>
+
+    <div class="calendar-grid">
+        <div class="calendar-header">
+            <div class="calendar-day-name">Dom</div>
+            <div class="calendar-day-name">Seg</div>
+            <div class="calendar-day-name">Ter</div>
+            <div class="calendar-day-name">Qua</div>
+            <div class="calendar-day-name">Qui</div>
+            <div class="calendar-day-name">Sex</div>
+            <div class="calendar-day-name">Sab</div>
+        </div>
+
+        <div class="calendar-body">
+            {% for cell in calendar_days %}
+            {% if cell is none %}
+            <div class="calendar-cell empty"></div>
+            {% else %}
+            <div class="calendar-cell {% if cell.studied %}studied{% endif %} {% if cell.is_today %}today{% endif %}"
+                 data-date="{{ cell.date.isoformat() }}"
+                 data-studied="{{ cell.studied|lower }}"
+                 data-notes="{{ cell.notes|e }}">
+                <span class="calendar-day-number">{{ cell.day }}</span>
+                {% if cell.studied %}
+                <span class="calendar-check">&#10003;</span>
+                {% endif %}
+                {% if cell.has_notes %}
+                <span class="calendar-note-icon">&#128221;</span>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="calendar-legend">
+        <div class="legend-item">
+            <span class="legend-color studied"></span>
+            <span>Estudou</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color not-studied"></span>
+            <span>Nao estudou</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color today"></span>
+            <span>Hoje</span>
+        </div>
+    </div>
+</div>
+
+<div id="day-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modal-title">Detalhes do Dia</h2>
+            <button class="modal-close" onclick="closeModal('day-modal')">&times;</button>
+        </div>
+        <div id="day-modal-content">
+            <div class="day-actions">
+                <form action="/calendar/mark-studied" method="post" class="inline-form">
+                    <input type="hidden" id="modal-date" name="study_date" value="">
+                    <input type="text" id="modal-notes" name="notes" placeholder="Observacoes..." class="input">
+                    <button type="submit" class="btn btn-primary">Marcar como Estudado</button>
+                </form>
+                <form action="/calendar/mark-not-studied" method="post" class="inline-form">
+                    <input type="hidden" id="modal-date-not-studied" name="study_date" value="">
+                    <button type="submit" class="btn btn-danger">Marcar como Nao Estudado</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.calendar-cell:not(.empty)').forEach(function(cell) {
+    cell.addEventListener('click', function() {
+        var date = this.dataset.date;
+        var notes = this.dataset.notes || '';
+        openDayModal(date, notes);
+    });
+});
+
+var heatmapData = [
+    {% for cell in calendar_days %}
+    {% if cell is not none %}
+    {% if cell.studied %}1{% else %}0{% endif %}
+    {% endif %}
+    {% endfor %}
+];
+
+function renderHeatmap() {
+    var container = document.getElementById('heatmap');
+    if (!container) return;
+
+    var totalDays = heatmapData.length;
+    var weeks = Math.ceil(totalDays / 7);
+    var html = '';
+
+    for (var w = 0; w < weeks; w++) {
+        html += '<div class="heatmap-week">';
+        for (var d = 0; d < 7; d++) {
+            var index = w * 7 + d;
+            var level = 0;
+            if (index < totalDays && heatmapData[index]) {
+                level = Math.floor(Math.random() * 3) + 2;
+            }
+            html += '<div class="heatmap-day level-' + level + '"></div>';
+        }
+        html += '</div>';
+    }
+    container.innerHTML = html;
+}
+
+renderHeatmap();
+</script>
+{% endblock %}

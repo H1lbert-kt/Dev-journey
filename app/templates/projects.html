@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Projetos - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Projetos</h1>
+        <p class="page-subtitle">Seus projetos de estudo</p>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Todos os Projetos</h2>
+            <button class="btn btn-primary" onclick="openModal('create-project-modal')">+ Novo Projeto</button>
+        </div>
+
+        <div class="projects-grid">
+            {% for project in projects %}
+            <div class="project-card" data-status="{{ project.status }}">
+                <div class="project-header">
+                    <h3>{{ project.name }}</h3>
+                    <span class="status-badge status-{{ project.status }}">
+                        {% if project.status == 'not_started' %}Nao Iniciado
+                        {% elif project.status == 'in_progress' %}Em Andamento
+                        {% elif project.status == 'completed' %}Concluido
+                        {% endif %}
+                    </span>
+                </div>
+
+                {% if project.description %}
+                <p class="project-description">{{ project.description }}</p>
+                {% endif %}
+
+                {% if project.technologies %}
+                <div class="project-tech">
+                    {% for tech in project.technologies.split(',') %}
+                    <span class="tech-badge">{{ tech.strip() }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if project.github_link %}
+                <a href="{{ project.github_link }}" target="_blank" class="project-link">GitHub &#8594;</a>
+                {% endif %}
+
+                {% if project.notes %}
+                <div class="project-notes">
+                    <strong>Notas:</strong> {{ project.notes }}
+                </div>
+                {% endif %}
+
+                <div class="project-actions">
+                    <button class="btn btn-small" onclick="openModal('edit-project-{{ project.id }}')">Editar</button>
+                    <form action="/projects/{{ project.id }}/delete" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-danger btn-small">Excluir</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="edit-project-{{ project.id }}" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Editar Projeto</h2>
+                        <button class="modal-close" onclick="closeModal('edit-project-{{ project.id }}')">&times;</button>
+                    </div>
+                    <form action="/projects/{{ project.id }}/update" method="post">
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <input type="text" name="name" value="{{ project.name }}" required class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Descricao</label>
+                            <input type="text" name="description" value="{{ project.description or '' }}" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Tecnologias</label>
+                            <input type="text" name="technologies" value="{{ project.technologies or '' }}" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select name="status" class="input">
+                                <option value="not_started" {% if project.status == 'not_started' %}selected{% endif %}>Nao Iniciado</option>
+                                <option value="in_progress" {% if project.status == 'in_progress' %}selected{% endif %}>Em Andamento</option>
+                                <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>Concluido</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Link GitHub</label>
+                            <input type="url" name="github_link" value="{{ project.github_link or '' }}" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Notas</label>
+                            <textarea name="notes" class="input">{{ project.notes or '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Salvar</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div id="create-project-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Novo Projeto</h2>
+            <button class="modal-close" onclick="closeModal('create-project-modal')">&times;</button>
+        </div>
+        <form action="/projects/create" method="post">
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" name="name" required class="input">
+            </div>
+            <div class="form-group">
+                <label>Descricao</label>
+                <input type="text" name="description" class="input">
+            </div>
+            <div class="form-group">
+                <label>Tecnologias</label>
+                <input type="text" name="technologies" placeholder="Python, FastAPI, PostgreSQL" class="input">
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select name="status" class="input">
+                    <option value="not_started">Nao Iniciado</option>
+                    <option value="in_progress">Em Andamento</option>
+                    <option value="completed">Concluido</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Link GitHub</label>
+                <input type="url" name="github_link" class="input">
+            </div>
+            <div class="form-group">
+                <label>Notas</label>
+                <textarea name="notes" class="input"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Criar Projeto</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Roadmap - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Roadmap</h1>
+        <p class="page-subtitle">Seu caminho ate o primeiro estagio</p>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Fases</h2>
+            <button class="btn btn-primary" onclick="openModal('create-phase-modal')">+ Nova Fase</button>
+        </div>
+
+        <div class="phases-list">
+            {% for phase in phases %}
+            <div class="phase-card-full">
+                <div class="phase-header">
+                    <h3>{{ phase.name }}</h3>
+                    <span class="phase-progress-value">{{ phase.progress }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ phase.progress }}%"></div>
+                </div>
+                {% if phase.description %}
+                <p class="phase-description">{{ phase.description }}</p>
+                {% endif %}
+
+                <div class="goals-list">
+                    {% if phase.id in goals_by_phase %}
+                    {% for goal in goals_by_phase[phase.id] %}
+                    <div class="goal-item">
+                        <form action="/roadmap/goal/{{ goal.id }}/toggle" method="post" class="goal-form">
+                            <button type="submit" class="checkbox-btn {% if goal.completed %}checked{% endif %}">
+                                {% if goal.completed %}&#10004;{% else %}&#9744;{% endif %}
+                            </button>
+                        </form>
+                        <span class="goal-title {% if goal.completed %}completed{% endif %}">{{ goal.title }}</span>
+                        <form action="/roadmap/goal/{{ goal.id }}/delete" method="post" class="goal-delete-form">
+                            <button type="submit" class="delete-btn" title="Excluir">&times;</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                <form action="/roadmap/goal/create" method="post" class="add-goal-form">
+                    <input type="hidden" name="phase_id" value="{{ phase.id }}">
+                    <input type="text" name="title" placeholder="Nova meta..." required class="input-small">
+                    <button type="submit" class="btn btn-small">+</button>
+                </form>
+
+                <div class="phase-actions">
+                    <form action="/roadmap/phase/{{ phase.id }}/delete" method="post">
+                        <button type="submit" class="btn btn-danger btn-small">Excluir Fase</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div id="create-phase-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Nova Fase</h2>
+            <button class="modal-close" onclick="closeModal('create-phase-modal')">&times;</button>
+        </div>
+        <form action="/roadmap/phase/create" method="post">
+            <div class="form-group">
+                <label for="name">Nome</label>
+                <input type="text" id="name" name="name" required class="input">
+            </div>
+            <div class="form-group">
+                <label for="description">Descricao</label>
+                <input type="text" id="description" name="description" class="input">
+            </div>
+            <div class="form-group">
+                <label for="order">Ordem</label>
+                <input type="number" id="order" name="order" value="0" class="input">
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Criar Fase</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
