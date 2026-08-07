@@ -8,14 +8,15 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.database.connection import Base
-from app.config.settings import get_settings
+from app.config.settings import get_settings, resolve_database_url
 
 settings = get_settings()
 
 config = context.config
 
-if settings.DATABASE_URL:
-    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+database_url = resolve_database_url()
+if database_url:
+    config.set_main_option("sqlalchemy.url", database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 import logging
 import os
 
-from app.database.connection import engine, Base, SessionLocal
+from app.database.connection import engine, Base, SessionLocal, DATABASE_URL
 from app.config.settings import get_settings
 from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews
 
@@ -17,11 +17,12 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-IS_PRODUCTION = os.environ.get("RENDER", False) or settings.DATABASE_URL.startswith("postgresql")
+IS_PRODUCTION = os.environ.get("RENDER", False) or DATABASE_URL.startswith("postgresql")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info(f"Database type: {'PostgreSQL' if DATABASE_URL.startswith('postgresql') else 'SQLite'}")
     logger.info("Creating database tables...")
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully.")
