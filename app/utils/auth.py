@@ -1,7 +1,7 @@
 import hashlib
 import secrets
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Optional
 
 SECRET_KEY = os.environ.get("DEVJOURNEY_SECRET_KEY", secrets.token_hex(32))
@@ -27,7 +27,7 @@ def create_session(user_id: int, db) -> str:
     from app.models.user_session import UserSession
 
     token = secrets.token_urlsafe(32)
-    expires_at = datetime.now(timezone.utc) + timedelta(hours=SESSION_EXPIRY_HOURS)
+    expires_at = datetime.now() + timedelta(hours=SESSION_EXPIRY_HOURS)
 
     session = UserSession(
         token=token,
@@ -49,7 +49,7 @@ def get_session(token: Optional[str], db) -> Optional[dict]:
     if not session:
         return None
 
-    if datetime.now(timezone.utc) > session.expires_at:
+    if datetime.now() > session.expires_at:
         db.delete(session)
         db.commit()
         return None

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime
 from app.models.project import Project
 from app.repositories.project_repository import ProjectRepository
 
@@ -43,7 +43,7 @@ class ProjectService:
         project = self.project_repo.get_by_id(project_id)
         if project:
             if data.get("status") == "completed" and not project.completed_at:
-                data["completed_at"] = datetime.now(timezone.utc)
+                data["completed_at"] = datetime.now()
             return self.project_repo.update(project, data)
         return None
 

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime
 from app.models.achievement import Achievement
 from app.repositories.achievement_repository import AchievementRepository
 
@@ -28,7 +28,7 @@ class AchievementService:
         if achievement and not achievement.unlocked:
             return self.achievement_repo.update(achievement, {
                 "unlocked": True,
-                "unlocked_at": datetime.now(timezone.utc)
+                "unlocked_at": datetime.now()
             })
         return achievement
 
