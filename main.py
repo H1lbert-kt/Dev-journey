@@ -65,16 +65,16 @@ class StudyModeMiddleware(BaseHTTPMiddleware):
         study_mode = "programacao"
         if token:
             from app.utils.auth import get_session
-            session = get_session(token)
-            if session:
-                db = SessionLocal()
-                try:
+            db = SessionLocal()
+            try:
+                session = get_session(token, db)
+                if session:
                     from app.models.user import User
                     user = db.query(User).filter(User.id == session["user_id"]).first()
                     if user:
                         study_mode = user.study_mode
-                finally:
-                    db.close()
+            finally:
+                db.close()
         request.state.study_mode = study_mode
         response = await call_next(request)
         return response

@@ -7,8 +7,6 @@ from typing import Optional
 SECRET_KEY = os.environ.get("DEVJOURNEY_SECRET_KEY", secrets.token_hex(32))
 SESSION_EXPIRY_HOURS = 24
 
-sessions: dict[str, dict] = {}
-
 
 def hash_password(password: str) -> str:
     salt = secrets.token_hex(16)
@@ -25,30 +23,56 @@ def verify_password(password: str, password_hash: str) -> bool:
         return False
 
 
-def create_session(user_id: int) -> str:
+def create_session(user_id: int, db) -> str:
+    from app.models.user_session import UserSession
+
     token = secrets.token_urlsafe(32)
-    sessions[token] = {
-        "user_id": user_id,
-        "created_at": datetime.now(timezone.utc),
-        "expires_at": datetime.now(timezone.utc) + timedelta(hours=SESSION_EXPIRY_HOURS),
-    }
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=SESSION_EXPIRY_HOURS)
+
+    session = UserSession(
+        token=token,
+        user_id=user_id,
+        expires_at=expires_at,
+    )
+    db.add(session)
+    db.commit()
     return token
 
 
-def get_session(token: Optional[str]) -> Optional[dict]:
+def get_session(token: Optional[str], db) -> Optional[dict]:
     if not token:
         return None
-    session = sessions.get(token)
+
+    from app.models.user_session import UserSession
+
+    session = db.query(UserSession).filter(UserSession.token == token).first()
     if not session:
         return None
-    if datetime.now(timezone.utc) > session["expires_at"]:
-        del sessions[token]
+
+    if datetime.now(timezone.utc) > session.expires_at:
+        db.delete(session)
+        db.commit()
         return None
-    return session
+
+    return {"user_id": session.user_id, "token": session.token}
 
 
-def delete_session(token: str):
-    sessions.pop(token, None)
+def delete_session(token: str, db):
+    from app.models.user_session import UserSession
+
+    session = db.query(UserSession).filter(UserSession.token == token).first()
+    if session:
+        db.delete(session)
+        db.commit()
+
+
+def delete_session_token(token: str):
+    from app.database.connection import SessionLocal
+    db = SessionLocal()
+    try:
+        delete_session(token, db)
+    finally:
+        db.close()
 
 
 def sanitize_input(value: str) -> str:

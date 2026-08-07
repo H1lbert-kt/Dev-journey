@@ -25,3 +25,4 @@ class User(Base):
     flashcards = relationship("Flashcard", back_populates="user", cascade="all, delete-orphan")
     simulados = relationship("Simulado", back_populates="user", cascade="all, delete-orphan")
     subject_goals = relationship("SubjectGoal", back_populates="user", cascade="all, delete-orphan")
+    sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")

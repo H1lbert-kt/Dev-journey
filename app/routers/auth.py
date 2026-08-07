@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 import re
 from app.database.connection import get_db
 from app.models.user import User
-from app.utils.auth import hash_password, verify_password, create_session, delete_session, get_session, sanitize_input
+from app.utils.auth import hash_password, verify_password, create_session, get_session, delete_session, sanitize_input
 
 router = APIRouter()
 
@@ -14,7 +14,7 @@ EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("session_token")
-    session = get_session(token)
+    session = get_session(token, db)
     if not session:
         return None
     user = db.query(User).filter(User.id == session["user_id"]).first()
@@ -23,7 +23,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
 
 def require_auth(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("session_token")
-    session = get_session(token)
+    session = get_session(token, db)
     if not session:
         return None
     user = db.query(User).filter(User.id == session["user_id"]).first()
@@ -62,7 +62,7 @@ async def login(
             context={"error": "Usuario ou senha invalidos"},
         )
 
-    token = create_session(user.id)
+    token = create_session(user.id, db)
     response = RedirectResponse(url="/", status_code=303)
     response.set_cookie("session_token", token, httponly=True, max_age=86400, samesite="lax")
     return response
@@ -141,17 +141,17 @@ async def register(
     db.commit()
     db.refresh(user)
 
-    token = create_session(user.id)
+    token = create_session(user.id, db)
     response = RedirectResponse(url="/", status_code=303)
     response.set_cookie("session_token", token, httponly=True, max_age=86400, samesite="lax")
     return response
 
 
 @router.get("/logout")
-async def logout(request: Request):
+async def logout(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("session_token")
     if token:
-        delete_session(token)
+        delete_session(token, db)
     response = RedirectResponse(url="/login", status_code=303)
     response.delete_cookie("session_token")
     return response
