@@ -93,13 +93,13 @@
         </ul>
         <div class="sidebar-footer">
             <div class="mode-switch">
-                <form action="/auth/switch-mode" method="post" id="mode-form">
+                <form action="/switch-mode" method="post" id="mode-form">
                     <input type="hidden" name="mode" id="mode-input" value="">
                 </form>
-                <button class="mode-switch-btn" onclick="switchMode('programacao')" id="mode-prog">
+                <button type="button" class="mode-switch-btn" onclick="switchMode('programacao')" id="mode-prog">
                     &#128187; Programacao
                 </button>
-                <button class="mode-switch-btn" onclick="switchMode('concursos')" id="mode-conc">
+                <button type="button" class="mode-switch-btn" onclick="switchMode('concursos')" id="mode-conc">
                     &#128218; Concursos
                 </button>
             </div>
@@ -118,7 +118,7 @@
         <div class="floating-timer-content">
             <div class="floating-timer-left">
                 <span class="floating-timer-icon">&#9200;</span>
-                <span class="floating-timer-subject" id="ft-subject">Programacao</span>
+                <span class="floating-timer-subject" id="ft-subject"></span>
             </div>
             <div class="floating-timer-center">
                 <span class="floating-timer-time" id="ft-time">00:00:00</span>
@@ -132,11 +132,13 @@
 
     <script src="/static/js/main.js"></script>
     <script>
+    var currentStudyMode = '{{ request.state.study_mode|default("programacao") }}';
+    var defaultSubject = currentStudyMode === 'programacao' ? 'Programacao' : 'Portugues';
     var ftState = JSON.parse(localStorage.getItem('ftState') || 'null');
     var ftSeconds = ftState ? ftState.seconds : 0;
     var ftRunning = false;
     var ftInterval = null;
-    var ftSubject = ftState ? ftState.subject : 'Programacao';
+    var ftSubject = ftState ? ftState.subject : defaultSubject;
 
     function ftSaveState() {
         localStorage.setItem('ftState', JSON.stringify({
@@ -147,7 +149,7 @@
     }
 
     function ftStart(subject) {
-        ftSubject = subject || 'Programacao';
+        ftSubject = subject || defaultSubject;
         ftRunning = true;
         ftSeconds = 0;
         ftSaveState();
@@ -240,7 +242,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        fetch('/auth/mode').then(function(r) { return r.json(); }).then(function(data) {
+        fetch('/mode').then(function(r) { return r.json(); }).then(function(data) {
             var mode = data.mode || 'programacao';
             var progBtn = document.getElementById('mode-prog');
             var concBtn = document.getElementById('mode-conc');

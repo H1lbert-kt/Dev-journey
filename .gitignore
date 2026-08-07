@@ -1,4 +1,9 @@
-__pycache__
+# ============================================
+# DevJourney - Git Ignore
+# ============================================
+
+# Python
+__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -18,16 +23,45 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-.env
-.venv
-env/
+
+# Virtual environments
 venv/
 ENV/
-.idea/
+env/
+
+# IDE
 .vscode/
+.idea/
 *.swp
 *.swo
 *~
-.DS_Store
-Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Database files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Docker
+.dockerignore
+
+# Documentation
+LICENSE
+
+# Temporary files
 *.log
+*.tmp
+*.temp
+.cache/
+
+# Alembic
+alembic/versions/*.py
+!alembic/versions/.gitkeep
+
+# Render
+render.yaml

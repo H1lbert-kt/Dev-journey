@@ -61,6 +61,10 @@
             <div class="timer-subject-area">
                 <label>Materia</label>
                 <select id="timer-subject" class="input">
+                    {% for subject in subjects %}
+                    <option value="{{ subject.name }}">{{ subject.name }}</option>
+                    {% endfor %}
+                    {% if not subjects %}
                     {% if study_mode == "programacao" %}
                     <option value="Programacao">Programacao</option>
                     <option value="Algoritmos">Algoritmos</option>
@@ -70,13 +74,7 @@
                     <option value="Sistemas Operacionais">Sistemas Operacionais</option>
                     <option value="Ingles">Ingles</option>
                     <option value="Logica">Logica</option>
-                    <option value="Projeto">Projeto</option>
-                    <option value="Outro">Outro</option>
                     {% else %}
-                    {% for subject in subjects %}
-                    <option value="{{ subject.name }}">{{ subject.name }}</option>
-                    {% endfor %}
-                    {% if not subjects %}
                     <option value="Portugues">Portugues</option>
                     <option value="Raciocinio Logico">Raciocinio Logico</option>
                     <option value="Direito">Direito</option>
@@ -88,8 +86,8 @@
                     <option value="Atualidades">Atualidades</option>
                     <option value="Ingles">Ingles</option>
                     {% endif %}
-                    <option value="Outro">Outro</option>
                     {% endif %}
+                    <option value="Outro">Outro</option>
                 </select>
             </div>
 

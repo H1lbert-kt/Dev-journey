@@ -101,11 +101,11 @@
             </div>
             <div class="form-group">
                 <label>Frente (Pergunta)</label>
-                <textarea name="front" required class="input" placeholder="O que e improbidade administrativa?"></textarea>
+                <textarea name="front" required class="input" placeholder="{% if study_mode == 'programacao' %}O que e uma Hash Table?{% else %}O que e improbidade administrativa?{% endif %}"></textarea>
             </div>
             <div class="form-group">
                 <label>Verso (Resposta)</label>
-                <textarea name="back" required class="input" placeholder="E o ato de agente publico que causa lesao ao patrimonio publico..."></textarea>
+                <textarea name="back" required class="input" placeholder="{% if study_mode == 'programacao' %}E uma estrutura de dados que mapeia chaves para valores...{% else %}E o ato de agente publico que causa lesao ao patrimonio publico...{% endif %}"></textarea>
             </div>
             <button type="submit" class="btn btn-primary btn-full">Criar Flashcard</button>
         </form>

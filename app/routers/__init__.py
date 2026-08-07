@@ -1,3 +1,3 @@
-from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements
+from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews
 
-__all__ = ["dashboard", "roadmap", "projects", "habits", "calendar", "stats", "achievements"]
+__all__ = ["dashboard", "roadmap", "projects", "habits", "calendar", "stats", "achievements", "auth", "timer", "methods", "subjects", "flashcards", "simulados", "reviews"]

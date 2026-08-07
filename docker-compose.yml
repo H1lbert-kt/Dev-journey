@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: devjourney-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-devjourney}
+      POSTGRES_USER: ${POSTGRES_USER:-devjourney}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devjourney_secure_password}
+    ports:
+      - "${POSTGRES_PORT:-5431}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-devjourney}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: devjourney-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8001}:8000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-devjourney}:${POSTGRES_PASSWORD:-devjourney_secure_password}@db:5432/${POSTGRES_DB:-devjourney}
+      SECRET_KEY: ${SECRET_KEY:-$(openssl rand -hex 32)}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app:ro
+
+volumes:
+  postgres_data:
+    driver: local

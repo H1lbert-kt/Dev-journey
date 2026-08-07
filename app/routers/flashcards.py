@@ -28,6 +28,7 @@ async def flashcards_page(request: Request, db: Session = Depends(get_db)):
             "flashcards": flashcards,
             "due_cards": due_cards,
             "total_cards": len(flashcards),
+            "study_mode": user.study_mode,
         },
     )
 
@@ -89,7 +90,7 @@ async def import_flashcards(
                     front=front,
                     back=back,
                     subject_id=subject_id,
-        next_review=datetime.now(),
+                    next_review=datetime.now(),
                     user_id=user.id,
                 )
                 db.add(flashcard)

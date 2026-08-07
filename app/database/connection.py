@@ -5,10 +5,22 @@ from app.config.settings import get_settings
 settings = get_settings()
 
 connect_args = {}
+engine_kwargs = {
+    "pool_pre_ping": True,
+    "pool_size": 10,
+    "max_overflow": 20,
+}
+
 if settings.DATABASE_URL.startswith("sqlite"):
     connect_args["check_same_thread"] = False
+    engine_kwargs.pop("pool_size")
+    engine_kwargs.pop("max_overflow")
 
-engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
+engine = create_engine(
+    settings.DATABASE_URL,
+    connect_args=connect_args,
+    **engine_kwargs
+)
 
 if settings.DATABASE_URL.startswith("sqlite"):
     @event.listens_for(engine, "connect")

@@ -30,12 +30,12 @@
             <div class="ranking-card">
                 <div class="ranking-label">Esta Semana</div>
                 <div class="ranking-value">{{ week_minutes|int }}min</div>
-                <div class="ranking-comparison ranking-sual">{{ "%.1f"|format(daily_avg) }}min/dia</div>
+                <div class="ranking-comparison ranking-same">{{ "%.1f"|format(daily_avg) }}min/dia</div>
             </div>
             <div class="ranking-card">
                 <div class="ranking-label">Este Mes</div>
                 <div class="ranking-value">{{ month_minutes|int }}min</div>
-                <div class="ranking-comparison ranking-sual">{{ "%.1f"|format(month_minutes / 60) }}h total</div>
+                <div class="ranking-comparison ranking-same">{{ "%.1f"|format(month_minutes / 60) }}h total</div>
             </div>
         </div>
     </div>
