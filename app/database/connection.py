@@ -1,11 +1,12 @@
 import logging
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from app.config.settings import get_settings, resolve_database_url
+from app.config.settings import resolve_database_url
 
 logger = logging.getLogger(__name__)
 
 DATABASE_URL = resolve_database_url()
+IS_POSTGRESQL = DATABASE_URL.startswith("postgresql")
 
 connect_args = {}
 engine_kwargs = {
@@ -14,13 +15,10 @@ engine_kwargs = {
     "max_overflow": 20,
 }
 
-if DATABASE_URL.startswith("sqlite"):
+if not IS_POSTGRESQL:
     connect_args["check_same_thread"] = False
     engine_kwargs.pop("pool_size")
     engine_kwargs.pop("max_overflow")
-    logger.info("Configuring SQLite database")
-else:
-    logger.info("Configuring PostgreSQL database with connection pooling")
 
 engine = create_engine(
     DATABASE_URL,
@@ -28,7 +26,7 @@ engine = create_engine(
     **engine_kwargs
 )
 
-if DATABASE_URL.startswith("sqlite"):
+if not IS_POSTGRESQL:
     @event.listens_for(engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()

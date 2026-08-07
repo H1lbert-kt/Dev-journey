@@ -62,6 +62,3 @@ LICENSE
 # Alembic
 alembic/versions/*.py
 !alembic/versions/.gitkeep
-
-# Render
-render.yaml

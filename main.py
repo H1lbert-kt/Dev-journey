@@ -3,12 +3,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.routing import Match
 from pathlib import Path
 from contextlib import asynccontextmanager
 import logging
 import os
 
-from app.database.connection import engine, Base, SessionLocal, DATABASE_URL
+from app.database.connection import engine, Base, SessionLocal, DATABASE_URL, IS_POSTGRESQL
 from app.config.settings import get_settings
 from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews
 
@@ -17,17 +18,21 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-IS_PRODUCTION = os.environ.get("RENDER", False) or DATABASE_URL.startswith("postgresql")
+IS_PRODUCTION = os.environ.get("RENDER", False) or IS_POSTGRESQL
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info(f"Database type: {'PostgreSQL' if DATABASE_URL.startswith('postgresql') else 'SQLite'}")
+    logger.info("=" * 50)
+    logger.info(f"Database: {'PostgreSQL (persistent)' if IS_POSTGRESQL else 'SQLite (ephemeral)'}")
+    logger.info(f"Environment: {'Production' if IS_PRODUCTION else 'Development'}")
+    logger.info("=" * 50)
     logger.info("Creating database tables...")
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully.")
     yield
     logger.info("Shutting down application...")
+    engine.dispose()
 
 
 app = FastAPI(
@@ -62,21 +67,27 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 class StudyModeMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        if path.startswith("/static") or path.startswith("/favicon"):
+            return await call_next(request)
+
+        request.state.study_mode = "programacao"
         token = request.cookies.get("session_token")
-        study_mode = "programacao"
         if token:
-            from app.utils.auth import get_session
             db = SessionLocal()
             try:
+                from app.utils.auth import get_session
+                from app.models.user import User
                 session = get_session(token, db)
                 if session:
-                    from app.models.user import User
                     user = db.query(User).filter(User.id == session["user_id"]).first()
                     if user:
-                        study_mode = user.study_mode
+                        request.state.study_mode = user.study_mode
+            except Exception as e:
+                logger.warning(f"Middleware session error: {e}")
             finally:
                 db.close()
-        request.state.study_mode = study_mode
+
         response = await call_next(request)
         return response
 
@@ -107,7 +118,7 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "version": "1.0.0"}
+    return {"status": "healthy", "version": "1.0.0", "database": "postgresql" if IS_POSTGRESQL else "sqlite"}
 
 
 if __name__ == "__main__":

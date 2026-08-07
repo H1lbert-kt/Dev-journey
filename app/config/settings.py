@@ -14,16 +14,10 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore",
     )
 
-    DATABASE_URL: str = f"sqlite:///{BASE_DIR}/devjourney.db"
     SECRET_KEY: str = "devjourney-secret-key-change-in-production"
-
-    POSTGRES_DB: str = "devjourney"
-    POSTGRES_USER: str = "devjourney"
-    POSTGRES_PASSWORD: str = "devjourney_secure_password"
-    POSTGRES_PORT: int = 5432
-
     APP_PORT: int = 8000
 
 
@@ -33,15 +27,16 @@ def get_settings() -> Settings:
 
 
 def resolve_database_url() -> str:
-    url = os.environ.get("DATABASE_URL", "")
+    url = os.environ.get("DATABASE_URL", "").strip()
 
-    if not url:
-        logger.warning("DATABASE_URL not set, falling back to SQLite")
-        return f"sqlite:///{BASE_DIR}/devjourney.db"
+    if url:
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+        if url.startswith("postgresql://"):
+            logger.info(f"PostgreSQL connected: {url.split('@')[-1]}")
+            return url
+        logger.warning(f"Unrecognized DATABASE_URL scheme: {url[:30]}...")
+        return url
 
-    if url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql://", 1)
-        logger.info("Fixed postgres:// -> postgresql://")
-
-    logger.info(f"Using database: {url.split('@')[-1] if '@' in url else url}")
-    return url
+    logger.warning("DATABASE_URL not set - using SQLite (data will be lost on deploy!)")
+    return f"sqlite:///{BASE_DIR}/devjourney.db"

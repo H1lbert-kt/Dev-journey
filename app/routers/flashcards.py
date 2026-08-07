@@ -18,7 +18,11 @@ async def flashcards_page(request: Request, db: Session = Depends(get_db)):
 
     subjects = db.query(Subject).filter(Subject.user_id == user.id).all()
     flashcards = db.query(Flashcard).filter(Flashcard.user_id == user.id).all()
-    due_cards = [f for f in flashcards if f.next_review and f.next_review <= datetime.now()]
+    due_cards = db.query(Flashcard).filter(
+        Flashcard.user_id == user.id,
+        Flashcard.next_review != None,
+        Flashcard.next_review <= datetime.now()
+    ).all()
 
     return request.app.state.templates.TemplateResponse(
         request,
