@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
@@ -7,6 +8,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 logger = logging.getLogger(__name__)
+
+IS_RENDER = bool(os.environ.get("RENDER"))
 
 
 class Settings(BaseSettings):
@@ -37,6 +40,15 @@ def resolve_database_url() -> str:
             return url
         logger.warning(f"Unrecognized DATABASE_URL scheme: {url[:30]}...")
         return url
+
+    if IS_RENDER:
+        logger.critical(
+            "FATAL: DATABASE_URL is not set! "
+            "Render requires a PostgreSQL database. "
+            "Configure DATABASE_URL in your Render dashboard or render.yaml. "
+            "Data WILL be lost with SQLite on Render's ephemeral filesystem."
+        )
+        sys.exit(1)
 
     logger.warning("DATABASE_URL not set - using SQLite (data will be lost on deploy!)")
     return f"sqlite:///{BASE_DIR}/devjourney.db"

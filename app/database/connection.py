@@ -1,7 +1,8 @@
 import logging
-from sqlalchemy import create_engine, event, text
+import time
+from sqlalchemy import create_engine, event, text, inspect
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from app.config.settings import resolve_database_url
+from app.config.settings import resolve_database_url, IS_RENDER
 
 logger = logging.getLogger(__name__)
 
@@ -47,3 +48,62 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def init_database():
+    """Create tables if they don't exist. Safe for multi-worker startup."""
+    from app.models import User, Phase, Goal, Project, Habit, CalendarDay
+    from app.models import Achievement, StudySession, Subject, Flashcard
+    from app.models import Simulado, SubjectGoal, UserSession
+
+    inspector = inspect(engine)
+    existing_tables = inspector.get_table_names()
+
+    required_tables = [
+        "users", "user_sessions", "phases", "goals", "projects",
+        "habits", "calendar_days", "achievements", "study_sessions",
+        "subjects", "flashcards", "simulados", "subject_goals",
+    ]
+
+    missing = [t for t in required_tables if t not in existing_tables]
+
+    if not missing:
+        logger.info("All database tables already exist.")
+        return
+
+    if IS_POSTGRESQL and IS_RENDER:
+        _create_with_pg_advisory_lock(missing)
+    else:
+        _create_tables(missing)
+
+
+def _create_with_pg_advisory_lock(missing):
+    """Use PostgreSQL advisory lock to ensure only one worker creates tables."""
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("SELECT pg_advisory_lock(12345)"))
+            logger.info("Acquired advisory lock for table creation.")
+
+            existing = inspect(engine).get_table_names()
+            still_missing = [t for t in missing if t not in existing]
+
+            if still_missing:
+                logger.info(f"Creating missing tables: {still_missing}")
+                Base.metadata.create_all(bind=engine)
+                logger.info("Tables created successfully.")
+            else:
+                logger.info("Tables were created by another worker.")
+
+            conn.execute(text("SELECT pg_advisory_unlock(12345)"))
+            logger.info("Released advisory lock.")
+        except Exception as e:
+            logger.error(f"Advisory lock failed: {e}")
+            logger.info("Falling back to direct create_all...")
+            Base.metadata.create_all(bind=engine)
+
+
+def _create_tables(missing):
+    """Create tables directly (single worker / SQLite)."""
+    logger.info(f"Creating missing tables: {missing}")
+    Base.metadata.create_all(bind=engine)
+    logger.info("Tables created successfully.")

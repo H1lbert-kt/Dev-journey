@@ -9,7 +9,7 @@ from datetime import datetime
 import logging
 import os
 
-from app.database.connection import engine, Base, SessionLocal, DATABASE_URL, IS_POSTGRESQL
+from app.database.connection import engine, Base, SessionLocal, DATABASE_URL, IS_POSTGRESQL, init_database
 from app.config.settings import get_settings
 from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews
 
@@ -27,9 +27,9 @@ async def lifespan(app: FastAPI):
     logger.info(f"Database: {'PostgreSQL (persistent)' if IS_POSTGRESQL else 'SQLite (ephemeral)'}")
     logger.info(f"Environment: {'Production' if IS_PRODUCTION else 'Development'}")
     logger.info("=" * 50)
-    logger.info("Creating database tables...")
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created successfully.")
+    logger.info("Initializing database tables...")
+    init_database()
+    logger.info("Database tables initialized successfully.")
 
     db = SessionLocal()
     try:
