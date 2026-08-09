@@ -3,9 +3,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.routing import Match
 from pathlib import Path
 from contextlib import asynccontextmanager
+from datetime import datetime
 import logging
 import os
 
@@ -30,6 +30,19 @@ async def lifespan(app: FastAPI):
     logger.info("Creating database tables...")
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully.")
+
+    db = SessionLocal()
+    try:
+        from app.models.user_session import UserSession
+        deleted = db.query(UserSession).filter(UserSession.expires_at < datetime.now()).delete()
+        db.commit()
+        if deleted:
+            logger.info(f"Cleaned up {deleted} expired sessions")
+    except Exception as e:
+        logger.warning(f"Session cleanup error: {e}")
+    finally:
+        db.close()
+
     yield
     logger.info("Shutting down application...")
     engine.dispose()
@@ -71,23 +84,7 @@ class StudyModeMiddleware(BaseHTTPMiddleware):
         if path.startswith("/static") or path.startswith("/favicon"):
             return await call_next(request)
 
-        request.state.study_mode = "programacao"
-        token = request.cookies.get("session_token")
-        if token:
-            db = SessionLocal()
-            try:
-                from app.utils.auth import get_session
-                from app.models.user import User
-                session = get_session(token, db)
-                if session:
-                    user = db.query(User).filter(User.id == session["user_id"]).first()
-                    if user:
-                        request.state.study_mode = user.study_mode
-            except Exception as e:
-                logger.warning(f"Middleware session error: {e}")
-            finally:
-                db.close()
-
+        request.state.study_mode = request.cookies.get("study_mode", "programacao")
         response = await call_next(request)
         return response
 

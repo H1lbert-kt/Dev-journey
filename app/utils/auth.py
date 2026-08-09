@@ -50,8 +50,6 @@ def get_session(token: Optional[str], db) -> Optional[dict]:
         return None
 
     if datetime.now() > session.expires_at:
-        db.delete(session)
-        db.commit()
         return None
 
     return {"user_id": session.user_id, "token": session.token}
@@ -64,15 +62,6 @@ def delete_session(token: str, db):
     if session:
         db.delete(session)
         db.commit()
-
-
-def delete_session_token(token: str):
-    from app.database.connection import SessionLocal
-    db = SessionLocal()
-    try:
-        delete_session(token, db)
-    finally:
-        db.close()
 
 
 def sanitize_input(value: str) -> str:

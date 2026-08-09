@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, Form, Response
+from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy.orm import Session
 import re
@@ -12,17 +12,10 @@ USERNAME_REGEX = re.compile(r'^[a-zA-Z0-9_]{3,30}$')
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 
 
-def get_current_user(request: Request, db: Session = Depends(get_db)):
-    token = request.cookies.get("session_token")
-    session = get_session(token, db)
-    if not session:
-        return None
-    user = db.query(User).filter(User.id == session["user_id"]).first()
-    return user
-
-
 def require_auth(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("session_token")
+    if not token:
+        return None
     session = get_session(token, db)
     if not session:
         return None
@@ -65,6 +58,7 @@ async def login(
     token = create_session(user.id, db)
     response = RedirectResponse(url="/", status_code=303)
     response.set_cookie("session_token", token, httponly=True, max_age=86400, samesite="lax")
+    response.set_cookie("study_mode", user.study_mode, max_age=86400, samesite="lax")
     return response
 
 
@@ -144,6 +138,7 @@ async def register(
     token = create_session(user.id, db)
     response = RedirectResponse(url="/", status_code=303)
     response.set_cookie("session_token", token, httponly=True, max_age=86400, samesite="lax")
+    response.set_cookie("study_mode", study_mode, max_age=86400, samesite="lax")
     return response
 
 
@@ -154,6 +149,7 @@ async def logout(request: Request, db: Session = Depends(get_db)):
         delete_session(token, db)
     response = RedirectResponse(url="/login", status_code=303)
     response.delete_cookie("session_token")
+    response.delete_cookie("study_mode")
     return response
 
 
@@ -171,7 +167,9 @@ async def switch_mode(
         user.study_mode = mode
         db.commit()
 
-    return RedirectResponse(url=request.headers.get("referer", "/"), status_code=303)
+    response = RedirectResponse(url=request.headers.get("referer", "/"), status_code=303)
+    response.set_cookie("study_mode", mode, max_age=86400, samesite="lax")
+    return response
 
 
 @router.get("/mode")
