@@ -264,8 +264,6 @@ function moveToNextSubject() {
     }
 
     clearInterval(timerInterval);
-    seconds = 0;
-    updateDisplay();
 
     var sub = scheduleSubjects[currentScheduleIndex];
     sessionResults.push({
@@ -274,6 +272,8 @@ function moveToNextSubject() {
         seconds: seconds
     });
 
+    seconds = 0;
+    updateDisplay();
     currentScheduleIndex++;
 
     if (currentScheduleIndex >= scheduleSubjects.length) {
@@ -302,6 +302,28 @@ function finishStudySession() {
 
     showSessionSummary();
     updateDisplay();
+
+    fetch('/timer/check-day').then(function(r) { return r.json(); }).then(function(data) {
+        if (data.day_completed) {
+            showDayCompleted();
+        }
+    });
+}
+
+function showDayCompleted() {
+    var overlay = document.createElement('div');
+    overlay.className = 'celebration';
+    overlay.innerHTML = '<div class="celebration-content">' +
+        '<span class="celebration-icon">&#127881;</span>' +
+        '<h2>Dia Completo!</h2>' +
+        '<p>Todas as materias do dia foram estudadas</p>' +
+        '<p style="margin-top: 16px"><button class="btn btn-primary" onclick="this.closest(\'.celebration\').remove()">Fechar</button></p>' +
+        '</div>';
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+    });
+    document.body.appendChild(overlay);
+    setTimeout(function() { overlay.remove(); }, 8000);
 }
 
 function showSessionSummary() {

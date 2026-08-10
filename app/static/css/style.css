@@ -2435,6 +2435,27 @@ textarea.input {
     font-weight: 600;
 }
 
+.weekly-day-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.weekly-day-check {
+    font-size: 14px;
+    color: var(--success);
+    font-weight: 700;
+}
+
+.weekly-day-done {
+    border-color: var(--success);
+}
+
+.weekly-day-header-done {
+    background-color: rgba(63, 185, 80, 0.15);
+    border-bottom-color: rgba(63, 185, 80, 0.3);
+}
+
 .weekly-day-subjects {
     flex: 1;
     padding: 8px;

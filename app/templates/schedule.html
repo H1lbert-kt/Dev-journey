@@ -11,10 +11,15 @@
 
     <div class="weekly-grid">
         {% for day_idx in range(7) %}
-        <div class="weekly-day">
-            <div class="weekly-day-header">
+        <div class="weekly-day {% if completed_days[day_idx] %}weekly-day-done{% endif %}">
+            <div class="weekly-day-header {% if completed_days[day_idx] %}weekly-day-header-done{% endif %}">
                 <h3 class="weekly-day-name">{{ days[day_idx] }}</h3>
-                <span class="weekly-day-count">{{ schedule[day_idx]|length }}</span>
+                <div class="weekly-day-right">
+                    {% if completed_days[day_idx] %}
+                    <span class="weekly-day-check">&#10004;</span>
+                    {% endif %}
+                    <span class="weekly-day-count">{{ schedule[day_idx]|length }}</span>
+                </div>
             </div>
 
             <div class="weekly-day-subjects">

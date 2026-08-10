@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import RedirectResponse, JSONResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.database.connection import get_db
 from app.models.subject import Subject
 from app.models.weekly_schedule import WeeklySchedule
 from app.models.study_session import StudySession
 from app.routers.auth import require_auth
-from datetime import datetime
+from datetime import datetime, date
 
 router = APIRouter()
 
@@ -46,6 +47,21 @@ async def schedule_page(request: Request, db: Session = Depends(get_db)):
         if s.date and s.date.date() == today:
             today_minutes[s.subject] = today_minutes.get(s.subject, 0) + s.duration_minutes
 
+    completed_days = {}
+    all_sessions_today = db.query(StudySession).filter(
+        StudySession.user_id == user.id,
+        func.date(StudySession.date) == today,
+    ).all()
+    studied_names_today = {s.subject for s in all_sessions_today}
+
+    for day_idx in range(7):
+        day_subjects = schedule[day_idx]
+        if not day_subjects:
+            completed_days[day_idx] = False
+            continue
+        all_studied = all(item["name"] in studied_names_today for item in day_subjects)
+        completed_days[day_idx] = all_studied
+
     return request.app.state.templates.TemplateResponse(
         request,
         "schedule.html",
@@ -55,6 +71,7 @@ async def schedule_page(request: Request, db: Session = Depends(get_db)):
             "days": DAYS,
             "today_minutes": today_minutes,
             "study_mode": user.study_mode,
+            "completed_days": completed_days,
         },
     )
 
