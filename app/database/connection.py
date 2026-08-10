@@ -1,5 +1,4 @@
 import logging
-import time
 from sqlalchemy import create_engine, event, text, inspect
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from app.config.settings import resolve_database_url, IS_RENDER
@@ -51,7 +50,7 @@ def get_db():
 
 
 def init_database():
-    """Create tables if they don't exist. Safe for multi-worker startup."""
+    """Create tables and add missing columns. Safe for multi-worker startup."""
     from app.models import User, Phase, Goal, Project, Habit, CalendarDay
     from app.models import Achievement, StudySession, Subject, Flashcard
     from app.models import Simulado, SubjectGoal, UserSession
@@ -65,16 +64,50 @@ def init_database():
         "subjects", "flashcards", "simulados", "subject_goals",
     ]
 
-    missing = [t for t in required_tables if t not in existing_tables]
+    missing_tables = [t for t in required_tables if t not in existing_tables]
 
-    if not missing:
-        logger.info("All database tables already exist.")
-        return
-
-    if IS_POSTGRESQL and IS_RENDER:
-        _create_with_pg_advisory_lock(missing)
+    if missing_tables:
+        if IS_POSTGRESQL and IS_RENDER:
+            _create_with_pg_advisory_lock(missing_tables)
+        else:
+            _create_tables(missing_tables)
     else:
-        _create_tables(missing)
+        logger.info("All database tables already exist.")
+
+    _add_missing_columns(inspector)
+
+
+def _add_missing_columns(inspector):
+    """Add any columns that exist in models but not in the database."""
+    columns_map = {
+        "simulados": [
+            ("wrong_answers", "INTEGER", "0"),
+            ("null_answers", "INTEGER", "0"),
+            ("correction_method", "VARCHAR(20)", "'normal'"),
+            ("final_score", "FLOAT", None),
+        ],
+    }
+
+    for table_name, expected_columns in columns_map.items():
+        if table_name not in inspector.get_table_names():
+            continue
+
+        existing_cols = {c["name"] for c in inspector.get_columns(table_name)}
+
+        for col_name, col_type, default_val in expected_columns:
+            if col_name not in existing_cols:
+                try:
+                    sql = f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}"
+                    if default_val is not None:
+                        sql += f" DEFAULT {default_val}"
+                    with engine.begin() as conn:
+                        conn.execute(text(sql))
+                    logger.info(f"Added missing column {table_name}.{col_name}")
+                except Exception as e:
+                    if "already exists" in str(e).lower():
+                        pass
+                    else:
+                        logger.warning(f"Could not add column {table_name}.{col_name}: {e}")
 
 
 def _create_with_pg_advisory_lock(missing):
