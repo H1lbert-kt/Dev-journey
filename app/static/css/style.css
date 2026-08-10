@@ -2354,3 +2354,38 @@ textarea.input {
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+
+.simulado-score-group {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.simulado-points {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.simulado-diff {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.diff-better {
+    background-color: rgba(63, 185, 80, 0.15);
+    color: var(--success);
+}
+
+.diff-worse {
+    background-color: rgba(248, 81, 73, 0.15);
+    color: var(--danger);
+}
+
+.diff-same {
+    background-color: var(--bg-tertiary);
+    color: var(--text-muted);
+}

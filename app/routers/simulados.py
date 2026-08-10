@@ -9,6 +9,16 @@ from app.routers.auth import require_auth
 router = APIRouter()
 
 
+def _get_score(s):
+    return s.score if s.score is not None else 0
+
+
+def _get_points(s):
+    if s.final_score is not None:
+        return s.final_score
+    return s.correct_answers if s.correction_method == "normal" else max(0, s.correct_answers - s.wrong_answers)
+
+
 @router.get("/")
 async def simulados_page(request: Request, db: Session = Depends(get_db)):
     user = require_auth(request, db)
@@ -25,7 +35,7 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
     best_score = 0
     worst_score = 100
     for s in simulados:
-        sc = s.final_score if s.final_score is not None else (s.score or 0)
+        sc = _get_score(s)
         if s.total_questions > 0:
             if sc > best_score:
                 best_score = sc
@@ -34,11 +44,24 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
 
     last_simulado = simulados[0] if simulados else None
 
+    comparisons = {}
+    for i in range(len(simulados)):
+        curr = simulados[i]
+        prev = simulados[i + 1] if i + 1 < len(simulados) else None
+        if prev:
+            curr_score = _get_score(curr)
+            prev_score = _get_score(prev)
+            diff = round(curr_score - prev_score, 1)
+            comparisons[curr.id] = {"diff": diff}
+        else:
+            comparisons[curr.id] = {"diff": None}
+
     return request.app.state.templates.TemplateResponse(
         request,
         "simulados.html",
         context={
             "simulados": simulados,
+            "comparisons": comparisons,
             "total_questions": total_questions,
             "avg_score": avg_score,
             "total_time": round(total_time / 60, 1),

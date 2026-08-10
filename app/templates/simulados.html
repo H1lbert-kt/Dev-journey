@@ -65,9 +65,20 @@
                     </div>
                 </div>
                 <div class="simulado-stats">
-                    <span class="simulado-score {% if simulado.score >= 70 %}score-good{% elif simulado.score >= 50 %}score-medium{% else %}score-bad{% endif %}">
-                        {{ simulado.score }}%
+                    <div class="simulado-score-group">
+                        <span class="simulado-score {% if simulado.score >= 70 %}score-good{% elif simulado.score >= 50 %}score-medium{% else %}score-bad{% endif %}">
+                            {{ simulado.score }}%
+                        </span>
+                        {% if simulado.final_score is not none %}
+                        <span class="simulado-points">{{ simulado.final_score|int }}pts</span>
+                        {% endif %}
+                    </div>
+                    {% set comp = comparisons.get(simulado.id, {}) %}
+                    {% if comp.diff is not none %}
+                    <span class="simulado-diff {% if comp.diff > 0 %}diff-better{% elif comp.diff < 0 %}diff-worse{% else %}diff-same{% endif %}">
+                        {% if comp.diff > 0 %}+{% endif %}{{ comp.diff }}%
                     </span>
+                    {% endif %}
                     <span class="simulado-questions">
                         &#10004;{{ simulado.correct_answers }}
                         {% if simulado.wrong_answers > 0 %}&#10008;{{ simulado.wrong_answers }}{% endif %}
