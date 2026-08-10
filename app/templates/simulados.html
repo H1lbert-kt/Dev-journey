@@ -57,13 +57,23 @@
             <div class="simulado-item">
                 <div class="simulado-info">
                     <h3>{{ simulado.name }}</h3>
-                    <span class="simulado-date">{{ simulado.created_at.strftime('%d/%m/%Y') }}</span>
+                    <div class="simulado-meta">
+                        <span class="simulado-date">{{ simulado.created_at.strftime('%d/%m/%Y') }}</span>
+                        {% if simulado.correction_method == "cespe" %}
+                        <span class="simulado-method-badge">CESPE</span>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="simulado-stats">
                     <span class="simulado-score {% if simulado.score >= 70 %}score-good{% elif simulado.score >= 50 %}score-medium{% else %}score-bad{% endif %}">
                         {{ simulado.score }}%
                     </span>
-                    <span class="simulado-questions">{{ simulado.correct_answers }}/{{ simulado.total_questions }}</span>
+                    <span class="simulado-questions">
+                        &#10004;{{ simulado.correct_answers }}
+                        {% if simulado.wrong_answers > 0 %}&#10008;{{ simulado.wrong_answers }}{% endif %}
+                        {% if simulado.null_answers > 0 %}&#8212;{{ simulado.null_answers }}{% endif %}
+                        /{{ simulado.total_questions }}
+                    </span>
                     <span class="simulado-time">{{ "%.0f"|format(simulado.time_minutes) }}min</span>
                 </div>
                 <form action="/simulados/{{ simulado.id }}/delete" method="post">
@@ -81,25 +91,189 @@
             <h2>Registrar Simulado</h2>
             <button class="modal-close" onclick="closeModal('create-simulado-modal')">&times;</button>
         </div>
-        <form action="/simulados/create" method="post">
+        <form action="/simulados/create" method="post" id="simulado-form">
             <div class="form-group">
                 <label>Nome do Simulado</label>
                 <input type="text" name="name" required class="input" placeholder="Ex: CESPE 2024">
             </div>
+
+            <div class="form-group">
+                <label>Metodo de Correcao</label>
+                <div class="correction-method-selector">
+                    <label class="correction-option">
+                        <input type="radio" name="correction_method" value="normal" checked onchange="updateCorrectionInfo()">
+                        <span class="correction-label">Normal</span>
+                        <span class="correction-desc">Acertos / Total</span>
+                    </label>
+                    <label class="correction-option">
+                        <input type="radio" name="correction_method" value="cespe" onchange="updateCorrectionInfo()">
+                        <span class="correction-label">CESPE (Anula)</span>
+                        <span class="correction-desc">Erradas anulam certas</span>
+                    </label>
+                </div>
+                <p class="correction-info" id="correction-info">Pontuacao = Acertos / Total x 100</p>
+            </div>
+
             <div class="form-group">
                 <label>Total de Questoes</label>
-                <input type="number" name="total_questions" required class="input" min="1">
+                <input type="number" name="total_questions" required class="input" min="1" id="total-questions" oninput="updateNullPreview()">
             </div>
+
             <div class="form-group">
-                <label>Acertos</label>
-                <input type="number" name="correct_answers" required class="input" min="0">
+                <label>Questoes Certas</label>
+                <input type="number" name="correct_answers" required class="input" min="0" id="correct-answers" oninput="updateNullPreview()">
             </div>
+
+            <div class="form-group" id="wrong-answers-group">
+                <label>Questoes Erradas</label>
+                <input type="number" name="wrong_answers" value="0" class="input" min="0" id="wrong-answers" oninput="updateNullPreview()">
+            </div>
+
             <div class="form-group">
-                <label>Tempo (minutos)</label>
-                <input type="number" name="time_minutes" required class="input" min="1" step="0.5">
+                <label>Questoes Nulas (nao respondidas)</label>
+                <div class="null-preview" id="null-preview">-</div>
             </div>
-            <button type="submit" class="btn btn-primary btn-full">Registrar</button>
+
+            <div class="score-preview" id="score-preview" style="display:none">
+                <span class="score-preview-label">Pontuacao:</span>
+                <span class="score-preview-value" id="score-preview-value">0%</span>
+                {% if last_simulado %}
+                <span class="score-comparison" id="score-comparison"></span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Cronometro do Simulado</label>
+                <div class="simulado-timer-area">
+                    <div class="simulado-timer-display" id="simulado-timer-display">00:00:00</div>
+                    <div class="simulado-timer-controls">
+                        <button type="button" class="btn btn-primary" id="sim-btn-start" onclick="simStartTimer()">Iniciar Cronometro</button>
+                        <button type="button" class="btn btn-danger" id="sim-btn-stop" onclick="simStopTimer()" style="display:none">Parar</button>
+                        <button type="button" class="btn" id="sim-btn-reset" onclick="simResetTimer()" style="display:none">Resetar</button>
+                    </div>
+                    <input type="hidden" name="time_minutes" id="sim-time-input" value="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Ou informe o tempo manualmente (minutos)</label>
+                <input type="number" name="time_minutes_manual" class="input" min="0.5" step="0.5" id="time-manual" oninput="syncManualTime()">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">Registrar Simulado</button>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var simInterval = null;
+var simSeconds = 0;
+var simRunning = false;
+
+function simStartTimer() {
+    simRunning = true;
+    simSeconds = 0;
+    document.getElementById('sim-btn-start').style.display = 'none';
+    document.getElementById('sim-btn-stop').style.display = 'inline-flex';
+    document.getElementById('sim-btn-reset').style.display = 'inline-flex';
+    simInterval = setInterval(function() {
+        simSeconds++;
+        simUpdateDisplay();
+    }, 1000);
+}
+
+function simStopTimer() {
+    clearInterval(simInterval);
+    simRunning = false;
+    document.getElementById('sim-btn-stop').style.display = 'none';
+    document.getElementById('sim-btn-start').style.display = 'inline-flex';
+    document.getElementById('sim-btn-start').textContent = 'Retomar';
+    var minutes = Math.round((simSeconds / 60) * 100) / 100;
+    document.getElementById('sim-time-input').value = minutes;
+    document.getElementById('time-manual').value = '';
+}
+
+function simResetTimer() {
+    clearInterval(simInterval);
+    simSeconds = 0;
+    simRunning = false;
+    simUpdateDisplay();
+    document.getElementById('sim-btn-start').style.display = 'inline-flex';
+    document.getElementById('sim-btn-start').textContent = 'Iniciar Cronometro';
+    document.getElementById('sim-btn-stop').style.display = 'none';
+    document.getElementById('sim-btn-reset').style.display = 'none';
+    document.getElementById('sim-time-input').value = 0;
+}
+
+function simUpdateDisplay() {
+    var h = Math.floor(simSeconds / 3600);
+    var m = Math.floor((simSeconds % 3600) / 60);
+    var s = simSeconds % 60;
+    document.getElementById('simulado-timer-display').textContent =
+        String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function syncManualTime() {
+    var val = parseFloat(document.getElementById('time-manual').value) || 0;
+    document.getElementById('sim-time-input').value = val;
+    if (val > 0 && simRunning) {
+        simStopTimer();
+    }
+}
+
+function updateCorrectionInfo() {
+    var method = document.querySelector('input[name="correction_method"]:checked').value;
+    var info = document.getElementById('correction-info');
+    if (method === 'cespe') {
+        info.textContent = 'Pontuacao = Acertos - Erradas (erradas anulam as certas). Nao respondidas = neutras.';
+    } else {
+        info.textContent = 'Pontuacao = Acertos / Total x 100';
+    }
+    updateNullPreview();
+}
+
+function updateNullPreview() {
+    var total = parseInt(document.getElementById('total-questions').value) || 0;
+    var correct = parseInt(document.getElementById('correct-answers').value) || 0;
+    var wrong = parseInt(document.getElementById('wrong-answers').value) || 0;
+    var method = document.querySelector('input[name="correction_method"]:checked').value;
+    var nulls = Math.max(0, total - correct - wrong);
+
+    document.getElementById('null-preview').textContent = total > 0 ? nulls : '-';
+
+    if (total > 0) {
+        var score;
+        if (method === 'cespe') {
+            score = Math.max(0, ((correct - wrong) / total) * 100);
+        } else {
+            score = (correct / total) * 100;
+        }
+        score = Math.round(score * 10) / 10;
+
+        var preview = document.getElementById('score-preview');
+        preview.style.display = 'flex';
+        document.getElementById('score-preview-value').textContent = score + '%';
+
+        {% if last_simulado %}
+        var comp = document.getElementById('score-comparison');
+        var lastScore = {{ last_simulado.score or 0 }};
+        var diff = Math.round((score - lastScore) * 10) / 10;
+        if (diff > 0) {
+            comp.textContent = '+' + diff + '% vs ultimo';
+            comp.className = 'score-comparison score-better';
+        } else if (diff < 0) {
+            comp.textContent = diff + '% vs ultimo';
+            comp.className = 'score-comparison score-worse';
+        } else {
+            comp.textContent = 'igual ao ultimo';
+            comp.className = 'score-comparison score-same';
+        }
+        {% endif %}
+    } else {
+        document.getElementById('score-preview').style.display = 'none';
+    }
+}
+</script>
 {% endblock %}

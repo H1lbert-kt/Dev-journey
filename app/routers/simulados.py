@@ -25,12 +25,14 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
     best_score = 0
     worst_score = 100
     for s in simulados:
+        sc = s.final_score if s.final_score is not None else (s.score or 0)
         if s.total_questions > 0:
-            score = round(s.correct_answers / s.total_questions * 100, 1)
-            if score > best_score:
-                best_score = score
-            if score < worst_score:
-                worst_score = score
+            if sc > best_score:
+                best_score = sc
+            if sc < worst_score:
+                worst_score = sc
+
+    last_simulado = simulados[0] if simulados else None
 
     return request.app.state.templates.TemplateResponse(
         request,
@@ -42,6 +44,8 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
             "total_time": round(total_time / 60, 1),
             "best_score": best_score,
             "worst_score": worst_score if simulados else 0,
+            "last_simulado": last_simulado,
+            "study_mode": user.study_mode,
         },
     )
 
@@ -52,6 +56,8 @@ async def create_simulado(
     name: str = Form(...),
     total_questions: int = Form(...),
     correct_answers: int = Form(...),
+    wrong_answers: int = Form(0),
+    correction_method: str = Form("normal"),
     time_minutes: float = Form(...),
     db: Session = Depends(get_db),
 ):
@@ -59,12 +65,23 @@ async def create_simulado(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    score = round(correct_answers / total_questions * 100, 1) if total_questions > 0 else 0
+    null_answers = max(0, total_questions - correct_answers - wrong_answers)
+
+    if correction_method == "cespe":
+        final_score = max(0, correct_answers - wrong_answers)
+        score = round(final_score / total_questions * 100, 1) if total_questions > 0 else 0
+    else:
+        final_score = correct_answers
+        score = round(correct_answers / total_questions * 100, 1) if total_questions > 0 else 0
 
     simulado = Simulado(
         name=name,
         total_questions=total_questions,
         correct_answers=correct_answers,
+        wrong_answers=wrong_answers,
+        null_answers=null_answers,
+        correction_method=correction_method,
+        final_score=final_score,
         time_minutes=time_minutes,
         score=score,
         user_id=user.id,

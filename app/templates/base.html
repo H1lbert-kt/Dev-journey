@@ -9,7 +9,7 @@
 <body>
     <nav class="sidebar">
         <div class="sidebar-header">
-            <h1 class="logo">DevJourney</h1>
+            <h1 class="logo" id="site-logo">DevJourney</h1>
         </div>
         <ul class="nav-links">
             <li>
@@ -100,7 +100,7 @@
                     &#128187; Programacao
                 </button>
                 <button type="button" class="mode-switch-btn" onclick="switchMode('concursos')" id="mode-conc">
-                    &#128218; Concursos
+                    &#128218; Concursos e Vestibulares
                 </button>
             </div>
             <a href="/logout" class="nav-link">
@@ -134,6 +134,16 @@
     <script>
     var currentStudyMode = '{{ request.state.study_mode|default("programacao") }}';
     var defaultSubject = currentStudyMode === 'programacao' ? 'Programacao' : 'Portugues';
+
+    function updateLogo(mode) {
+        var logo = document.getElementById('site-logo');
+        if (mode === 'concursos') {
+            logo.textContent = 'DevJourney | Concursos e Vestibulares';
+        } else {
+            logo.textContent = 'DevJourney';
+        }
+    }
+    updateLogo(currentStudyMode);
     var ftState = JSON.parse(localStorage.getItem('ftState') || 'null');
     var ftSeconds = ftState ? ftState.seconds : 0;
     var ftRunning = false;
@@ -253,6 +263,7 @@
                 concBtn.classList.add('active');
                 progBtn.classList.remove('active');
             }
+            updateLogo(mode);
         }).catch(function() {
             document.getElementById('mode-prog').classList.add('active');
         });

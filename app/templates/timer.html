@@ -176,10 +176,18 @@ function pauseTimer() {
 
 function stopTimer() {
     clearInterval(timerInterval);
-    if (seconds > 0) {
-        saveSession(seconds);
-    }
-    resetTimer();
+    seconds = 0;
+    running = false;
+    pomodoroMinutes = 0;
+    pomodoroSeconds = 0;
+    ftStop();
+    document.getElementById('btn-start').style.display = 'inline-flex';
+    document.getElementById('btn-start').textContent = 'Iniciar';
+    document.getElementById('btn-pause').style.display = 'none';
+    document.getElementById('btn-stop').style.display = 'none';
+    document.getElementById('btn-reset').style.display = 'none';
+    document.getElementById('timer-phase').textContent = 'Pronto';
+    updateDisplay();
 }
 
 function resetTimer() {
@@ -188,6 +196,11 @@ function resetTimer() {
     running = false;
     pomodoroMinutes = 0;
     pomodoroSeconds = 0;
+    ftSeconds = 0;
+    ftRunning = false;
+    clearInterval(ftInterval);
+    localStorage.removeItem('ftState');
+    document.getElementById('floating-timer').style.display = 'none';
     updateDisplay();
     document.getElementById('btn-start').style.display = 'inline-flex';
     document.getElementById('btn-start').textContent = 'Iniciar';
@@ -213,20 +226,6 @@ function setPomodoro(minutes) {
     } else {
         document.getElementById('timer-phase').textContent = running ? 'Estudando...' : 'Modo livre';
     }
-}
-
-function saveSession(totalSeconds) {
-    var subject = document.getElementById('timer-subject').value;
-    var formData = new FormData();
-    formData.append('subject', subject);
-    formData.append('duration', totalSeconds);
-
-    fetch('/timer/save', {
-        method: 'POST',
-        body: formData
-    }).then(function() {
-        location.reload();
-    });
 }
 
 if ('Notification' in window && Notification.permission === 'default') {
