@@ -11,5 +11,6 @@ from app.models.flashcard import Flashcard
 from app.models.simulado import Simulado
 from app.models.subject_goal import SubjectGoal
 from app.models.user_session import UserSession
+from app.models.weekly_schedule import WeeklySchedule
 
-__all__ = ["User", "Phase", "Goal", "Project", "Habit", "CalendarDay", "Achievement", "StudySession", "Subject", "Flashcard", "Simulado", "SubjectGoal", "UserSession"]
+__all__ = ["User", "Phase", "Goal", "Project", "Habit", "CalendarDay", "Achievement", "StudySession", "Subject", "Flashcard", "Simulado", "SubjectGoal", "UserSession", "WeeklySchedule"]

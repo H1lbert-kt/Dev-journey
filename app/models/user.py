@@ -26,3 +26,4 @@ class User(Base):
     simulados = relationship("Simulado", back_populates="user", cascade="all, delete-orphan")
     subject_goals = relationship("SubjectGoal", back_populates="user", cascade="all, delete-orphan")
     sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
+    weekly_schedule = relationship("WeeklySchedule", back_populates="user", cascade="all, delete-orphan")

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Agenda Semanal - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Agenda Semanal de Materias</h1>
+        <p class="page-subtitle">Organize suas materias por dia da semana</p>
+    </div>
+
+    <div class="weekly-grid">
+        {% for day_idx in range(7) %}
+        <div class="weekly-day">
+            <div class="weekly-day-header">
+                <h3 class="weekly-day-name">{{ days[day_idx] }}</h3>
+                <span class="weekly-day-count">{{ schedule[day_idx]|length }}</span>
+            </div>
+
+            <div class="weekly-day-subjects">
+                {% for item in schedule[day_idx] %}
+                <div class="weekly-subject-card" style="border-left: 3px solid {{ item.color }}">
+                    <div class="weekly-subject-info">
+                        <span class="weekly-subject-name">{{ item.name }}</span>
+                        {% set studied = today_minutes.get(item.name, 0) %}
+                        {% if studied > 0 %}
+                        <span class="weekly-subject-time">{{ studied|round(0)|int }}min</span>
+                        {% endif %}
+                    </div>
+                    <div class="weekly-subject-actions">
+                        {% if not loop.first %}
+                        <form action="/schedule/reorder" method="post" style="display:inline">
+                            <input type="hidden" name="schedule_id" value="{{ item.id }}">
+                            <input type="hidden" name="new_order" value="{{ loop.index0 - 1 }}">
+                            <button type="submit" class="weekly-order-btn" title="Mover para cima">&#9650;</button>
+                        </form>
+                        {% endif %}
+                        {% if not loop.last %}
+                        <form action="/schedule/reorder" method="post" style="display:inline">
+                            <input type="hidden" name="schedule_id" value="{{ item.id }}">
+                            <input type="hidden" name="new_order" value="{{ loop.index0 + 1 }}">
+                            <button type="submit" class="weekly-order-btn" title="Mover para baixo">&#9660;</button>
+                        </form>
+                        {% endif %}
+                        <form action="/schedule/remove" method="post" style="display:inline">
+                            <input type="hidden" name="schedule_id" value="{{ item.id }}">
+                            <button type="submit" class="weekly-remove-btn" title="Remover">&times;</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if not schedule[day_idx] %}
+                <div class="weekly-empty">Nenhuma materia</div>
+                {% endif %}
+            </div>
+
+            {% if subjects %}
+            <div class="weekly-add">
+                <form action="/schedule/add" method="post" class="weekly-add-form">
+                    <input type="hidden" name="day_of_week" value="{{ day_idx }}">
+                    <select name="subject_id" class="weekly-add-select">
+                        <option value="">+ Adicionar</option>
+                        {% for subject in subjects %}
+                        {% if subject.id not in schedule[day_idx]|map(attribute='subject_id')|list %}
+                        <option value="{{ subject.id }}">{{ subject.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="weekly-add-btn">+</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="section" style="margin-top: 32px">
+        <div class="section-header">
+            <h2 class="section-title">Como usar</h2>
+        </div>
+        <div class="weekly-help">
+            <p>1. Cadastre suas materias na aba <a href="/subjects">Materias</a></p>
+            <p>2. Adicione materias a cada dia da semana usando o seletor</p>
+            <p>3. Use as setas para reordenar a ordem de estudo</p>
+            <p>4. No <a href="/timer">Cronometro</a>, selecione o dia da semana para estudar na ordem definida</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

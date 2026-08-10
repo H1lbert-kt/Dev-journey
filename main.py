@@ -11,7 +11,7 @@ import os
 
 from app.database.connection import engine, Base, SessionLocal, DATABASE_URL, IS_POSTGRESQL, init_database
 from app.config.settings import get_settings
-from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews
+from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews, schedule
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -106,6 +106,7 @@ app.include_router(subjects.router, prefix="/subjects", tags=["Subjects"])
 app.include_router(flashcards.router, prefix="/flashcards", tags=["Flashcards"])
 app.include_router(simulados.router, prefix="/simulados", tags=["Simulados"])
 app.include_router(reviews.router, prefix="/reviews", tags=["Reviews"])
+app.include_router(schedule.router, prefix="/schedule", tags=["Schedule"])
 
 
 @app.get("/")

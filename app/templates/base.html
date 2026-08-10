@@ -37,6 +37,12 @@
                 </a>
             </li>
             <li>
+                <a href="/schedule" class="nav-link {% if '/schedule' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128197;</span>
+                    Agenda Semanal
+                </a>
+            </li>
+            <li>
                 <a href="/flashcards" class="nav-link {% if '/flashcards' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#127183;</span>
                     Flashcards

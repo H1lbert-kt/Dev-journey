@@ -58,7 +58,31 @@
                 <div class="timer-progress-fill" style="width: {{ (today_minutes / daily_goal * 100) if daily_goal > 0 else 0 }}%"></div>
             </div>
 
-            <div class="timer-subject-area">
+            <div class="schedule-selector" id="schedule-selector">
+                <label>Agenda Semanal</label>
+                <select id="schedule-day" class="input" onchange="loadDaySchedule()">
+                    <option value="">Selecionar dia...</option>
+                    <option value="0">Segunda</option>
+                    <option value="1">Terca</option>
+                    <option value="2">Quarta</option>
+                    <option value="3">Quinta</option>
+                    <option value="4">Sexta</option>
+                    <option value="5">Sabado</option>
+                    <option value="6">Domingo</option>
+                </select>
+            </div>
+
+            <div class="schedule-subjects" id="schedule-subjects" style="display:none">
+                <div class="schedule-subjects-header">
+                    <label>Materias do dia:</label>
+                </div>
+                <div class="schedule-subjects-list" id="schedule-subjects-list"></div>
+                <button class="btn btn-success btn-full" id="btn-start-session" onclick="startStudySession()" style="margin-top: 12px">
+                    Iniciar Sessao de Estudos
+                </button>
+            </div>
+
+            <div class="timer-subject-area" id="manual-subject-area">
                 <label>Materia</label>
                 <select id="timer-subject" class="input">
                     {% for subject in subjects %}
@@ -94,6 +118,10 @@
             <div class="timer-display">
                 <div class="timer-time" id="timer-display">00:00:00</div>
                 <div class="timer-phase" id="timer-phase">Pronto</div>
+                <div class="timer-current-subject" id="timer-current-subject" style="display:none">
+                    <span id="current-subject-name"></span>
+                    <span id="current-subject-progress"></span>
+                </div>
             </div>
 
             <div class="timer-controls">
@@ -110,6 +138,15 @@
                 <button class="btn btn-small" onclick="setPomodoro(60)">60min</button>
                 <button class="btn btn-small" onclick="setPomodoro(0)">Livre</button>
             </div>
+        </div>
+    </div>
+
+    <div class="session-summary" id="session-summary" style="display:none">
+        <h2 class="section-title">Resumo da Sessao</h2>
+        <div class="session-summary-list" id="session-summary-list"></div>
+        <div class="session-summary-total">
+            <span>Total:</span>
+            <span id="session-summary-total">0min</span>
         </div>
     </div>
 
@@ -134,6 +171,163 @@ var running = false;
 var pomodoroMinutes = 0;
 var pomodoroSeconds = 0;
 
+var scheduleSubjects = [];
+var currentScheduleIndex = 0;
+var sessionMode = false;
+var sessionResults = [];
+
+function loadDaySchedule() {
+    var dayVal = document.getElementById('schedule-day').value;
+    if (dayVal === '') {
+        document.getElementById('schedule-subjects').style.display = 'none';
+        document.getElementById('manual-subject-area').style.display = 'block';
+        return;
+    }
+
+    fetch('/schedule/api/' + dayVal)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            scheduleSubjects = data.subjects || [];
+            var list = document.getElementById('schedule-subjects-list');
+            list.innerHTML = '';
+
+            if (scheduleSubjects.length === 0) {
+                list.innerHTML = '<div class="schedule-empty">Nenhuma materia neste dia. <a href="/schedule">Adicionar</a></div>';
+                document.getElementById('btn-start-session').style.display = 'none';
+            } else {
+                for (var i = 0; i < scheduleSubjects.length; i++) {
+                    var s = scheduleSubjects[i];
+                    var div = document.createElement('div');
+                    div.className = 'schedule-subject-item';
+                    div.id = 'schedule-item-' + i;
+                    div.innerHTML = '<span class="schedule-subject-dot" style="background:' + s.color + '"></span>' +
+                        '<span class="schedule-subject-text">' + s.name + '</span>' +
+                        '<span class="schedule-subject-status" id="schedule-status-' + i + '"></span>';
+                    list.appendChild(div);
+                }
+                document.getElementById('btn-start-session').style.display = 'block';
+            }
+
+            document.getElementById('schedule-subjects').style.display = 'block';
+            document.getElementById('manual-subject-area').style.display = 'none';
+        });
+}
+
+function startStudySession() {
+    if (scheduleSubjects.length === 0) return;
+
+    sessionMode = true;
+    currentScheduleIndex = 0;
+    sessionResults = [];
+    document.getElementById('session-summary').style.display = 'none';
+    document.getElementById('schedule-selector').style.display = 'none';
+    document.getElementById('btn-start-session').style.display = 'none';
+
+    highlightCurrentSubject();
+    document.getElementById('timer-subject').value = scheduleSubjects[0].name;
+    startTimer();
+}
+
+function highlightCurrentSubject() {
+    for (var i = 0; i < scheduleSubjects.length; i++) {
+        var item = document.getElementById('schedule-item-' + i);
+        var status = document.getElementById('schedule-status-' + i);
+        if (i < currentScheduleIndex) {
+            item.classList.remove('active', 'pending');
+            item.classList.add('done');
+            status.textContent = '&#10004;';
+        } else if (i === currentScheduleIndex) {
+            item.classList.add('active');
+            item.classList.remove('done', 'pending');
+            status.textContent = '&#9654;';
+        } else {
+            item.classList.add('pending');
+            item.classList.remove('active', 'done');
+            status.textContent = '';
+        }
+    }
+
+    if (currentScheduleIndex < scheduleSubjects.length) {
+        var sub = scheduleSubjects[currentScheduleIndex];
+        document.getElementById('current-subject-name').textContent = sub.name;
+        document.getElementById('current-subject-name').style.color = sub.color;
+        document.getElementById('current-subject-progress').textContent =
+            (currentScheduleIndex + 1) + '/' + scheduleSubjects.length;
+        document.getElementById('timer-current-subject').style.display = 'flex';
+    }
+}
+
+function moveToNextSubject() {
+    if (!sessionMode || currentScheduleIndex >= scheduleSubjects.length) {
+        finishStudySession();
+        return;
+    }
+
+    clearInterval(timerInterval);
+    seconds = 0;
+    updateDisplay();
+
+    var sub = scheduleSubjects[currentScheduleIndex];
+    sessionResults.push({
+        name: sub.name,
+        color: sub.color,
+        seconds: seconds
+    });
+
+    currentScheduleIndex++;
+
+    if (currentScheduleIndex >= scheduleSubjects.length) {
+        finishStudySession();
+        return;
+    }
+
+    highlightCurrentSubject();
+    document.getElementById('timer-subject').value = scheduleSubjects[currentScheduleIndex].name;
+    startTimer();
+}
+
+function finishStudySession() {
+    sessionMode = false;
+    clearInterval(timerInterval);
+    running = false;
+
+    document.getElementById('timer-phase').textContent = 'Sessao finalizada!';
+    document.getElementById('btn-start').style.display = 'inline-flex';
+    document.getElementById('btn-start').textContent = 'Iniciar';
+    document.getElementById('btn-pause').style.display = 'none';
+    document.getElementById('btn-stop').style.display = 'none';
+    document.getElementById('btn-reset').style.display = 'none';
+    document.getElementById('timer-current-subject').style.display = 'none';
+    document.getElementById('schedule-selector').style.display = 'block';
+
+    showSessionSummary();
+    updateDisplay();
+}
+
+function showSessionSummary() {
+    if (sessionResults.length === 0) return;
+
+    var container = document.getElementById('session-summary-list');
+    container.innerHTML = '';
+    var totalSeconds = 0;
+
+    for (var i = 0; i < sessionResults.length; i++) {
+        var r = sessionResults[i];
+        totalSeconds += r.seconds;
+        var mins = Math.round(r.seconds / 60);
+        var div = document.createElement('div');
+        div.className = 'summary-item';
+        div.innerHTML = '<span class="summary-dot" style="background:' + r.color + '"></span>' +
+            '<span class="summary-name">' + r.name + '</span>' +
+            '<span class="summary-time">' + mins + 'min</span>';
+        container.appendChild(div);
+    }
+
+    document.getElementById('session-summary-total').textContent = Math.round(totalSeconds / 60) + 'min';
+    document.getElementById('session-summary').style.display = 'block';
+    sessionResults = [];
+}
+
 function startTimer() {
     running = true;
     document.getElementById('btn-start').style.display = 'none';
@@ -142,7 +336,11 @@ function startTimer() {
     document.getElementById('btn-reset').style.display = 'inline-flex';
     document.getElementById('timer-phase').textContent = 'Estudando...';
 
-    ftStart(document.getElementById('timer-subject').value);
+    var subjectName = sessionMode && currentScheduleIndex < scheduleSubjects.length
+        ? scheduleSubjects[currentScheduleIndex].name
+        : document.getElementById('timer-subject').value;
+
+    ftStart(subjectName);
 
     timerInterval = setInterval(function() {
         seconds++;
@@ -157,6 +355,9 @@ function startTimer() {
             if (pomodoroMinutes <= 0 && pomodoroSeconds <= 0) {
                 pauseTimer();
                 document.getElementById('timer-phase').textContent = 'Pomodoro finalizado!';
+                if (sessionMode) {
+                    saveAndMoveNext();
+                }
                 if (Notification.permission === 'granted') {
                     new Notification('Pomodoro finalizado! Hora de descansar.');
                 }
@@ -174,8 +375,46 @@ function pauseTimer() {
     document.getElementById('timer-phase').textContent = 'Pausado';
 }
 
+function saveAndMoveNext() {
+    if (!sessionMode) return;
+
+    var subjectName = scheduleSubjects[currentScheduleIndex].name;
+    var duration = seconds;
+
+    sessionResults.push({
+        name: subjectName,
+        color: scheduleSubjects[currentScheduleIndex].color,
+        seconds: duration
+    });
+
+    if (duration > 0) {
+        var formData = new FormData();
+        formData.append('subject', subjectName);
+        formData.append('duration', duration);
+        fetch('/timer/save', { method: 'POST', body: formData });
+    }
+
+    currentScheduleIndex++;
+
+    if (currentScheduleIndex >= scheduleSubjects.length) {
+        finishStudySession();
+    } else {
+        seconds = 0;
+        updateDisplay();
+        highlightCurrentSubject();
+        document.getElementById('timer-subject').value = scheduleSubjects[currentScheduleIndex].name;
+        startTimer();
+    }
+}
+
 function stopTimer() {
     clearInterval(timerInterval);
+
+    if (sessionMode) {
+        saveAndMoveNext();
+        return;
+    }
+
     seconds = 0;
     running = false;
     pomodoroMinutes = 0;
@@ -196,6 +435,8 @@ function resetTimer() {
     running = false;
     pomodoroMinutes = 0;
     pomodoroSeconds = 0;
+    sessionMode = false;
+    sessionResults = [];
     ftSeconds = 0;
     ftRunning = false;
     clearInterval(ftInterval);
@@ -208,6 +449,9 @@ function resetTimer() {
     document.getElementById('btn-stop').style.display = 'none';
     document.getElementById('btn-reset').style.display = 'none';
     document.getElementById('timer-phase').textContent = 'Pronto';
+    document.getElementById('timer-current-subject').style.display = 'none';
+    document.getElementById('schedule-selector').style.display = 'block';
+    document.getElementById('btn-start-session').style.display = 'block';
 }
 
 function updateDisplay() {

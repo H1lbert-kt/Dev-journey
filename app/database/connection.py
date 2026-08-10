@@ -53,7 +53,7 @@ def init_database():
     """Create tables and add missing columns. Safe for multi-worker startup."""
     from app.models import User, Phase, Goal, Project, Habit, CalendarDay
     from app.models import Achievement, StudySession, Subject, Flashcard
-    from app.models import Simulado, SubjectGoal, UserSession
+    from app.models import Simulado, SubjectGoal, UserSession, WeeklySchedule
 
     inspector = inspect(engine)
     existing_tables = inspector.get_table_names()
@@ -62,6 +62,7 @@ def init_database():
         "users", "user_sessions", "phases", "goals", "projects",
         "habits", "calendar_days", "achievements", "study_sessions",
         "subjects", "flashcards", "simulados", "subject_goals",
+        "weekly_schedule",
     ]
 
     missing_tables = [t for t in required_tables if t not in existing_tables]
