@@ -67,8 +67,13 @@ async def save_session(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
+    if not subject or not subject.strip():
+        return JSONResponse(content={"error": "Materia obrigatoria"}, status_code=400)
+    if duration < 0:
+        return JSONResponse(content={"error": "Duracao invalida"}, status_code=400)
+
     session = StudySession(
-        subject=subject,
+        subject=subject.strip(),
         duration_minutes=round(duration / 60, 2),
         user_id=user.id,
     )

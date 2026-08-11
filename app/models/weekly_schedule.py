@@ -8,8 +8,8 @@ class WeeklySchedule(Base):
     __tablename__ = "weekly_schedule"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    subject_id = Column(Integer, ForeignKey("subjects.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
     day_of_week = Column(Integer, nullable=False)
     order = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, server_default=func.now())

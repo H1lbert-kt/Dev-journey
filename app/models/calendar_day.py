@@ -11,7 +11,7 @@ class CalendarDay(Base):
     date = Column(Date, nullable=False)
     studied = Column(Boolean, nullable=False, default=False)
     notes = Column(Text, nullable=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 

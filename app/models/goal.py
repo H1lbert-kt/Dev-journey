@@ -10,7 +10,7 @@ class Goal(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(200), nullable=False)
     completed = Column(Boolean, nullable=False, default=False)
-    phase_id = Column(Integer, ForeignKey("phases.id"), nullable=False)
+    phase_id = Column(Integer, ForeignKey("phases.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 

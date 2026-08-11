@@ -12,7 +12,7 @@ class Habit(Base):
     icon = Column(String(10), nullable=True)
     date = Column(Date, nullable=False)
     completed = Column(Boolean, nullable=False, default=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="habits")

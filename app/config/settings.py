@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import secrets
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 from pathlib import Path
@@ -20,7 +21,17 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    SECRET_KEY: str = "devjourney-secret-key-change-in-production"
+    SECRET_KEY: str = ""
+
+    def model_post_init(self, __context) -> None:
+        if IS_RENDER and not self.SECRET_KEY:
+            logger.critical(
+                "FATAL: SECRET_KEY is not set in production! "
+                "Set SECRET_KEY in your Render dashboard."
+            )
+            sys.exit(1)
+        if not IS_RENDER and not self.SECRET_KEY:
+            self.SECRET_KEY = secrets.token_hex(32)
     APP_PORT: int = 8000
 
 

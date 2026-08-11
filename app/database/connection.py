@@ -45,6 +45,9 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 
@@ -86,6 +89,12 @@ def _add_missing_columns(inspector):
             ("null_answers", "INTEGER", "0"),
             ("correction_method", "VARCHAR(20)", "'normal'"),
             ("final_score", "FLOAT", None),
+        ],
+        "subjects": [
+            ("color", "VARCHAR(7)", "'#58a6ff'"),
+        ],
+        "weekly_schedule": [
+            ("order", "INTEGER", "0"),
         ],
     }
 
@@ -131,6 +140,10 @@ def _create_with_pg_advisory_lock(missing):
             conn.execute(text("SELECT pg_advisory_unlock(12345)"))
             logger.info("Released advisory lock.")
         except Exception as e:
+            try:
+                conn.execute(text("SELECT pg_advisory_unlock(12345)"))
+            except Exception:
+                pass
             logger.error(f"Advisory lock failed: {e}")
             logger.info("Falling back to direct create_all...")
             Base.metadata.create_all(bind=engine)

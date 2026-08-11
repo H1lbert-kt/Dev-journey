@@ -13,7 +13,7 @@ class Achievement(Base):
     icon = Column(String(10), nullable=True)
     unlocked = Column(Boolean, nullable=False, default=False)
     unlocked_at = Column(DateTime, nullable=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="achievements")

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.database.connection import get_db
+from app.models.phase import Phase
 from app.services.phase_service import PhaseService
 from app.services.goal_service import GoalService
 from app.routers.auth import require_auth
@@ -75,6 +76,10 @@ async def create_goal(
     user = require_auth(request, db)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
+
+    phase = db.query(Phase).filter(Phase.id == phase_id, Phase.user_id == user.id).first()
+    if not phase:
+        return RedirectResponse(url="/roadmap", status_code=303)
 
     goal_service = GoalService(db, user.id)
     goal_service.create_goal(title=title, phase_id=phase_id)

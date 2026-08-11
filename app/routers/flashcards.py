@@ -20,7 +20,6 @@ async def flashcards_page(request: Request, db: Session = Depends(get_db)):
     flashcards = db.query(Flashcard).filter(Flashcard.user_id == user.id).all()
     due_cards = db.query(Flashcard).filter(
         Flashcard.user_id == user.id,
-        Flashcard.next_review != None,
         Flashcard.next_review <= datetime.now()
     ).all()
 
@@ -49,11 +48,14 @@ async def create_flashcard(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
+    subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first()
+    if not subject:
+        return RedirectResponse(url="/flashcards", status_code=303)
+
     flashcard = Flashcard(
         front=front,
         back=back,
         subject_id=subject_id,
-        next_review=datetime.now(),
         user_id=user.id,
     )
     db.add(flashcard)
@@ -72,8 +74,15 @@ async def import_flashcards(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    content = await file.read()
-    text = content.decode("utf-8")
+    subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first()
+    if not subject:
+        return RedirectResponse(url="/flashcards", status_code=303)
+
+    try:
+        content = await file.read()
+        text = content.decode("utf-8")
+    except UnicodeDecodeError:
+        return RedirectResponse(url="/flashcards", status_code=303)
     lines = [line.strip() for line in text.split("\n") if line.strip()]
 
     imported = 0
@@ -94,7 +103,6 @@ async def import_flashcards(
                     front=front,
                     back=back,
                     subject_id=subject_id,
-                    next_review=datetime.now(),
                     user_id=user.id,
                 )
                 db.add(flashcard)
@@ -117,6 +125,8 @@ async def review_flashcard(
 
     card = db.query(Flashcard).filter(Flashcard.id == card_id, Flashcard.user_id == user.id).first()
     if card:
+        quality = max(0, min(5, quality))
+
         if quality >= 3:
             new_interval = card.interval_days * card.ease_factor
         else:

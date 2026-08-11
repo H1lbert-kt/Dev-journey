@@ -87,8 +87,12 @@ async def mark_studied(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
+    try:
+        parsed_date = date.fromisoformat(study_date)
+    except (ValueError, TypeError):
+        return RedirectResponse(url="/calendar", status_code=303)
+
     calendar_service = CalendarService(db, user.id)
-    parsed_date = date.fromisoformat(study_date)
     calendar_service.mark_as_studied(parsed_date, notes if notes else None)
     url = f"/calendar?year={parsed_date.year}&month={parsed_date.month}"
     return RedirectResponse(url=url, status_code=303)
@@ -104,8 +108,12 @@ async def mark_not_studied(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
+    try:
+        parsed_date = date.fromisoformat(study_date)
+    except (ValueError, TypeError):
+        return RedirectResponse(url="/calendar", status_code=303)
+
     calendar_service = CalendarService(db, user.id)
-    parsed_date = date.fromisoformat(study_date)
     calendar_service.mark_as_not_studied(parsed_date)
     url = f"/calendar?year={parsed_date.year}&month={parsed_date.month}"
     return RedirectResponse(url=url, status_code=303)
@@ -122,8 +130,12 @@ async def update_notes(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
+    try:
+        parsed_date = date.fromisoformat(study_date)
+    except (ValueError, TypeError):
+        return RedirectResponse(url="/calendar", status_code=303)
+
     calendar_service = CalendarService(db, user.id)
-    parsed_date = date.fromisoformat(study_date)
     calendar_service.update_notes(parsed_date, notes)
     url = f"/calendar?year={parsed_date.year}&month={parsed_date.month}"
     return RedirectResponse(url=url, status_code=303)

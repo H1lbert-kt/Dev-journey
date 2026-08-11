@@ -88,6 +88,15 @@ async def create_simulado(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
+    if total_questions <= 0:
+        return RedirectResponse(url="/simulados", status_code=303)
+    if correct_answers < 0 or wrong_answers < 0:
+        return RedirectResponse(url="/simulados", status_code=303)
+    if correct_answers + wrong_answers > total_questions:
+        return RedirectResponse(url="/simulados", status_code=303)
+    if time_minutes < 0:
+        return RedirectResponse(url="/simulados", status_code=303)
+
     null_answers = max(0, total_questions - correct_answers - wrong_answers)
 
     if correction_method == "cespe":

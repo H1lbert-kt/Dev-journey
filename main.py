@@ -6,6 +6,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from pathlib import Path
 from contextlib import asynccontextmanager
 from datetime import datetime
+import asyncio
 import logging
 import os
 
@@ -43,7 +44,29 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
 
+    async def periodic_cleanup():
+        while True:
+            await asyncio.sleep(3600)
+            try:
+                db = SessionLocal()
+                from app.models.user_session import UserSession
+                deleted = db.query(UserSession).filter(UserSession.expires_at < datetime.now()).delete()
+                db.commit()
+                if deleted:
+                    logger.info(f"Periodic cleanup: removed {deleted} expired sessions")
+            except Exception as e:
+                logger.warning(f"Periodic session cleanup error: {e}")
+            finally:
+                db.close()
+
+    cleanup_task = asyncio.create_task(periodic_cleanup())
+
     yield
+    cleanup_task.cancel()
+    try:
+        await cleanup_task
+    except asyncio.CancelledError:
+        pass
     logger.info("Shutting down application...")
     engine.dispose()
 
@@ -84,7 +107,8 @@ class StudyModeMiddleware(BaseHTTPMiddleware):
         if path.startswith("/static") or path.startswith("/favicon"):
             return await call_next(request)
 
-        request.state.study_mode = request.cookies.get("study_mode", "programacao")
+        study_mode = request.cookies.get("study_mode", "programacao")
+        request.state.study_mode = study_mode if study_mode in ("programacao", "concursos") else "programacao"
         response = await call_next(request)
         return response
 
@@ -116,7 +140,14 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "version": "1.0.0", "database": "postgresql" if IS_POSTGRESQL else "sqlite"}
+    try:
+        from app.database.connection import engine
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return {"status": "healthy", "version": "1.0.0", "database": "postgresql" if IS_POSTGRESQL else "sqlite"}
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}, 503
 
 
 if __name__ == "__main__":

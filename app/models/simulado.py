@@ -17,7 +17,7 @@ class Simulado(Base):
     final_score = Column(Float, nullable=True)
     time_minutes = Column(Float, nullable=False, default=0.0)
     score = Column(Float, nullable=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="simulados")

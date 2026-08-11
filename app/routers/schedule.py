@@ -96,6 +96,9 @@ async def add_to_schedule(
         WeeklySchedule.subject_id == subject_id,
         WeeklySchedule.day_of_week == day_of_week,
     ).first()
+    if not (0 <= day_of_week <= 6):
+        return RedirectResponse(url="/schedule", status_code=303)
+
     if existing:
         return RedirectResponse(url="/schedule", status_code=303)
 

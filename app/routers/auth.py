@@ -48,7 +48,7 @@ async def login(
         )
 
     user = db.query(User).filter(User.username == username).first()
-    if not user or not verify_password(password, user.password_hash):
+    if not user or not verify_password(password, user.password_hash, user.id, db):
         return request.app.state.templates.TemplateResponse(
             request,
             "login.html",
@@ -166,6 +166,9 @@ async def switch_mode(
     if mode in ["programacao", "concursos"]:
         user.study_mode = mode
         db.commit()
+
+    if mode not in ["programacao", "concursos"]:
+        mode = "programacao"
 
     response = RedirectResponse(url=request.headers.get("referer", "/"), status_code=303)
     response.set_cookie("study_mode", mode, max_age=86400, samesite="lax")

@@ -28,7 +28,7 @@ class DashboardService:
             "total_progress": total_progress,
             "completed_goals": len(completed_goals),
             "pending_goals": len(all_goals) - len(completed_goals),
-            "completed_phases": sum(1 for p in phases if p.progress == 100),
+            "completed_phases": sum(1 for p in phases if p.progress >= 99.9),
             "completed_projects": completed_projects,
             "studied_days": studied_days,
         }
