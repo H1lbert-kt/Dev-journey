@@ -139,7 +139,7 @@ img { max-width: 100%; height: auto; }
 
 /* ==================== BOTTOM NAV (Mobile) ==================== */
 .bottom-nav {
-    display: none;
+    display: none !important;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -199,7 +199,7 @@ img { max-width: 100%; height: auto; }
 
 /* ==================== HAMBURGER ==================== */
 .hamburger {
-    display: none;
+    display: none !important;
     position: fixed;
     top: 16px;
     left: 16px;
@@ -239,7 +239,7 @@ img { max-width: 100%; height: auto; }
 }
 
 .sidebar-overlay {
-    display: none;
+    display: none !important;
     position: fixed;
     inset: 0;
     background-color: rgba(0, 0, 0, 0.6);
@@ -3016,11 +3016,11 @@ textarea.input {
     }
 
     .sidebar-overlay.active {
-        display: block;
+        display: block !important;
     }
 
     .hamburger {
-        display: flex;
+        display: flex !important;
     }
 
     .content {
@@ -3030,7 +3030,7 @@ textarea.input {
     }
 
     .bottom-nav {
-        display: block;
+        display: block !important;
     }
 
     .floating-timer {
