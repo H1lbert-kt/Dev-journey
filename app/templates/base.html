@@ -2,12 +2,26 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0d1117">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DevJourney">
+    <meta name="description" content="Acompanhe seu progresso de estudos para programacao e concursos">
     <title>{% block title %}DevJourney{% endblock %}</title>
+    <link rel="manifest" href="/static/manifest.json">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <nav class="sidebar">
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h1 class="logo" id="site-logo">DevJourney</h1>
         </div>
@@ -103,10 +117,10 @@
                     <input type="hidden" name="mode" id="mode-input" value="">
                 </form>
                 <button type="button" class="mode-switch-btn" onclick="switchMode('programacao')" id="mode-prog">
-                    &#128187; Programacao
+                    &#128187; <span>Programacao</span>
                 </button>
                 <button type="button" class="mode-switch-btn" onclick="switchMode('concursos')" id="mode-conc">
-                    &#128218; Concursos e Vestibulares
+                    &#128218; <span>Concursos</span>
                 </button>
             </div>
             <a href="/logout" class="nav-link">
@@ -119,6 +133,59 @@
     <main class="content">
         {% block content %}{% endblock %}
     </main>
+
+    <nav class="bottom-nav" id="bottom-nav">
+        <ul class="bottom-nav-list">
+            <li class="bottom-nav-item">
+                <a href="/" class="bottom-nav-link {% if request.url.path == '/' %}active{% endif %}">
+                    <span class="nav-icon">&#128202;</span>
+                    Home
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/timer" class="bottom-nav-link {% if '/timer' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#9200;</span>
+                    Timer
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/subjects" class="bottom-nav-link {% if '/subjects' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128218;</span>
+                    Materias
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/schedule" class="bottom-nav-link {% if '/schedule' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128197;</span>
+                    Agenda
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/flashcards" class="bottom-nav-link {% if '/flashcards' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127183;</span>
+                    Cards
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/simulados" class="bottom-nav-link {% if '/simulados' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128220;</span>
+                    Simul.
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/stats" class="bottom-nav-link {% if '/stats' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128200;</span>
+                    Stats
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/calendar" class="bottom-nav-link {% if '/calendar' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128197;</span>
+                    Cal.
+                </a>
+            </li>
+        </ul>
+    </nav>
 
     <div class="floating-timer" id="floating-timer" style="display:none">
         <div class="floating-timer-content">
@@ -138,6 +205,15 @@
 
     <script src="/static/js/main.js"></script>
     <script>
+    function toggleSidebar() {
+        var sidebar = document.getElementById('sidebar');
+        var overlay = document.getElementById('sidebar-overlay');
+        var hamburger = document.getElementById('hamburger');
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+        hamburger.classList.toggle('active');
+    }
+
     var currentStudyMode = '{{ request.state.study_mode|default("programacao") }}';
     var defaultSubject = currentStudyMode === 'programacao' ? 'Programacao' : 'Portugues';
 
@@ -274,6 +350,12 @@
             document.getElementById('mode-prog').classList.add('active');
         });
     });
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/static/js/sw.js').catch(function() {});
+        });
+    }
     </script>
     {% block scripts %}{% endblock %}
 </body>
