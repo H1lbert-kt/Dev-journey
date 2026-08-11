@@ -22,17 +22,19 @@ class Settings(BaseSettings):
     )
 
     SECRET_KEY: str = ""
+    APP_PORT: int = 8000
 
     def model_post_init(self, __context) -> None:
-        if IS_RENDER and not self.SECRET_KEY:
-            logger.critical(
-                "FATAL: SECRET_KEY is not set in production! "
-                "Set SECRET_KEY in your Render dashboard."
-            )
-            sys.exit(1)
-        if not IS_RENDER and not self.SECRET_KEY:
+        if not self.SECRET_KEY:
             self.SECRET_KEY = secrets.token_hex(32)
-    APP_PORT: int = 8000
+            if IS_RENDER:
+                logger.warning(
+                    "SECRET_KEY not set — generated ephemeral key. "
+                    "Sessions will NOT survive deploys. "
+                    "Set SECRET_KEY in your Render dashboard for persistence."
+                )
+            else:
+                logger.info("SECRET_KEY not set — generated random key for development.")
 
 
 @lru_cache
@@ -56,8 +58,7 @@ def resolve_database_url() -> str:
         logger.critical(
             "FATAL: DATABASE_URL is not set! "
             "Render requires a PostgreSQL database. "
-            "Configure DATABASE_URL in your Render dashboard or render.yaml. "
-            "Data WILL be lost with SQLite on Render's ephemeral filesystem."
+            "Configure DATABASE_URL in your Render dashboard or render.yaml."
         )
         sys.exit(1)
 
