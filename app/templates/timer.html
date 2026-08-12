@@ -360,7 +360,7 @@ function startTimer() {
         ? scheduleSubjects[currentScheduleIndex].name
         : document.getElementById('timer-subject').value;
 
-    if (ftRunning) {
+    if (ftRunning || ftSeconds > 0) {
         ftResume();
     } else {
         ftStart(subjectName);
@@ -517,6 +517,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('btn-stop').style.display = 'inline-flex';
         document.getElementById('btn-reset').style.display = 'inline-flex';
         document.getElementById('timer-phase').textContent = 'Estudando...';
+    } else if (ftSeconds > 0) {
+        document.getElementById('btn-start').style.display = 'inline-flex';
+        document.getElementById('btn-start').textContent = 'Continuar';
+        document.getElementById('btn-stop').style.display = 'inline-flex';
+        document.getElementById('btn-reset').style.display = 'inline-flex';
+        document.getElementById('timer-phase').textContent = 'Pausado';
     }
     updateDisplay();
 });
