@@ -212,3 +212,8 @@ async def set_subject_goal(
 
     db.commit()
     return RedirectResponse(url="/timer", status_code=303)
+
+
+@router.get("/ping")
+async def timer_ping():
+    return JSONResponse(content={"status": "ok"})

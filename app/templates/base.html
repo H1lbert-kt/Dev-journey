@@ -226,11 +226,14 @@
         }
     }
     updateLogo(currentStudyMode);
+
     var ftState = JSON.parse(localStorage.getItem('ftState') || 'null');
     var ftSeconds = ftState ? ftState.seconds : 0;
     var ftRunning = false;
     var ftInterval = null;
     var ftSubject = ftState ? ftState.subject : defaultSubject;
+    var ftSyncDisplay = null;
+    var ftKeepaliveInterval = null;
 
     function ftSaveState() {
         localStorage.setItem('ftState', JSON.stringify({
@@ -238,6 +241,15 @@
             subject: ftSubject,
             running: ftRunning
         }));
+    }
+
+    function ftUpdateDisplay() {
+        var h = Math.floor(ftSeconds / 3600);
+        var m = Math.floor((ftSeconds % 3600) / 60);
+        var s = ftSeconds % 60;
+        var text = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        document.getElementById('ft-time').textContent = text;
+        if (ftSyncDisplay) ftSyncDisplay();
     }
 
     function ftStart(subject) {
@@ -254,43 +266,51 @@
             ftSaveState();
             ftUpdateDisplay();
         }, 1000);
+        ftStartKeepalive();
+    }
+
+    function ftResume() {
+        ftRunning = true;
+        ftSaveState();
+        clearInterval(ftInterval);
+        ftInterval = setInterval(function() {
+            ftSeconds++;
+            ftSaveState();
+            ftUpdateDisplay();
+        }, 1000);
+        document.getElementById('ft-pause').innerHTML = '||';
+        ftStartKeepalive();
     }
 
     function ftPause() {
-        if (ftRunning) {
-            ftRunning = false;
-            clearInterval(ftInterval);
-            ftSaveState();
-            document.getElementById('ft-pause').innerHTML = '&#9654;';
-        } else {
-            ftRunning = true;
-            ftSaveState();
-            ftInterval = setInterval(function() {
-                ftSeconds++;
-                ftSaveState();
-                ftUpdateDisplay();
-            }, 1000);
-            document.getElementById('ft-pause').innerHTML = '||';
-        }
+        ftRunning = false;
+        clearInterval(ftInterval);
+        ftSaveState();
+        document.getElementById('ft-pause').innerHTML = '&#9654;';
+        ftStopKeepalive();
     }
 
     function ftStop() {
         clearInterval(ftInterval);
-        if (ftSeconds > 0) {
-            ftSaveSession(ftSeconds);
+        var saved = ftSeconds;
+        if (saved > 0) {
+            ftSaveSession(saved);
         }
         ftSeconds = 0;
         ftRunning = false;
         localStorage.removeItem('ftState');
         document.getElementById('floating-timer').style.display = 'none';
+        ftStopKeepalive();
+        return saved;
     }
 
-    function ftUpdateDisplay() {
-        var h = Math.floor(ftSeconds / 3600);
-        var m = Math.floor((ftSeconds % 3600) / 60);
-        var s = ftSeconds % 60;
-        document.getElementById('ft-time').textContent =
-            String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    function ftReset() {
+        clearInterval(ftInterval);
+        ftSeconds = 0;
+        ftRunning = false;
+        localStorage.removeItem('ftState');
+        document.getElementById('floating-timer').style.display = 'none';
+        ftStopKeepalive();
     }
 
     function ftSaveSession(totalSeconds) {
@@ -298,6 +318,20 @@
         formData.append('subject', ftSubject);
         formData.append('duration', totalSeconds);
         fetch('/timer/save', { method: 'POST', body: formData });
+    }
+
+    function ftStartKeepalive() {
+        ftStopKeepalive();
+        ftKeepaliveInterval = setInterval(function() {
+            fetch('/timer/ping').catch(function() {});
+        }, 600000);
+    }
+
+    function ftStopKeepalive() {
+        if (ftKeepaliveInterval) {
+            clearInterval(ftKeepaliveInterval);
+            ftKeepaliveInterval = null;
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -316,6 +350,7 @@
                     ftSaveState();
                     ftUpdateDisplay();
                 }, 1000);
+                ftStartKeepalive();
             }
         } else {
             ft.style.display = 'none';

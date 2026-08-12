@@ -166,8 +166,6 @@
 
 <script>
 var timerInterval = null;
-var seconds = 0;
-var running = false;
 var pomodoroMinutes = 0;
 var pomodoroSeconds = 0;
 
@@ -235,11 +233,11 @@ function highlightCurrentSubject() {
         if (i < currentScheduleIndex) {
             item.classList.remove('active', 'pending');
             item.classList.add('done');
-            status.textContent = '&#10004;';
+            status.innerHTML = '&#10004;';
         } else if (i === currentScheduleIndex) {
             item.classList.add('active');
             item.classList.remove('done', 'pending');
-            status.textContent = '&#9654;';
+            status.innerHTML = '&#9654;';
         } else {
             item.classList.add('pending');
             item.classList.remove('active', 'done');
@@ -264,15 +262,16 @@ function moveToNextSubject() {
     }
 
     clearInterval(timerInterval);
+    timerInterval = null;
 
     var sub = scheduleSubjects[currentScheduleIndex];
     sessionResults.push({
         name: sub.name,
         color: sub.color,
-        seconds: seconds
+        seconds: ftSeconds
     });
 
-    seconds = 0;
+    ftSeconds = 0;
     updateDisplay();
     currentScheduleIndex++;
 
@@ -289,7 +288,7 @@ function moveToNextSubject() {
 function finishStudySession() {
     sessionMode = false;
     clearInterval(timerInterval);
-    running = false;
+    timerInterval = null;
 
     document.getElementById('timer-phase').textContent = 'Sessao finalizada!';
     document.getElementById('btn-start').style.display = 'inline-flex';
@@ -351,7 +350,6 @@ function showSessionSummary() {
 }
 
 function startTimer() {
-    running = true;
     document.getElementById('btn-start').style.display = 'none';
     document.getElementById('btn-pause').style.display = 'inline-flex';
     document.getElementById('btn-stop').style.display = 'inline-flex';
@@ -365,7 +363,6 @@ function startTimer() {
     ftStart(subjectName);
 
     timerInterval = setInterval(function() {
-        seconds++;
         updateDisplay();
 
         if (pomodoroMinutes > 0) {
@@ -389,8 +386,9 @@ function startTimer() {
 }
 
 function pauseTimer() {
-    running = false;
     clearInterval(timerInterval);
+    timerInterval = null;
+    ftPause();
     document.getElementById('btn-start').style.display = 'inline-flex';
     document.getElementById('btn-start').textContent = 'Continuar';
     document.getElementById('btn-pause').style.display = 'none';
@@ -401,7 +399,7 @@ function saveAndMoveNext() {
     if (!sessionMode) return;
 
     var subjectName = scheduleSubjects[currentScheduleIndex].name;
-    var duration = seconds;
+    var duration = ftSeconds;
 
     sessionResults.push({
         name: subjectName,
@@ -419,9 +417,15 @@ function saveAndMoveNext() {
     currentScheduleIndex++;
 
     if (currentScheduleIndex >= scheduleSubjects.length) {
+        ftSeconds = 0;
+        ftRunning = false;
+        clearInterval(ftInterval);
+        localStorage.removeItem('ftState');
+        document.getElementById('floating-timer').style.display = 'none';
+        ftStopKeepalive();
         finishStudySession();
     } else {
-        seconds = 0;
+        ftSeconds = 0;
         updateDisplay();
         highlightCurrentSubject();
         document.getElementById('timer-subject').value = scheduleSubjects[currentScheduleIndex].name;
@@ -431,39 +435,33 @@ function saveAndMoveNext() {
 
 function stopTimer() {
     clearInterval(timerInterval);
+    timerInterval = null;
 
     if (sessionMode) {
         saveAndMoveNext();
         return;
     }
 
-    seconds = 0;
-    running = false;
+    var saved = ftStop();
     pomodoroMinutes = 0;
     pomodoroSeconds = 0;
-    ftStop();
     document.getElementById('btn-start').style.display = 'inline-flex';
     document.getElementById('btn-start').textContent = 'Iniciar';
     document.getElementById('btn-pause').style.display = 'none';
     document.getElementById('btn-stop').style.display = 'none';
     document.getElementById('btn-reset').style.display = 'none';
-    document.getElementById('timer-phase').textContent = 'Pronto';
+    document.getElementById('timer-phase').textContent = saved > 0 ? 'Sessao salva!' : 'Pronto';
     updateDisplay();
 }
 
 function resetTimer() {
     clearInterval(timerInterval);
-    seconds = 0;
-    running = false;
+    timerInterval = null;
     pomodoroMinutes = 0;
     pomodoroSeconds = 0;
     sessionMode = false;
     sessionResults = [];
-    ftSeconds = 0;
-    ftRunning = false;
-    clearInterval(ftInterval);
-    localStorage.removeItem('ftState');
-    document.getElementById('floating-timer').style.display = 'none';
+    ftReset();
     updateDisplay();
     document.getElementById('btn-start').style.display = 'inline-flex';
     document.getElementById('btn-start').textContent = 'Iniciar';
@@ -477,12 +475,14 @@ function resetTimer() {
 }
 
 function updateDisplay() {
-    var h = Math.floor(seconds / 3600);
-    var m = Math.floor((seconds % 3600) / 60);
-    var s = seconds % 60;
+    var h = Math.floor(ftSeconds / 3600);
+    var m = Math.floor((ftSeconds % 3600) / 60);
+    var s = ftSeconds % 60;
     document.getElementById('timer-display').textContent =
         String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
 }
+
+ftSyncDisplay = updateDisplay;
 
 function setPomodoro(minutes) {
     pomodoroMinutes = minutes;
@@ -490,9 +490,20 @@ function setPomodoro(minutes) {
     if (minutes > 0) {
         document.getElementById('timer-phase').textContent = 'Pomodoro: ' + minutes + 'min';
     } else {
-        document.getElementById('timer-phase').textContent = running ? 'Estudando...' : 'Modo livre';
+        document.getElementById('timer-phase').textContent = ftRunning ? 'Estudando...' : 'Modo livre';
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (ftRunning) {
+        document.getElementById('btn-start').style.display = 'none';
+        document.getElementById('btn-pause').style.display = 'inline-flex';
+        document.getElementById('btn-stop').style.display = 'inline-flex';
+        document.getElementById('btn-reset').style.display = 'inline-flex';
+        document.getElementById('timer-phase').textContent = 'Estudando...';
+    }
+    updateDisplay();
+});
 
 if ('Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
