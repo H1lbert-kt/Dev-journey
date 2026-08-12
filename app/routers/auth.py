@@ -163,15 +163,17 @@ async def switch_mode(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    if mode in ["programacao", "concursos"]:
-        user.study_mode = mode
-        db.commit()
-
     if mode not in ["programacao", "concursos"]:
         mode = "programacao"
 
+    user.study_mode = mode
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+
     response = RedirectResponse(url=request.headers.get("referer", "/"), status_code=303)
-    response.set_cookie("study_mode", mode, max_age=86400, samesite="lax")
+    response.set_cookie("study_mode", user.study_mode, max_age=86400, samesite="lax")
     return response
 
 

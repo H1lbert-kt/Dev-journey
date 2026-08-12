@@ -74,12 +74,14 @@
                     Revisoes
                 </a>
             </li>
+            {% if request.state.study_mode|default('programacao') != 'concursos' %}
             <li>
                 <a href="/projects" class="nav-link {% if '/projects' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#128640;</span>
                     Projetos
                 </a>
             </li>
+            {% endif %}
             <li>
                 <a href="/habits" class="nav-link {% if '/habits' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#9989;</span>
@@ -234,6 +236,7 @@
     var ftSubject = ftState ? ftState.subject : defaultSubject;
     var ftSyncDisplay = null;
     var ftKeepaliveInterval = null;
+    var ftStopCallback = null;
 
     function ftSaveState() {
         localStorage.setItem('ftState', JSON.stringify({
@@ -301,6 +304,7 @@
         localStorage.removeItem('ftState');
         document.getElementById('floating-timer').style.display = 'none';
         ftStopKeepalive();
+        if (ftStopCallback) ftStopCallback();
         return saved;
     }
 

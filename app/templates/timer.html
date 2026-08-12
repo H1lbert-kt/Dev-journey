@@ -360,7 +360,11 @@ function startTimer() {
         ? scheduleSubjects[currentScheduleIndex].name
         : document.getElementById('timer-subject').value;
 
-    ftStart(subjectName);
+    if (ftRunning) {
+        ftResume();
+    } else {
+        ftStart(subjectName);
+    }
 
     timerInterval = setInterval(function() {
         updateDisplay();
@@ -495,6 +499,18 @@ function setPomodoro(minutes) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    ftStopCallback = function() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        document.getElementById('btn-start').style.display = 'inline-flex';
+        document.getElementById('btn-start').textContent = 'Iniciar';
+        document.getElementById('btn-pause').style.display = 'none';
+        document.getElementById('btn-stop').style.display = 'none';
+        document.getElementById('btn-reset').style.display = 'none';
+        document.getElementById('timer-phase').textContent = 'Pronto';
+        updateDisplay();
+    };
+
     if (ftRunning) {
         document.getElementById('btn-start').style.display = 'none';
         document.getElementById('btn-pause').style.display = 'inline-flex';

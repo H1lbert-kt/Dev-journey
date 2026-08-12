@@ -125,7 +125,11 @@ async def save_session(
         )
         db.add(calendar_day)
 
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        return JSONResponse(content={"error": "Erro ao salvar"}, status_code=500)
 
     return JSONResponse(content={"success": True, "day_completed": day_completed})
 

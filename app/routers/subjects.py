@@ -3,8 +3,11 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.database.connection import get_db
 from app.models.subject import Subject
+from app.models.weekly_schedule import WeeklySchedule
 from app.routers.auth import require_auth
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -34,9 +37,13 @@ async def create_subject(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    subject = Subject(name=name, color=color, user_id=user.id)
+    subject = Subject(name=name.strip(), color=color, user_id=user.id)
     db.add(subject)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        logger.warning(f"Failed to create subject for user {user.id}")
     return RedirectResponse(url="/subjects", status_code=303)
 
 
@@ -48,6 +55,14 @@ async def delete_subject(subject_id: int, request: Request, db: Session = Depend
 
     subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first()
     if subject:
-        db.delete(subject)
-        db.commit()
+        try:
+            db.query(WeeklySchedule).filter(
+                WeeklySchedule.subject_id == subject_id,
+                WeeklySchedule.user_id == user.id,
+            ).delete()
+            db.delete(subject)
+            db.commit()
+        except Exception:
+            db.rollback()
+            logger.warning(f"Failed to delete subject {subject_id} for user {user.id}")
     return RedirectResponse(url="/subjects", status_code=303)

@@ -59,7 +59,10 @@ async def create_flashcard(
         user_id=user.id,
     )
     db.add(flashcard)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
     return RedirectResponse(url="/flashcards", status_code=303)
 
 
@@ -108,7 +111,10 @@ async def import_flashcards(
                 db.add(flashcard)
                 imported += 1
 
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
     return RedirectResponse(url="/flashcards", status_code=303)
 
 
@@ -135,7 +141,10 @@ async def review_flashcard(
         card.ease_factor = max(1.3, card.ease_factor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)))
         card.interval_days = int(new_interval)
         card.next_review = datetime.now() + timedelta(days=card.interval_days)
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
 
     return RedirectResponse(url="/flashcards", status_code=303)
 
@@ -149,5 +158,8 @@ async def delete_flashcard(card_id: int, request: Request, db: Session = Depends
     card = db.query(Flashcard).filter(Flashcard.id == card_id, Flashcard.user_id == user.id).first()
     if card:
         db.delete(card)
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
     return RedirectResponse(url="/flashcards", status_code=303)

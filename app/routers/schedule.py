@@ -114,7 +114,10 @@ async def add_to_schedule(
         order=max_order,
     )
     db.add(entry)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
     return RedirectResponse(url="/schedule", status_code=303)
 
 
@@ -134,7 +137,10 @@ async def remove_from_schedule(
     ).first()
     if entry:
         db.delete(entry)
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
     return RedirectResponse(url="/schedule", status_code=303)
 
 
@@ -169,7 +175,10 @@ async def reorder_schedule(
     for idx, item in enumerate(items):
         item.order = idx
 
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
     return RedirectResponse(url="/schedule", status_code=303)
 
 

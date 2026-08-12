@@ -145,9 +145,11 @@ async def health_check():
         from sqlalchemy import text
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        return {"status": "healthy", "version": "1.0.0", "database": "postgresql" if IS_POSTGRESQL else "sqlite"}
+        from fastapi.responses import JSONResponse
+        return JSONResponse(content={"status": "healthy", "version": "1.0.0", "database": "postgresql" if IS_POSTGRESQL else "sqlite"})
     except Exception as e:
-        return {"status": "unhealthy", "error": str(e)}, 503
+        from fastapi.responses import JSONResponse
+        return JSONResponse(content={"status": "unhealthy", "error": str(e)}, status_code=503)
 
 
 if __name__ == "__main__":

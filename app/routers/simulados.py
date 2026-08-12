@@ -119,7 +119,10 @@ async def create_simulado(
         user_id=user.id,
     )
     db.add(simulado)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
     return RedirectResponse(url="/simulados", status_code=303)
 
 
@@ -132,5 +135,8 @@ async def delete_simulado(simulado_id: int, request: Request, db: Session = Depe
     simulado = db.query(Simulado).filter(Simulado.id == simulado_id, Simulado.user_id == user.id).first()
     if simulado:
         db.delete(simulado)
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
     return RedirectResponse(url="/simulados", status_code=303)
