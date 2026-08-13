@@ -328,7 +328,7 @@
         ftStopKeepalive();
         ftKeepaliveInterval = setInterval(function() {
             fetch('/timer/ping').catch(function() {});
-        }, 600000);
+        }, 60000);
     }
 
     function ftStopKeepalive() {
