@@ -129,7 +129,6 @@ def sanitize_input(value: str) -> str:
     if not value:
         return value
     value = value.strip()
-    value = value.replace("<script", "").replace("</script>", "")
-    value = value.replace("javascript:", "")
-    value = value.replace("onerror=", "").replace("onload=", "")
+    value = value.replace("<", "&lt;").replace(">", "&gt;")
+    value = value.replace('"', "&quot;").replace("'", "&#x27;")
     return value

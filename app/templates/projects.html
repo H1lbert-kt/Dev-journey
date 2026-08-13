@@ -41,7 +41,7 @@
                 {% endif %}
 
                 {% if project.github_link %}
-                <a href="{{ project.github_link }}" target="_blank" class="project-link">GitHub &#8594;</a>
+                <a href="{{ project.github_link }}" target="_blank" rel="noopener noreferrer" class="project-link">GitHub &#8594;</a>
                 {% endif %}
 
                 {% if project.notes %}
@@ -52,7 +52,7 @@
 
                 <div class="project-actions">
                     <button class="btn btn-small" onclick="openModal('edit-project-{{ project.id }}')">Editar</button>
-                    <form action="/projects/{{ project.id }}/delete" method="post" style="display:inline">
+                    <form action="/projects/{{ project.id }}/delete" method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir este projeto?')">
                         <button type="submit" class="btn btn-danger btn-small">Excluir</button>
                     </form>
                 </div>

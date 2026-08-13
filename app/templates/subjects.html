@@ -21,7 +21,7 @@
                 <div class="subject-info">
                     <h3>{{ subject.name }}</h3>
                 </div>
-                <form action="/subjects/{{ subject.id }}/delete" method="post">
+                <form action="/subjects/{{ subject.id }}/delete" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta materia?')">
                     <button type="submit" class="delete-btn" title="Excluir">&times;</button>
                 </form>
             </div>

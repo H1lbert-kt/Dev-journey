@@ -37,7 +37,7 @@
                 <span class="habit-name">{{ habit.name }}</span>
                 <div class="habit-actions">
                     <button class="btn btn-small" onclick="openModal('edit-habit-{{ habit.id }}')">Editar</button>
-                    <form action="/habits/{{ habit.id }}/delete" method="post" style="display:inline">
+                    <form action="/habits/{{ habit.id }}/delete" method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir este habito?')">
                         <button type="submit" class="btn btn-danger btn-small">Excluir</button>
                     </form>
                 </div>

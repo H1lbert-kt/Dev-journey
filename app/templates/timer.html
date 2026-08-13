@@ -26,7 +26,7 @@
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Metas por Materia</h2>
+            <h2 class="section-title">Tempo por Materia</h2>
         </div>
         <div class="subject-goals-list">
             {% for subject in subjects %}
@@ -44,7 +44,7 @@
                 <div class="subject-goal-time">{{ studied|round(0)|int }}/{{ goal_minutes }}min</div>
                 <form action="/timer/set-subject-goal" method="post" class="subject-goal-form">
                     <input type="hidden" name="subject_id" value="{{ subject.id }}">
-                    <input type="number" name="daily_minutes" value="{{ goal_minutes }}" min="5" max="480" class="subject-goal-input">
+                    <input type="number" name="daily_minutes" value="{{ goal_minutes }}" min="5" max="480" class="subject-goal-input" title="Tempo desejado de estudo hoje">
                     <button type="submit" class="btn btn-small">Salvar</button>
                 </form>
             </div>
@@ -198,9 +198,18 @@ function loadDaySchedule() {
                     var div = document.createElement('div');
                     div.className = 'schedule-subject-item';
                     div.id = 'schedule-item-' + i;
-                    div.innerHTML = '<span class="schedule-subject-dot" style="background:' + s.color + '"></span>' +
-                        '<span class="schedule-subject-text">' + s.name + '</span>' +
-                        '<span class="schedule-subject-status" id="schedule-status-' + i + '"></span>';
+                    var dotSpan = document.createElement('span');
+                    dotSpan.className = 'schedule-subject-dot';
+                    dotSpan.style.background = s.color;
+                    var textSpan = document.createElement('span');
+                    textSpan.className = 'schedule-subject-text';
+                    textSpan.textContent = s.name;
+                    var statusSpan = document.createElement('span');
+                    statusSpan.className = 'schedule-subject-status';
+                    statusSpan.id = 'schedule-status-' + i;
+                    div.appendChild(dotSpan);
+                    div.appendChild(textSpan);
+                    div.appendChild(statusSpan);
                     list.appendChild(div);
                 }
                 document.getElementById('btn-start-session').style.display = 'block';
@@ -208,6 +217,9 @@ function loadDaySchedule() {
 
             document.getElementById('schedule-subjects').style.display = 'block';
             document.getElementById('manual-subject-area').style.display = 'none';
+        })
+        .catch(function() {
+            document.getElementById('manual-subject-area').style.display = 'block';
         });
 }
 
@@ -255,36 +267,6 @@ function highlightCurrentSubject() {
     }
 }
 
-function moveToNextSubject() {
-    if (!sessionMode || currentScheduleIndex >= scheduleSubjects.length) {
-        finishStudySession();
-        return;
-    }
-
-    clearInterval(timerInterval);
-    timerInterval = null;
-
-    var sub = scheduleSubjects[currentScheduleIndex];
-    sessionResults.push({
-        name: sub.name,
-        color: sub.color,
-        seconds: ftSeconds
-    });
-
-    ftSeconds = 0;
-    updateDisplay();
-    currentScheduleIndex++;
-
-    if (currentScheduleIndex >= scheduleSubjects.length) {
-        finishStudySession();
-        return;
-    }
-
-    highlightCurrentSubject();
-    document.getElementById('timer-subject').value = scheduleSubjects[currentScheduleIndex].name;
-    startTimer();
-}
-
 function finishStudySession() {
     sessionMode = false;
     clearInterval(timerInterval);
@@ -306,7 +288,7 @@ function finishStudySession() {
         if (data.day_completed) {
             showDayCompleted();
         }
-    });
+    }).catch(function() {});
 }
 
 function showDayCompleted() {
@@ -369,11 +351,12 @@ function startTimer() {
     timerInterval = setInterval(function() {
         updateDisplay();
 
-        if (pomodoroMinutes > 0) {
-            pomodoroSeconds--;
+        if (pomodoroMinutes > 0 || pomodoroSeconds > 0) {
             if (pomodoroSeconds <= 0) {
                 pomodoroMinutes--;
                 pomodoroSeconds = 59;
+            } else {
+                pomodoroSeconds--;
             }
             if (pomodoroMinutes <= 0 && pomodoroSeconds <= 0) {
                 pauseTimer();
@@ -415,7 +398,7 @@ function saveAndMoveNext() {
         var formData = new FormData();
         formData.append('subject', subjectName);
         formData.append('duration', duration);
-        fetch('/timer/save', { method: 'POST', body: formData });
+        fetch('/timer/save', { method: 'POST', body: formData }).catch(function() {});
     }
 
     currentScheduleIndex++;
@@ -523,6 +506,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('btn-stop').style.display = 'inline-flex';
         document.getElementById('btn-reset').style.display = 'inline-flex';
         document.getElementById('timer-phase').textContent = 'Pausado';
+        var h = Math.floor(ftSeconds / 3600);
+        var m = Math.floor((ftSeconds % 3600) / 60);
+        var s = ftSeconds % 60;
+        document.title = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + ' - Pausado | DevJourney';
     }
     updateDisplay();
 });

@@ -70,7 +70,7 @@ async def stats(request: Request, db: Session = Depends(get_db)):
     ).all()
     month_minutes = sum(s.duration_minutes for s in month_sessions)
 
-    daily_avg = week_minutes / 7 if week_minutes > 0 else 0
+    daily_avg = week_minutes / max(1, today.weekday() + 1) if week_minutes > 0 else 0
 
     subject_stats = db.query(
         StudySession.subject,

@@ -147,9 +147,9 @@ async def health_check():
             conn.execute(text("SELECT 1"))
         from fastapi.responses import JSONResponse
         return JSONResponse(content={"status": "healthy", "version": "1.0.0", "database": "postgresql" if IS_POSTGRESQL else "sqlite"})
-    except Exception as e:
+    except Exception:
         from fastapi.responses import JSONResponse
-        return JSONResponse(content={"status": "unhealthy", "error": str(e)}, status_code=503)
+        return JSONResponse(content={"status": "unhealthy"}, status_code=503)
 
 
 if __name__ == "__main__":

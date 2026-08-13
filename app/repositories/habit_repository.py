@@ -22,8 +22,9 @@ class HabitRepository:
         return habit
 
     def update(self, habit: Habit, data: dict) -> Habit:
+        allowed_fields = {"name", "icon", "completed"}
         for key, value in data.items():
-            if value is not None:
+            if value is not None and key in allowed_fields:
                 setattr(habit, key, value)
         self.db.commit()
         self.db.refresh(habit)

@@ -39,7 +39,7 @@
                             </button>
                         </form>
                         <span class="goal-title {% if goal.completed %}completed{% endif %}">{{ goal.title }}</span>
-                        <form action="/roadmap/goal/{{ goal.id }}/delete" method="post" class="goal-delete-form">
+                        <form action="/roadmap/goal/{{ goal.id }}/delete" method="post" class="goal-delete-form" onsubmit="return confirm('Tem certeza que deseja excluir esta meta?')">
                             <button type="submit" class="delete-btn" title="Excluir">&times;</button>
                         </form>
                     </div>
@@ -54,7 +54,7 @@
                 </form>
 
                 <div class="phase-actions">
-                    <form action="/roadmap/phase/{{ phase.id }}/delete" method="post">
+                    <form action="/roadmap/phase/{{ phase.id }}/delete" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta fase e todas as suas metas?')">
                         <button type="submit" class="btn btn-danger btn-small">Excluir Fase</button>
                     </form>
                 </div>

@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Request, Depends, Form, Query
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import date
 import calendar as cal
 from app.database.connection import get_db
 from app.services.calendar_service import CalendarService
+from app.models.study_session import StudySession
 from app.routers.auth import require_auth
 
 router = APIRouter()
@@ -46,6 +48,23 @@ async def calendar_page(
 
     first_weekday, num_days = cal.monthrange(year, month)
 
+    heatmap_minutes = {}
+    month_start_date = date(year, month, 1)
+    if month == 12:
+        month_end_date = date(year + 1, 1, 1)
+    else:
+        month_end_date = date(year, month + 1, 1)
+    study_sessions = db.query(
+        func.date(StudySession.date),
+        func.sum(StudySession.duration_minutes)
+    ).filter(
+        StudySession.user_id == user.id,
+        StudySession.date >= month_start_date,
+        StudySession.date < month_end_date
+    ).group_by(func.date(StudySession.date)).all()
+    for day_date, total_minutes in study_sessions:
+        heatmap_minutes[day_date] = round(total_minutes, 1)
+
     calendar_days = []
     for _ in range(first_weekday):
         calendar_days.append(None)
@@ -59,6 +78,7 @@ async def calendar_page(
             "has_notes": bool(day_data.notes) if day_data else False,
             "notes": day_data.notes if day_data else "",
             "is_today": current_date == today,
+            "study_minutes": heatmap_minutes.get(current_date, 0),
         })
 
     return request.app.state.templates.TemplateResponse(

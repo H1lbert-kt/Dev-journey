@@ -60,5 +60,4 @@ LICENSE
 .cache/
 
 # Alembic
-alembic/versions/*.py
-!alembic/versions/.gitkeep
+alembic/versions/__pycache__/

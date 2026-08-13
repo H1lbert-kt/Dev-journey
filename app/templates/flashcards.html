@@ -68,7 +68,7 @@
                         <div class="flashcard-mini-text">{{ card.front }}</div>
                         <div class="flashcard-mini-footer">
                             <span class="flashcard-mini-date">{{ card.next_review.strftime('%d/%m') if card.next_review else 'Nunca' }}</span>
-                            <form action="/flashcards/{{ card.id }}/delete" method="post" style="display:inline" onclick="event.stopPropagation()">
+                            <form action="/flashcards/{{ card.id }}/delete" method="post" style="display:inline" onclick="event.stopPropagation()" onsubmit="return confirm('Tem certeza que deseja excluir este flashcard?')">
                                 <button type="submit" class="delete-btn" title="Excluir">&times;</button>
                             </form>
                         </div>
@@ -216,10 +216,31 @@ function handleFile(file) {
             importPreview.innerHTML = '';
             var show = cards.slice(0, 10);
             for (var j = 0; j < show.length; j++) {
-                importPreview.innerHTML += '<div class="import-preview-item">' +
-                    '<div class="import-preview-front"><span class="import-preview-label">Frente</span>' + show[j].front + '</div>' +
-                    '<div class="import-preview-back"><span class="import-preview-label">Verso</span>' + show[j].back + '</div>' +
-                    '</div>';
+                var frontDiv = document.createElement('div');
+                frontDiv.className = 'import-preview-front';
+                var frontLabel = document.createElement('span');
+                frontLabel.className = 'import-preview-label';
+                frontLabel.textContent = 'Frente';
+                var frontText = document.createElement('span');
+                frontText.textContent = show[j].front;
+                frontDiv.appendChild(frontLabel);
+                frontDiv.appendChild(frontText);
+
+                var backDiv = document.createElement('div');
+                backDiv.className = 'import-preview-back';
+                var backLabel = document.createElement('span');
+                backLabel.className = 'import-preview-label';
+                backLabel.textContent = 'Verso';
+                var backText = document.createElement('span');
+                backText.textContent = show[j].back;
+                backDiv.appendChild(backLabel);
+                backDiv.appendChild(backText);
+
+                var itemDiv = document.createElement('div');
+                itemDiv.className = 'import-preview-item';
+                itemDiv.appendChild(frontDiv);
+                itemDiv.appendChild(backDiv);
+                importPreview.appendChild(itemDiv);
             }
             if (cards.length > 10) {
                 importPreview.innerHTML += '<div style="padding: 8px; text-align: center; color: var(--text-muted); font-size: 13px;">...e mais ' + (cards.length - 10) + ' cards</div>';

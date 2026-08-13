@@ -34,8 +34,9 @@ class CalendarRepository:
         return calendar_day
 
     def update(self, calendar_day: CalendarDay, data: dict) -> CalendarDay:
+        allowed_fields = {"studied", "notes"}
         for key, value in data.items():
-            if value is not None:
+            if value is not None and key in allowed_fields:
                 setattr(calendar_day, key, value)
         self.db.commit()
         self.db.refresh(calendar_day)

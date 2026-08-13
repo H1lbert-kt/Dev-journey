@@ -24,8 +24,9 @@ class AchievementRepository:
         return achievement
 
     def update(self, achievement: Achievement, data: dict) -> Achievement:
+        allowed_fields = {"name", "description", "icon", "unlocked", "unlocked_at"}
         for key, value in data.items():
-            if value is not None:
+            if value is not None and key in allowed_fields:
                 setattr(achievement, key, value)
         self.db.commit()
         self.db.refresh(achievement)

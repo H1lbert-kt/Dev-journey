@@ -54,6 +54,9 @@ class CalendarService:
         streak = 0
         current_date = today
 
+        if studied_days[0] < current_date:
+            current_date = date.fromordinal(current_date.toordinal() - 1)
+
         for studied_date in studied_days:
             if studied_date == current_date:
                 streak += 1

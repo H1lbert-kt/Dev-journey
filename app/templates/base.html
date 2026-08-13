@@ -125,10 +125,12 @@
                     &#128218; <span>Concursos</span>
                 </button>
             </div>
-            <a href="/logout" class="nav-link">
-                <span class="nav-icon">&#9211;</span>
-                Sair
-            </a>
+            <form action="/logout" method="post" style="margin: 0;">
+                <button type="submit" class="nav-link" style="background: none; border: none; cursor: pointer; width: 100%; text-align: left;">
+                    <span class="nav-icon">&#9211;</span>
+                    Sair
+                </button>
+            </form>
         </div>
     </nav>
 
@@ -252,6 +254,9 @@
         var s = ftSeconds % 60;
         var text = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
         document.getElementById('ft-time').textContent = text;
+        if (ftRunning) {
+            document.title = text + ' - ' + ftSubject + ' | DevJourney';
+        }
         if (ftSyncDisplay) ftSyncDisplay();
     }
 
@@ -290,6 +295,7 @@
         clearInterval(ftInterval);
         ftSaveState();
         document.getElementById('ft-pause').innerHTML = '&#9654;';
+        document.title = 'DevJourney';
         ftStopKeepalive();
     }
 
@@ -303,6 +309,7 @@
         ftRunning = false;
         localStorage.removeItem('ftState');
         document.getElementById('floating-timer').style.display = 'none';
+        document.title = 'DevJourney';
         ftStopKeepalive();
         if (ftStopCallback) ftStopCallback();
         return saved;
@@ -314,6 +321,7 @@
         ftRunning = false;
         localStorage.removeItem('ftState');
         document.getElementById('floating-timer').style.display = 'none';
+        document.title = 'DevJourney';
         ftStopKeepalive();
     }
 
@@ -321,7 +329,7 @@
         var formData = new FormData();
         formData.append('subject', ftSubject);
         formData.append('duration', totalSeconds);
-        fetch('/timer/save', { method: 'POST', body: formData });
+        fetch('/timer/save', { method: 'POST', body: formData }).catch(function() {});
     }
 
     function ftStartKeepalive() {

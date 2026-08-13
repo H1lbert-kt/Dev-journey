@@ -21,8 +21,9 @@ class PhaseRepository:
         return phase
 
     def update(self, phase: Phase, data: dict) -> Phase:
+        allowed_fields = {"name", "description", "order", "progress"}
         for key, value in data.items():
-            if value is not None:
+            if value is not None and key in allowed_fields:
                 setattr(phase, key, value)
         self.db.commit()
         self.db.refresh(phase)

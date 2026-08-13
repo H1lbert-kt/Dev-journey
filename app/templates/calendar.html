@@ -116,7 +116,7 @@ document.querySelectorAll('.calendar-cell:not(.empty)').forEach(function(cell) {
 var heatmapData = [
     {% for cell in calendar_days %}
     {% if cell is not none %}
-    {% if cell.studied %}1{% else %}0{% endif %}
+    {{ cell.study_minutes }}{% if not loop.last %},{% endif %}
     {% endif %}
     {% endfor %}
 ];
@@ -134,8 +134,12 @@ function renderHeatmap() {
         for (var d = 0; d < 7; d++) {
             var index = w * 7 + d;
             var level = 0;
-            if (index < totalDays && heatmapData[index]) {
-                level = Math.floor(Math.random() * 3) + 2;
+            if (index < totalDays) {
+                var mins = heatmapData[index];
+                if (mins >= 180) level = 4;
+                else if (mins >= 120) level = 3;
+                else if (mins >= 60) level = 2;
+                else if (mins > 0) level = 1;
             }
             html += '<div class="heatmap-day level-' + level + '"></div>';
         }

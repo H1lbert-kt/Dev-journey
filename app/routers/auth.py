@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 import re
+import logging
 from app.database.connection import get_db
 from app.models.user import User
 from app.utils.auth import hash_password, verify_password, create_session, get_session, delete_session, sanitize_input
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -57,8 +61,8 @@ async def login(
 
     token = create_session(user.id, db)
     response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie("session_token", token, httponly=True, max_age=86400, samesite="lax")
-    response.set_cookie("study_mode", user.study_mode, max_age=86400, samesite="lax")
+    response.set_cookie("session_token", token, httponly=True, secure=True, max_age=86400, samesite="lax")
+    response.set_cookie("study_mode", user.study_mode, httponly=True, max_age=86400, samesite="lax")
     return response
 
 
@@ -132,17 +136,25 @@ async def register(
         study_mode=study_mode,
     )
     db.add(user)
-    db.commit()
-    db.refresh(user)
+    try:
+        db.commit()
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "register.html",
+            context={"error": "Usuario ou email ja cadastrado"},
+        )
 
     token = create_session(user.id, db)
     response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie("session_token", token, httponly=True, max_age=86400, samesite="lax")
-    response.set_cookie("study_mode", study_mode, max_age=86400, samesite="lax")
+    response.set_cookie("session_token", token, httponly=True, secure=True, max_age=86400, samesite="lax")
+    response.set_cookie("study_mode", study_mode, httponly=True, max_age=86400, samesite="lax")
     return response
 
 
-@router.get("/logout")
+@router.post("/logout")
 async def logout(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("session_token")
     if token:
@@ -172,8 +184,11 @@ async def switch_mode(
     except Exception:
         db.rollback()
 
-    response = RedirectResponse(url=request.headers.get("referer", "/"), status_code=303)
-    response.set_cookie("study_mode", user.study_mode, max_age=86400, samesite="lax")
+    referer = request.headers.get("referer", "/")
+    if not referer.startswith("/"):
+        referer = "/"
+    response = RedirectResponse(url=referer, status_code=303)
+    response.set_cookie("study_mode", user.study_mode, httponly=True, max_age=86400, samesite="lax")
     return response
 
 

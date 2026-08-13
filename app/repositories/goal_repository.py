@@ -25,8 +25,9 @@ class GoalRepository:
         return goal
 
     def update(self, goal: Goal, data: dict) -> Goal:
+        allowed_fields = {"title", "completed"}
         for key, value in data.items():
-            if value is not None:
+            if value is not None and key in allowed_fields:
                 setattr(goal, key, value)
         self.db.commit()
         self.db.refresh(goal)

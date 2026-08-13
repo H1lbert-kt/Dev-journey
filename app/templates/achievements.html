@@ -30,7 +30,7 @@
                     <button type="submit" class="btn btn-small">Desbloquear</button>
                 </form>
                 {% endif %}
-                <form action="/achievements/{{ achievement.id }}/delete" method="post" class="achievement-delete">
+                <form action="/achievements/{{ achievement.id }}/delete" method="post" class="achievement-delete" onsubmit="return confirm('Tem certeza que deseja excluir esta conquista?')">
                     <button type="submit" class="delete-btn" title="Excluir">&times;</button>
                 </form>
             </div>

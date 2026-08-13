@@ -87,7 +87,7 @@
                     </span>
                     <span class="simulado-time">{{ "%.0f"|format(simulado.time_minutes) }}min</span>
                 </div>
-                <form action="/simulados/{{ simulado.id }}/delete" method="post">
+                <form action="/simulados/{{ simulado.id }}/delete" method="post" onsubmit="return confirm('Tem certeza que deseja excluir este simulado?')">
                     <button type="submit" class="delete-btn" title="Excluir">&times;</button>
                 </form>
             </div>
@@ -184,8 +184,8 @@ var simSeconds = 0;
 var simRunning = false;
 
 function simStartTimer() {
+    if (simRunning) return;
     simRunning = true;
-    simSeconds = 0;
     document.getElementById('sim-btn-start').style.display = 'none';
     document.getElementById('sim-btn-stop').style.display = 'inline-flex';
     document.getElementById('sim-btn-reset').style.display = 'inline-flex';

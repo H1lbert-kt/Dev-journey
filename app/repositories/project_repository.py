@@ -24,8 +24,9 @@ class ProjectRepository:
         return project
 
     def update(self, project: Project, data: dict) -> Project:
+        allowed_fields = {"name", "description", "technologies", "status", "github_link", "notes", "completed_at"}
         for key, value in data.items():
-            if value is not None:
+            if value is not None and key in allowed_fields:
                 setattr(project, key, value)
         self.db.commit()
         self.db.refresh(project)
