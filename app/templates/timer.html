@@ -146,7 +146,7 @@
         <h2 class="section-title">Historico</h2>
         <div class="sessions-list">
             {% for session in sessions %}
-            <div class="session-item">
+            <div class="session-item" onclick="resumeFromHistory('{{ session.subject }}', {{ session.duration_minutes }})" style="cursor: pointer" title="Clique para retomar desta sessao">
                 <span class="session-subject">{{ session.subject }}</span>
                 <span class="session-duration">{{ "%.1f"|format(session.duration_minutes) }}min</span>
                 <span class="session-date">{{ session.date.strftime('%d/%m/%H:%M') }}</span>
@@ -462,6 +462,37 @@ function updateDisplay() {
 }
 
 ftSyncDisplay = updateDisplay;
+
+function resumeFromHistory(subject, durationMinutes) {
+    var seconds = Math.round(durationMinutes * 60);
+    if (ftRunning || ftSeconds > 0) {
+        if (!confirm('Voce ja tem um cronometro em andamento. Deseja substituir pela sessao do historico?')) {
+            return;
+        }
+        clearInterval(timerInterval);
+        timerInterval = null;
+        ftPause();
+    }
+    var subjectSelect = document.getElementById('timer-subject');
+    for (var i = 0; i < subjectSelect.options.length; i++) {
+        if (subjectSelect.options[i].value === subject) {
+            subjectSelect.selectedIndex = i;
+            break;
+        }
+    }
+    ftSeconds = seconds;
+    ftSubject = subject;
+    ftSaveState();
+    document.getElementById('floating-timer').style.display = 'block';
+    document.getElementById('ft-subject').textContent = ftSubject;
+    updateDisplay();
+    document.getElementById('btn-start').style.display = 'inline-flex';
+    document.getElementById('btn-start').textContent = 'Iniciar';
+    document.getElementById('btn-pause').style.display = 'none';
+    document.getElementById('btn-stop').style.display = 'none';
+    document.getElementById('btn-reset').style.display = 'none';
+    document.getElementById('timer-phase').textContent = 'Sessao carregada do historico';
+}
 
 function setPomodoro(minutes) {
     pomodoroMinutes = minutes;
