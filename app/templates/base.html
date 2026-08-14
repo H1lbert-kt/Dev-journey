@@ -238,6 +238,7 @@
     var ftSubject = ftState ? ftState.subject : defaultSubject;
     var ftSyncDisplay = null;
     var ftKeepaliveInterval = null;
+    var ftPausedKeepaliveInterval = null;
     var ftStopCallback = null;
 
     function ftSaveState() {
@@ -265,6 +266,7 @@
         ftRunning = true;
         ftSeconds = 0;
         ftSaveState();
+        ftClearStateOnServer();
         document.getElementById('ft-subject').textContent = ftSubject;
         document.getElementById('floating-timer').style.display = 'block';
         document.getElementById('ft-pause').innerHTML = '||';
@@ -280,6 +282,7 @@
     function ftResume() {
         ftRunning = true;
         ftSaveState();
+        ftClearStateOnServer();
         clearInterval(ftInterval);
         ftInterval = setInterval(function() {
             ftSeconds++;
@@ -287,6 +290,7 @@
             ftUpdateDisplay();
         }, 1000);
         document.getElementById('ft-pause').innerHTML = '||';
+        ftStopPausedKeepalive();
         ftStartKeepalive();
     }
 
@@ -294,9 +298,11 @@
         ftRunning = false;
         clearInterval(ftInterval);
         ftSaveState();
+        ftSaveStateToServer();
         document.getElementById('ft-pause').innerHTML = '&#9654;';
         document.title = 'DevJourney';
         ftStopKeepalive();
+        ftStartPausedKeepalive();
     }
 
     function ftStop() {
@@ -308,9 +314,11 @@
         ftSeconds = 0;
         ftRunning = false;
         localStorage.removeItem('ftState');
+        ftClearStateOnServer();
         document.getElementById('floating-timer').style.display = 'none';
         document.title = 'DevJourney';
         ftStopKeepalive();
+        ftStopPausedKeepalive();
         if (ftStopCallback) ftStopCallback();
         return saved;
     }
@@ -320,9 +328,11 @@
         ftSeconds = 0;
         ftRunning = false;
         localStorage.removeItem('ftState');
+        ftClearStateOnServer();
         document.getElementById('floating-timer').style.display = 'none';
         document.title = 'DevJourney';
         ftStopKeepalive();
+        ftStopPausedKeepalive();
     }
 
     function ftSaveSession(totalSeconds) {
@@ -330,6 +340,17 @@
         formData.append('subject', ftSubject);
         formData.append('duration', totalSeconds);
         fetch('/timer/save', { method: 'POST', body: formData }).catch(function() {});
+    }
+
+    function ftSaveStateToServer() {
+        var formData = new FormData();
+        formData.append('seconds', ftSeconds);
+        formData.append('subject', ftSubject);
+        fetch('/timer/save-state', { method: 'POST', body: formData }).catch(function() {});
+    }
+
+    function ftClearStateOnServer() {
+        fetch('/timer/clear-state', { method: 'POST' }).catch(function() {});
     }
 
     function ftStartKeepalive() {
@@ -343,6 +364,25 @@
         if (ftKeepaliveInterval) {
             clearInterval(ftKeepaliveInterval);
             ftKeepaliveInterval = null;
+        }
+    }
+
+    function ftStartPausedKeepalive() {
+        ftStopPausedKeepalive();
+        var count = 0;
+        ftPausedKeepaliveInterval = setInterval(function() {
+            count++;
+            fetch('/timer/ping').catch(function() {});
+            if (count >= 10) {
+                ftStopPausedKeepalive();
+            }
+        }, 30000);
+    }
+
+    function ftStopPausedKeepalive() {
+        if (ftPausedKeepaliveInterval) {
+            clearInterval(ftPausedKeepaliveInterval);
+            ftPausedKeepaliveInterval = null;
         }
     }
 
@@ -365,7 +405,22 @@
                 ftStartKeepalive();
             }
         } else {
-            ft.style.display = 'none';
+            fetch('/timer/get-state').then(function(r) { return r.json(); }).then(function(data) {
+                if (data && data.seconds > 0) {
+                    ftSeconds = data.seconds;
+                    ftSubject = data.subject || defaultSubject;
+                    ftSaveState();
+                    ft.style.display = 'block';
+                    document.getElementById('ft-subject').textContent = ftSubject;
+                    ftUpdateDisplay();
+                    document.getElementById('ft-pause').innerHTML = '&#9654;';
+                    document.title = 'DevJourney';
+                } else {
+                    ft.style.display = 'none';
+                }
+            }).catch(function() {
+                ft.style.display = 'none';
+            });
         }
     });
 

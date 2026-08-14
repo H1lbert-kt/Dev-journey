@@ -181,3 +181,53 @@ async def check_day_completed(request: Request, db: Session = Depends(get_db)):
 @router.get("/ping")
 async def timer_ping():
     return JSONResponse(content={"status": "ok"})
+
+
+@router.post("/save-state")
+async def save_timer_state(
+    request: Request,
+    seconds: int = Form(...),
+    subject: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    if not user:
+        return JSONResponse(content={"error": "unauthorized"}, status_code=401)
+
+    user.timer_state_seconds = max(0, seconds)
+    user.timer_state_subject = subject[:100] if subject else ""
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        return JSONResponse(content={"error": "Erro ao salvar estado"}, status_code=500)
+
+    return JSONResponse(content={"success": True})
+
+
+@router.get("/get-state")
+async def get_timer_state(request: Request, db: Session = Depends(get_db)):
+    user = require_auth(request, db)
+    if not user:
+        return JSONResponse(content={"error": "unauthorized"}, status_code=401)
+
+    return JSONResponse(content={
+        "seconds": user.timer_state_seconds or 0,
+        "subject": user.timer_state_subject or "",
+    })
+
+
+@router.post("/clear-state")
+async def clear_timer_state(request: Request, db: Session = Depends(get_db)):
+    user = require_auth(request, db)
+    if not user:
+        return JSONResponse(content={"error": "unauthorized"}, status_code=401)
+
+    user.timer_state_seconds = 0
+    user.timer_state_subject = ""
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+
+    return JSONResponse(content={"success": True})

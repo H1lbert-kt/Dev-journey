@@ -13,6 +13,8 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     study_mode = Column(String(20), nullable=False, default="programacao")
     daily_goal_minutes = Column(Integer, nullable=False, default=360)
+    timer_state_seconds = Column(Integer, nullable=False, default=0)
+    timer_state_subject = Column(String(100), nullable=False, default="")
     created_at = Column(DateTime, server_default=func.now())
 
     phases = relationship("Phase", back_populates="user", cascade="all, delete-orphan")

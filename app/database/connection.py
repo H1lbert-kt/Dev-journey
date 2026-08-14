@@ -96,6 +96,10 @@ def _add_missing_columns(inspector):
         "weekly_schedule": [
             ("order", "INTEGER", "0"),
         ],
+        "users": [
+            ("timer_state_seconds", "INTEGER", "0"),
+            ("timer_state_subject", "VARCHAR(100)", "''"),
+        ],
     }
 
     for table_name, expected_columns in columns_map.items():
