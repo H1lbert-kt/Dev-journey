@@ -6,7 +6,6 @@ from datetime import datetime, date
 from app.database.connection import get_db
 from app.models.study_session import StudySession
 from app.models.subject import Subject
-from app.models.subject_goal import SubjectGoal
 from app.models.calendar_day import CalendarDay
 from app.models.weekly_schedule import WeeklySchedule
 from app.routers.auth import require_auth
@@ -33,10 +32,6 @@ async def timer_page(request: Request, db: Session = Depends(get_db)):
     ).all()
     today_minutes = sum(s.duration_minutes for s in today_sessions)
 
-    subject_goals = {}
-    for goal in db.query(SubjectGoal).filter(SubjectGoal.user_id == user.id).all():
-        subject_goals[goal.subject_id] = goal.daily_minutes
-
     subject_minutes = {}
     for s in today_sessions:
         subject_minutes[s.subject] = subject_minutes.get(s.subject, 0) + s.duration_minutes
@@ -50,7 +45,6 @@ async def timer_page(request: Request, db: Session = Depends(get_db)):
             "subjects": subjects,
             "today_minutes": round(today_minutes, 1),
             "daily_goal": user.daily_goal_minutes,
-            "subject_goals": subject_goals,
             "subject_minutes": subject_minutes,
         },
     )
@@ -182,40 +176,6 @@ async def check_day_completed(request: Request, db: Session = Depends(get_db)):
     day_completed = len(scheduled_subject_names) > 0 and set(scheduled_subject_names) == studied_today
 
     return JSONResponse(content={"day_completed": day_completed, "has_schedule": True})
-
-
-@router.post("/set-subject-goal")
-async def set_subject_goal(
-    request: Request,
-    subject_id: int = Form(...),
-    daily_minutes: int = Form(...),
-    db: Session = Depends(get_db),
-):
-    user = require_auth(request, db)
-    if not user:
-        return RedirectResponse(url="/login", status_code=303)
-
-    subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first()
-    if not subject:
-        return RedirectResponse(url="/timer", status_code=303)
-
-    existing = db.query(SubjectGoal).filter(
-        SubjectGoal.subject_id == subject_id,
-        SubjectGoal.user_id == user.id
-    ).first()
-
-    if existing:
-        existing.daily_minutes = max(5, min(480, daily_minutes))
-    else:
-        goal = SubjectGoal(
-            subject_id=subject_id,
-            user_id=user.id,
-            daily_minutes=max(5, min(480, daily_minutes)),
-        )
-        db.add(goal)
-
-    db.commit()
-    return RedirectResponse(url="/timer", status_code=303)
 
 
 @router.get("/ping")

@@ -30,24 +30,16 @@
         </div>
         <div class="subject-goals-list">
             {% for subject in subjects %}
+            {% set studied = subject_minutes.get(subject.name, 0) %}
+            {% if studied > 0 %}
             <div class="subject-goal-item">
                 <div class="subject-goal-color" style="background-color: {{ subject.color }}"></div>
                 <div class="subject-goal-info">
                     <div class="subject-goal-name">{{ subject.name }}</div>
-                    <div class="subject-goal-progress">
-                        {% set goal_minutes = subject_goals.get(subject.id, 60) %}
-                        {% set studied = subject_minutes.get(subject.name, 0) %}
-                        {% set progress = (studied / goal_minutes * 100) if goal_minutes > 0 else 0 %}
-                        <div class="subject-goal-fill" style="width: {{ [progress, 100]|min }}%; background-color: {{ subject.color }}"></div>
-                    </div>
                 </div>
-                <div class="subject-goal-time">{{ studied|round(0)|int }}/{{ goal_minutes }}min</div>
-                <form action="/timer/set-subject-goal" method="post" class="subject-goal-form">
-                    <input type="hidden" name="subject_id" value="{{ subject.id }}">
-                    <input type="number" name="daily_minutes" value="{{ goal_minutes }}" min="5" max="480" class="subject-goal-input" title="Tempo desejado de estudo hoje">
-                    <button type="submit" class="btn btn-small">Salvar</button>
-                </form>
+                <div class="subject-goal-time">{{ studied|round(0)|int }}min</div>
             </div>
+            {% endif %}
             {% endfor %}
         </div>
     </div>
