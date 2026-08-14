@@ -199,6 +199,7 @@
             </div>
             <div class="floating-timer-center">
                 <span class="floating-timer-time" id="ft-time">00:00:00</span>
+                <span class="floating-timer-pause" id="ft-pause-time" style="display:none; font-size: 11px; color: var(--text-muted); margin-left: 8px;">Pausado: 00:00</span>
             </div>
             <div class="floating-timer-right">
                 <button class="floating-timer-btn" id="ft-pause" onclick="ftPause()">||</button>
@@ -238,8 +239,9 @@
     var ftSubject = ftState ? ftState.subject : defaultSubject;
     var ftSyncDisplay = null;
     var ftKeepaliveInterval = null;
-    var ftPausedKeepaliveInterval = null;
     var ftStopCallback = null;
+    var ftPauseSeconds = 0;
+    var ftPauseInterval = null;
 
     function ftSaveState() {
         localStorage.setItem('ftState', JSON.stringify({
@@ -276,6 +278,7 @@
             ftSaveState();
             ftUpdateDisplay();
         }, 1000);
+        ftStopPauseTimer();
         ftStartKeepalive();
     }
 
@@ -290,7 +293,7 @@
             ftUpdateDisplay();
         }, 1000);
         document.getElementById('ft-pause').innerHTML = '||';
-        ftStopPausedKeepalive();
+        ftStopPauseTimer();
         ftStartKeepalive();
     }
 
@@ -302,7 +305,7 @@
         document.getElementById('ft-pause').innerHTML = '&#9654;';
         document.title = 'DevJourney';
         ftStopKeepalive();
-        ftStartPausedKeepalive();
+        ftStartPauseTimer();
     }
 
     function ftStop() {
@@ -318,7 +321,7 @@
         document.getElementById('floating-timer').style.display = 'none';
         document.title = 'DevJourney';
         ftStopKeepalive();
-        ftStopPausedKeepalive();
+        ftStopPauseTimer();
         if (ftStopCallback) ftStopCallback();
         return saved;
     }
@@ -332,7 +335,51 @@
         document.getElementById('floating-timer').style.display = 'none';
         document.title = 'DevJourney';
         ftStopKeepalive();
-        ftStopPausedKeepalive();
+        ftStopPauseTimer();
+    }
+
+    function ftStartPauseTimer() {
+        ftStopPauseTimer();
+        ftPauseSeconds = 0;
+        var pauseTimeEl = document.getElementById('ft-pause-time');
+        if (pauseTimeEl) {
+            pauseTimeEl.style.display = 'inline';
+        }
+        var pingCount = 0;
+        ftPauseInterval = setInterval(function() {
+            ftPauseSeconds++;
+            var pm = Math.floor(ftPauseSeconds / 60);
+            var ps = ftPauseSeconds % 60;
+            var pauseText = String(pm).padStart(2, '0') + ':' + String(ps).padStart(2, '0');
+            if (pauseTimeEl) {
+                pauseTimeEl.textContent = 'Pausado: ' + pauseText;
+            }
+            document.title = 'Pausado ' + pauseText + ' | DevJourney';
+            if (typeof ftSyncPauseDisplay === 'function') {
+                ftSyncPauseDisplay();
+            }
+            pingCount++;
+            if (pingCount >= 60) {
+                fetch('/timer/ping').catch(function() {});
+                pingCount = 0;
+            }
+        }, 1000);
+    }
+
+    function ftStopPauseTimer() {
+        if (ftPauseInterval) {
+            clearInterval(ftPauseInterval);
+            ftPauseInterval = null;
+        }
+        ftPauseSeconds = 0;
+        var pauseTimeEl = document.getElementById('ft-pause-time');
+        if (pauseTimeEl) {
+            pauseTimeEl.style.display = 'none';
+            pauseTimeEl.textContent = 'Pausado: 00:00';
+        }
+        if (typeof ftSyncPauseDisplay === 'function') {
+            ftSyncPauseDisplay();
+        }
     }
 
     function ftSaveSession(totalSeconds) {
@@ -367,25 +414,6 @@
         }
     }
 
-    function ftStartPausedKeepalive() {
-        ftStopPausedKeepalive();
-        var count = 0;
-        ftPausedKeepaliveInterval = setInterval(function() {
-            count++;
-            fetch('/timer/ping').catch(function() {});
-            if (count >= 10) {
-                ftStopPausedKeepalive();
-            }
-        }, 30000);
-    }
-
-    function ftStopPausedKeepalive() {
-        if (ftPausedKeepaliveInterval) {
-            clearInterval(ftPausedKeepaliveInterval);
-            ftPausedKeepaliveInterval = null;
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
         var ft = document.getElementById('floating-timer');
         if (!ft) return;
@@ -403,6 +431,8 @@
                     ftUpdateDisplay();
                 }, 1000);
                 ftStartKeepalive();
+            } else {
+                ftStartPauseTimer();
             }
         } else {
             fetch('/timer/get-state').then(function(r) { return r.json(); }).then(function(data) {
@@ -415,6 +445,7 @@
                     ftUpdateDisplay();
                     document.getElementById('ft-pause').innerHTML = '&#9654;';
                     document.title = 'DevJourney';
+                    ftStartPauseTimer();
                 } else {
                     ft.style.display = 'none';
                 }

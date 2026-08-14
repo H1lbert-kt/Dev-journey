@@ -110,6 +110,7 @@
             <div class="timer-display">
                 <div class="timer-time" id="timer-display">00:00:00</div>
                 <div class="timer-phase" id="timer-phase">Pronto</div>
+                <div id="timer-pause-display" style="display:none; font-size: 14px; color: var(--text-muted); margin-top: 4px;">Pausado: 00:00</div>
                 <div class="timer-current-subject" id="timer-current-subject" style="display:none">
                     <span id="current-subject-name"></span>
                     <span id="current-subject-progress"></span>
@@ -463,6 +464,19 @@ function updateDisplay() {
 
 ftSyncDisplay = updateDisplay;
 
+function ftSyncPauseDisplay() {
+    var pauseEl = document.getElementById('timer-pause-display');
+    var ftPauseEl = document.getElementById('ft-pause-time');
+    if (pauseEl && ftPauseEl) {
+        if (ftPauseEl.style.display !== 'none' && ftPauseSeconds > 0) {
+            pauseEl.style.display = 'block';
+            pauseEl.textContent = ftPauseEl.textContent;
+        } else {
+            pauseEl.style.display = 'none';
+        }
+    }
+}
+
 function resumeFromHistory(subject, durationMinutes) {
     var seconds = Math.round(durationMinutes * 60);
     if (ftRunning || ftSeconds > 0) {
@@ -533,6 +547,9 @@ document.addEventListener('DOMContentLoaded', function() {
         var m = Math.floor((ftSeconds % 3600) / 60);
         var s = ftSeconds % 60;
         document.title = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + ' - Pausado | DevJourney';
+        if (ftPauseSeconds > 0) {
+            ftSyncPauseDisplay();
+        }
     }
     updateDisplay();
 });
