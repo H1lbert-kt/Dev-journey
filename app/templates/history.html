@@ -128,14 +128,14 @@
                 </div>
                 <div class="session-card-meta">
                     {% set type_colors = {
-                        'teoria': ('#58a6ff', 'rgba(88, 166, 255, 0.15)'),
-                        'exercicios': ('#3fb950', 'rgba(63, 185, 80, 0.15)'),
-                        'revisao': ('#bc8cff', 'rgba(188, 140, 255, 0.15)'),
-                        'projeto': ('#d29922', 'rgba(210, 153, 34, 0.15)'),
-                        'simulado': ('#f85149', 'rgba(248, 81, 73, 0.15)'),
-                        'estudo': ('#8b949e', 'rgba(139, 148, 158, 0.15)')
+                        'teoria': ('var(--accent)', 'var(--accent-subtle)'),
+                        'exercicios': ('var(--green)', 'var(--green-subtle)'),
+                        'revisao': ('var(--purple)', 'var(--purple-subtle)'),
+                        'projeto': ('var(--yellow)', 'var(--yellow-subtle)'),
+                        'simulado': ('var(--red)', 'var(--red-subtle)'),
+                        'estudo': ('var(--fg-2)', 'rgba(138,145,155,0.10)')
                     } %}
-                    {% set type_color = type_colors.get(session.session_type, ('#8b949e', 'rgba(139, 148, 158, 0.15)')) %}
+                    {% set type_color = type_colors.get(session.session_type, ('var(--fg-2)', 'rgba(138,145,155,0.10)')) %}
                     <span class="session-type-badge" style="background-color: {{ type_color[1] }}; color: {{ type_color[0] }}">{{ session.session_type or 'estudo' }}</span>
                     <span class="session-date">{{ session.date.strftime('%d/%m/%Y') }} &#8226; {{ session.date.strftime('%H:%M') }}</span>
                 </div>

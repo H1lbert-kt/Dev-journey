@@ -16,19 +16,19 @@
     .filter-tab {
         padding: 8px 16px;
         border-radius: var(--radius);
-        background-color: var(--bg-tertiary);
-        border: 1px solid var(--border-color);
-        color: var(--text-secondary);
+        background-color: var(--bg-raised);
+        border: 1px solid var(--border);
+        color: var(--fg-2);
         font-size: 13px;
         font-weight: 500;
         cursor: pointer;
-        transition: all var(--transition);
+        transition: all var(--t);
         white-space: nowrap;
         min-height: 36px;
     }
     .filter-tab:hover {
         border-color: var(--accent);
-        color: var(--text-primary);
+        color: var(--fg-0);
     }
     .filter-tab.active {
         background-color: rgba(88, 166, 255, 0.15);
@@ -41,11 +41,11 @@
         gap: 16px;
     }
     .skill-card {
-        background-color: var(--bg-secondary);
-        border: 1px solid var(--border-color);
+        background-color: var(--bg-surface);
+        border: 1px solid var(--border);
         border-radius: var(--radius-lg);
         padding: 20px;
-        transition: border-color var(--transition);
+        transition: border-color var(--t);
     }
     .skill-card:hover {
         border-color: var(--accent);
@@ -76,14 +76,14 @@
         letter-spacing: 0.3px;
     }
     .cat-frontend { background-color: rgba(88, 166, 255, 0.15); color: var(--accent); }
-    .cat-backend { background-color: rgba(63, 185, 80, 0.15); color: var(--success); }
+    .cat-backend { background-color: rgba(63, 185, 80, 0.15); color: var(--green); }
     .cat-banco_dados { background-color: rgba(210, 153, 34, 0.15); color: var(--warning); }
     .cat-devops { background-color: rgba(188, 140, 255, 0.15); color: var(--purple); }
-    .cat-ferramentas { background-color: rgba(248, 81, 73, 0.15); color: var(--danger); }
-    .cat-geral { background-color: var(--bg-tertiary); color: var(--text-secondary); }
+    .cat-ferramentas { background-color: rgba(248, 81, 73, 0.15); color: var(--red); }
+    .cat-geral { background-color: var(--bg-raised); color: var(--fg-2); }
     .skill-description {
         font-size: 13px;
-        color: var(--text-secondary);
+        color: var(--fg-2);
         margin-bottom: 12px;
         line-height: 1.4;
     }
@@ -98,7 +98,7 @@
     }
     .skill-progress-label {
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--fg-3);
     }
     .skill-progress-value {
         font-size: 14px;
@@ -109,7 +109,7 @@
     .skill-progress-bar {
         width: 100%;
         height: 8px;
-        background-color: var(--bg-tertiary);
+        background-color: var(--bg-raised);
         border-radius: 4px;
         overflow: hidden;
         position: relative;
@@ -119,10 +119,10 @@
         border-radius: 4px;
         transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .skill-progress-fill.low { background: linear-gradient(90deg, #f85149, #f85149); }
-    .skill-progress-fill.mid { background: linear-gradient(90deg, #f85149, #d29922); }
-    .skill-progress-fill.high { background: linear-gradient(90deg, #d29922, #3fb950); }
-    .skill-progress-fill.full { background: linear-gradient(90deg, #3fb950, #3fb950); }
+    .skill-progress-fill.low { background: var(--red); }
+    .skill-progress-fill.mid { background: var(--yellow); }
+    .skill-progress-fill.high { background: linear-gradient(90deg, var(--yellow), var(--green)); }
+    .skill-progress-fill.full { background: var(--green); }
     .skill-progress-text {
         display: flex;
         align-items: center;
@@ -132,7 +132,7 @@
     .skill-progress-bar-text {
         flex: 1;
         height: 6px;
-        background-color: var(--bg-tertiary);
+        background-color: var(--bg-raised);
         border-radius: 3px;
         overflow: hidden;
     }
@@ -147,13 +147,13 @@
         gap: 8px;
         margin-top: 12px;
         padding-top: 12px;
-        border-top: 1px solid var(--border-color);
+        border-top: 1px solid var(--border);
     }
     .skill-inline-edit {
         display: none;
         margin-top: 8px;
         padding: 12px;
-        background-color: var(--bg-tertiary);
+        background-color: var(--bg-raised);
         border-radius: var(--radius);
     }
     .skill-inline-edit.active {
@@ -170,7 +170,7 @@
         appearance: none;
         height: 6px;
         border-radius: 3px;
-        background: var(--bg-primary);
+        background: var(--bg-base);
         outline: none;
     }
     .skill-slider::-webkit-slider-thumb {
@@ -181,7 +181,7 @@
         border-radius: 50%;
         background: var(--accent);
         cursor: pointer;
-        border: 2px solid var(--bg-secondary);
+        border: 2px solid var(--bg-surface);
     }
     .skill-slider::-moz-range-thumb {
         width: 20px;
@@ -189,7 +189,7 @@
         border-radius: 50%;
         background: var(--accent);
         cursor: pointer;
-        border: 2px solid var(--bg-secondary);
+        border: 2px solid var(--bg-surface);
     }
     .skill-slider-value {
         font-size: 14px;
@@ -202,13 +202,13 @@
         padding: 6px 12px;
         border-radius: var(--radius);
         background-color: var(--accent);
-        color: var(--bg-primary);
+        color: var(--bg-base);
         border: none;
         font-size: 12px;
         font-weight: 600;
         cursor: pointer;
         min-height: 32px;
-        transition: background-color var(--transition);
+        transition: background-color var(--t);
     }
     .skill-slider-save:hover {
         background-color: var(--accent-hover);
@@ -216,7 +216,7 @@
     .skill-empty-state {
         text-align: center;
         padding: 60px 20px;
-        color: var(--text-muted);
+        color: var(--fg-3);
     }
     .skill-empty-icon {
         font-size: 48px;
@@ -226,11 +226,11 @@
     .skill-empty-text {
         font-size: 16px;
         margin-bottom: 8px;
-        color: var(--text-secondary);
+        color: var(--fg-2);
     }
     .skill-empty-hint {
         font-size: 13px;
-        color: var(--text-muted);
+        color: var(--fg-3);
     }
     .skill-category-section {
         margin-bottom: 32px;
@@ -238,7 +238,7 @@
     .skill-category-title {
         font-size: 14px;
         font-weight: 600;
-        color: var(--text-secondary);
+        color: var(--fg-2);
         margin-bottom: 12px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -248,10 +248,10 @@
     }
     .skill-category-count {
         font-size: 12px;
-        background-color: var(--bg-tertiary);
+        background-color: var(--bg-raised);
         padding: 2px 8px;
         border-radius: 10px;
-        color: var(--text-muted);
+        color: var(--fg-3);
     }
     @media (max-width: 640px) {
         .skills-grid {

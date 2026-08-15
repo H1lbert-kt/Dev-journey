@@ -23,7 +23,7 @@
     <div class="section">
         <h2 class="section-title">Revisao Pendente</h2>
         <div class="flashcard-review">
-            <div class="review-progress" id="review-progress" style="text-align:center; margin-bottom:12px; font-size:13px; color: var(--text-muted);">
+            <div class="review-progress" id="review-progress" style="text-align:center; margin-bottom:12px; font-size:13px; color: var(--fg-3);">
                 Cartao <span id="review-current">1</span> de <span id="review-total">{{ due_cards|length }}</span>
             </div>
             <div class="flashcard-3d" id="flashcard-3d">
@@ -51,7 +51,7 @@
         </div>
         <div id="review-complete" style="display:none; text-align:center; padding: 32px 0;">
             <p style="font-size: 18px; color: var(--success); font-weight: 600;">Revisao concluida!</p>
-            <p style="color: var(--text-muted); margin-top: 8px;">Todos os cards foram revisados</p>
+            <p style="color: var(--fg-3); margin-top: 8px;">Todos os cards foram revisados</p>
         </div>
     </div>
     {% endif %}
@@ -63,7 +63,7 @@
             <div class="flashcard-mini" onclick="this.classList.toggle('flipped')">
                 <div class="flashcard-mini-inner">
                     <div class="flashcard-mini-front">
-                        <div class="flashcard-mini-subject" style="background-color: {{ card.subject.color if card.subject else '#58a6ff' }}20; color: {{ card.subject.color if card.subject else '#58a6ff' }}">{{ card.subject.name if card.subject else 'Geral' }}</div>
+                        <div class="flashcard-mini-subject" style="background-color: {{ card.subject.color if card.subject else 'var(--accent)' }}18; color: {{ card.subject.color if card.subject else 'var(--accent)' }}">{{ card.subject.name if card.subject else 'Geral' }}</div>
                         <div class="flashcard-mini-text">{{ card.front }}</div>
                         <div class="flashcard-mini-footer">
                             <span class="flashcard-mini-date">{{ card.next_review.strftime('%d/%m') if card.next_review else 'Nunca' }}</span>
@@ -137,7 +137,7 @@
                 <div id="file-name" style="margin-top: 8px; font-size: 13px; color: var(--accent);"></div>
             </div>
             <div id="import-preview-container" style="display: none;">
-                <label style="font-size: 14px; font-weight: 500; margin-bottom: 8px; display: block; color: var(--text-secondary);">Preview</label>
+                <label style="font-size: 14px; font-weight: 500; margin-bottom: 8px; display: block; color: var(--fg-2);">Preview</label>
                 <div class="import-preview" id="import-preview"></div>
                 <p class="import-count" id="import-count"></p>
             </div>
@@ -292,7 +292,7 @@ function handleFile(file) {
             }
             if (cards.length > 10) {
                 var moreDiv = document.createElement('div');
-                moreDiv.style.cssText = 'padding:8px;text-align:center;color:var(--text-muted);font-size:13px;';
+                moreDiv.style.cssText = 'padding:8px;text-align:center;color:var(--fg-3);font-size:13px;';
                 moreDiv.textContent = '...e mais ' + (cards.length - 10) + ' cards';
                 importPreview.appendChild(moreDiv);
             }

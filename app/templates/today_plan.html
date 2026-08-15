@@ -37,7 +37,7 @@
                     <div class="plan-item-top">
                         <span class="plan-item-title {% if item.completed %}completed-text{% endif %}" id="title-{{ item.id }}">{{ item.title }}</span>
                         {% if item.subject %}
-                        <span class="plan-badge plan-badge-subject" style="background-color: {{ item.subject.color or '#58a6ff' }}20; color: {{ item.subject.color or '#58a6ff' }}">{{ item.subject.name }}</span>
+                        <span class="plan-badge plan-badge-subject" style="background-color: {{ item.subject.color or 'var(--accent)' }}18; color: {{ item.subject.color or 'var(--accent)' }}">{{ item.subject.name }}</span>
                         {% endif %}
                     </div>
                     <div class="plan-item-meta">
