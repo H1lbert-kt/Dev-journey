@@ -196,6 +196,7 @@
             <div class="floating-timer-left">
                 <span class="floating-timer-icon">&#9200;</span>
                 <span class="floating-timer-subject" id="ft-subject"></span>
+                <button class="floating-timer-btn" onclick="openTimerPopup()" title="Abrir timer em janela separada" style="font-size:12px; padding:4px 6px; margin-left:4px;">&#8599;</button>
             </div>
             <div class="floating-timer-center">
                 <span class="floating-timer-time" id="ft-time">00:00:00</span>
@@ -242,6 +243,32 @@
     var ftStopCallback = null;
     var ftPauseSeconds = 0;
     var ftPauseInterval = null;
+    var ftChannel = null;
+
+    if (typeof BroadcastChannel !== 'undefined') {
+        ftChannel = new BroadcastChannel('devjourney-timer');
+        ftChannel.onmessage = function(e) {
+            if (e.data.type === 'command') {
+                if (e.data.action === 'pause' && ftRunning) {
+                    ftPause();
+                } else if (e.data.action === 'resume' && !ftRunning && ftSeconds > 0) {
+                    ftResume();
+                } else if (e.data.action === 'stop') {
+                    ftStop();
+                }
+            }
+        };
+    }
+
+    function ftBroadcast() {
+        if (ftChannel) {
+            ftChannel.postMessage({type: 'state', seconds: ftSeconds, running: ftRunning, subject: ftSubject});
+        }
+    }
+
+    function openTimerPopup() {
+        window.open('/timer/popup', 'devjourney-timer', 'width=340,height=200,alwaysOnTop=yes,resizable=yes');
+    }
 
     function ftSaveState() {
         localStorage.setItem('ftState', JSON.stringify({
@@ -249,6 +276,7 @@
             subject: ftSubject,
             running: ftRunning
         }));
+        ftBroadcast();
     }
 
     function ftUpdateDisplay() {
@@ -322,6 +350,7 @@
         document.title = 'DevJourney';
         ftStopKeepalive();
         ftStopPauseTimer();
+        ftBroadcast();
         if (ftStopCallback) ftStopCallback();
         return saved;
     }
@@ -336,6 +365,7 @@
         document.title = 'DevJourney';
         ftStopKeepalive();
         ftStopPauseTimer();
+        ftBroadcast();
     }
 
     function ftStartPauseTimer() {

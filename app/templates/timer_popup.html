@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer - DevJourney</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+        .popup-container {
+            text-align: center;
+            padding: 24px;
+            width: 100%;
+            max-width: 320px;
+        }
+        .popup-subject {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .popup-time {
+            font-size: 64px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+        .popup-status {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+        .popup-status.running { color: var(--success); }
+        .popup-status.paused { color: var(--warning); }
+        .popup-status.stopped { color: var(--text-muted); }
+        .popup-controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .popup-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .popup-btn:hover { transform: scale(1.1); }
+        .popup-btn-play {
+            background: var(--success);
+            color: white;
+        }
+        .popup-btn-pause {
+            background: var(--warning);
+            color: white;
+        }
+        .popup-btn-stop {
+            background: var(--danger);
+            color: white;
+        }
+        .popup-idle {
+            color: var(--text-muted);
+            font-size: 14px;
+            padding: 40px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="popup-container">
+        <div id="popup-active" style="display:none">
+            <div class="popup-subject" id="popup-subject"></div>
+            <div class="popup-time" id="popup-time">00:00:00</div>
+            <div class="popup-status" id="popup-status"></div>
+            <div class="popup-controls">
+                <button class="popup-btn popup-btn-play" id="popup-play" onclick="sendCommand('resume')">&#9654;</button>
+                <button class="popup-btn popup-btn-pause" id="popup-pause" onclick="sendCommand('pause')" style="display:none">||</button>
+                <button class="popup-btn popup-btn-stop" onclick="sendCommand('stop')">&#9632;</button>
+            </div>
+        </div>
+        <div class="popup-idle" id="popup-idle">
+            Nenhum cronometro ativo.<br>Inicie o timer na pagina principal.
+        </div>
+    </div>
+    <script>
+    var popupSeconds = 0;
+    var popupRunning = false;
+    var popupSubject = '';
+    var popupInterval = null;
+    var channel = null;
+
+    if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel('devjourney-timer');
+        channel.onmessage = function(e) {
+            if (e.data.type === 'state') {
+                popupSeconds = e.data.seconds || 0;
+                popupRunning = e.data.running || false;
+                popupSubject = e.data.subject || '';
+                updatePopupDisplay();
+            } else if (e.data.type === 'stop') {
+                popupSeconds = 0;
+                popupRunning = false;
+                popupSubject = '';
+                updatePopupDisplay();
+            }
+        };
+    }
+
+    function sendCommand(cmd) {
+        if (channel) {
+            channel.postMessage({type: 'command', action: cmd});
+        } else {
+            var state = JSON.parse(localStorage.getItem('ftState') || '{}');
+            state.command = cmd;
+            localStorage.setItem('ftPopupCommand', JSON.stringify(state));
+        }
+    }
+
+    function updatePopupDisplay() {
+        var active = document.getElementById('popup-active');
+        var idle = document.getElementById('popup-idle');
+        var playBtn = document.getElementById('popup-play');
+        var pauseBtn = document.getElementById('popup-pause');
+        var status = document.getElementById('popup-status');
+
+        if (popupSeconds > 0 || popupRunning) {
+            active.style.display = 'block';
+            idle.style.display = 'none';
+
+            var h = Math.floor(popupSeconds / 3600);
+            var m = Math.floor((popupSeconds % 3600) / 60);
+            var s = popupSeconds % 60;
+            document.getElementById('popup-time').textContent =
+                String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            document.getElementById('popup-subject').textContent = popupSubject || 'Geral';
+
+            if (popupRunning) {
+                status.textContent = 'Estudando...';
+                status.className = 'popup-status running';
+                playBtn.style.display = 'none';
+                pauseBtn.style.display = 'flex';
+            } else {
+                status.textContent = 'Pausado';
+                status.className = 'popup-status paused';
+                playBtn.style.display = 'flex';
+                pauseBtn.style.display = 'none';
+            }
+        } else {
+            active.style.display = 'none';
+            idle.style.display = 'block';
+        }
+    }
+
+    function syncFromLocalStorage() {
+        var state = JSON.parse(localStorage.getItem('ftState') || '{}');
+        if (state.seconds !== undefined) {
+            popupSeconds = state.seconds || 0;
+            popupRunning = state.running || false;
+            popupSubject = state.subject || '';
+            updatePopupDisplay();
+        }
+    }
+
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'ftState') {
+            syncFromLocalStorage();
+        }
+    });
+
+    setInterval(syncFromLocalStorage, 1000);
+    syncFromLocalStorage();
+    </script>
+</body>
+</html>

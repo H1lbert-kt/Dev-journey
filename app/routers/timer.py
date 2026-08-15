@@ -231,3 +231,18 @@ async def clear_timer_state(request: Request, db: Session = Depends(get_db)):
         db.rollback()
 
     return JSONResponse(content={"success": True})
+
+
+@router.get("/popup")
+async def timer_popup(request: Request, db: Session = Depends(get_db)):
+    user = require_auth(request, db)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "timer_popup.html",
+        context={
+            "study_mode": user.study_mode,
+        },
+    )
