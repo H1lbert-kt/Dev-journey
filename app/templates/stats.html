@@ -94,18 +94,36 @@
         </div>
     </div>
 
-    {% if subject_stats %}
+    {% if subjects_detail %}
     <div class="section">
         <h2 class="section-title">Tempo por Materia</h2>
-        <div class="progress-list">
-            {% for subject, minutes in subject_stats %}
-            <div class="progress-item">
-                <div class="progress-info">
-                    <span class="progress-name">{{ subject }}</span>
-                    <span class="progress-value">{{ "%.1f"|format(minutes / 60) }}h</span>
+        <div class="subjects-detail-grid">
+            {% for s in subjects_detail %}
+            <div class="subject-detail-card">
+                <div class="subject-detail-header">
+                    <span class="subject-detail-name">{{ s.name }}</span>
+                    <span class="subject-detail-pct">{{ s.pct }}%</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: {{ (minutes / (subject_stats | map(attribute=1) | max) * 100) if subject_stats | map(attribute=1) | max > 0 else 0 }}%"></div>
+                    <div class="progress-fill" style="width: {{ s.pct }}%"></div>
+                </div>
+                <div class="subject-detail-stats">
+                    <div class="subject-detail-stat">
+                        <span class="subject-detail-stat-value">{{ s.total_hours }}h</span>
+                        <span class="subject-detail-stat-label">Tempo total</span>
+                    </div>
+                    <div class="subject-detail-stat">
+                        <span class="subject-detail-stat-value">{{ s.session_count }}</span>
+                        <span class="subject-detail-stat-label">Sessoes</span>
+                    </div>
+                    <div class="subject-detail-stat">
+                        <span class="subject-detail-stat-value">{{ s.avg_per_session }}min</span>
+                        <span class="subject-detail-stat-label">Media/sessao</span>
+                    </div>
+                    <div class="subject-detail-stat">
+                        <span class="subject-detail-stat-value">{{ s.last_date.strftime('%d/%m') if s.last_date else '-' }}</span>
+                        <span class="subject-detail-stat-label">Ultimo estudo</span>
+                    </div>
                 </div>
             </div>
             {% endfor %}

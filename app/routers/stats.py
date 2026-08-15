@@ -74,10 +74,27 @@ async def stats(request: Request, db: Session = Depends(get_db)):
 
     subject_stats = db.query(
         StudySession.subject,
-        func.sum(StudySession.duration_minutes)
+        func.sum(StudySession.duration_minutes),
+        func.count(StudySession.id),
+        func.max(StudySession.date)
     ).filter(
         StudySession.user_id == user.id
     ).group_by(StudySession.subject).all()
+
+    subjects_detail = []
+    for subject_name, total_minutes, session_count, last_date in subject_stats:
+        avg_per_session = total_minutes / session_count if session_count > 0 else 0
+        pct = (total_minutes / total_study_time * 100) if total_study_time > 0 else 0
+        subjects_detail.append({
+            "name": subject_name,
+            "total_minutes": round(total_minutes, 1),
+            "total_hours": round(total_minutes / 60, 1),
+            "session_count": session_count,
+            "avg_per_session": round(avg_per_session, 1),
+            "last_date": last_date,
+            "pct": round(pct, 1),
+        })
+    subjects_detail.sort(key=lambda x: x["total_minutes"], reverse=True)
 
     return request.app.state.templates.TemplateResponse(
         request,
@@ -96,6 +113,8 @@ async def stats(request: Request, db: Session = Depends(get_db)):
             "month_minutes": round(month_minutes, 1),
             "daily_avg": round(daily_avg, 1),
             "subject_stats": subject_stats,
+            "subjects_detail": subjects_detail,
+            "total_study_time": round(total_study_time, 1),
             "study_mode": user.study_mode,
         },
     )
