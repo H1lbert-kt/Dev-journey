@@ -21,7 +21,7 @@ async def timer_page(request: Request, db: Session = Depends(get_db)):
 
     sessions = db.query(StudySession).filter(
         StudySession.user_id == user.id
-    ).order_by(StudySession.date.desc()).limit(20).all()
+    ).order_by(StudySession.date.desc()).limit(10).all()
 
     subjects = db.query(Subject).filter(Subject.user_id == user.id).all()
 

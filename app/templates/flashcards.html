@@ -23,36 +23,35 @@
     <div class="section">
         <h2 class="section-title">Revisao Pendente</h2>
         <div class="flashcard-review">
+            <div class="review-progress" id="review-progress" style="text-align:center; margin-bottom:12px; font-size:13px; color: var(--text-muted);">
+                Cartao <span id="review-current">1</span> de <span id="review-total">{{ due_cards|length }}</span>
+            </div>
             <div class="flashcard-3d" id="flashcard-3d">
                 <div class="flashcard-3d-inner" id="flashcard-inner">
                     <div class="flashcard-3d-front">
                         <div class="flashcard-3d-label">Pergunta</div>
-                        <div class="flashcard-3d-text">{{ due_cards[0].front }}</div>
+                        <div class="flashcard-3d-text" id="card-front">{{ due_cards[0].front }}</div>
                         <div class="flashcard-3d-hint">Clique para ver a resposta</div>
                     </div>
                     <div class="flashcard-3d-back">
                         <div class="flashcard-3d-label">Resposta</div>
-                        <div class="flashcard-3d-text">{{ due_cards[0].back }}</div>
+                        <div class="flashcard-3d-text" id="card-back">{{ due_cards[0].back }}</div>
                     </div>
                 </div>
             </div>
             <div class="flashcard-actions">
                 <button class="btn btn-large" id="btn-show-answer" onclick="flipCard()">Mostrar Resposta</button>
                 <div class="review-buttons" style="display:none" id="review-buttons">
-                    <form action="/flashcards/{{ due_cards[0].id }}/review" method="post" style="display:inline">
-                        <input type="hidden" name="quality" value="1">
-                        <button type="submit" class="btn btn-danger btn-large">Ruim</button>
-                    </form>
-                    <form action="/flashcards/{{ due_cards[0].id }}/review" method="post" style="display:inline">
-                        <input type="hidden" name="quality" value="3">
-                        <button type="submit" class="btn btn-large">Bom</button>
-                    </form>
-                    <form action="/flashcards/{{ due_cards[0].id }}/review" method="post" style="display:inline">
-                        <input type="hidden" name="quality" value="5">
-                        <button type="submit" class="btn btn-success btn-large">Facil</button>
-                    </form>
+                    <button class="btn btn-danger btn-large" onclick="reviewCard(1)">Ruim</button>
+                    <button class="btn btn-large" onclick="reviewCard(3)">Bom</button>
+                    <button class="btn btn-primary btn-large" onclick="reviewCard(4)">Muito Bom</button>
+                    <button class="btn btn-success btn-large" onclick="reviewCard(5)">Facil</button>
                 </div>
             </div>
+        </div>
+        <div id="review-complete" style="display:none; text-align:center; padding: 32px 0;">
+            <p style="font-size: 18px; color: var(--success); font-weight: 600;">Revisao concluida!</p>
+            <p style="color: var(--text-muted); margin-top: 8px;">Todos os cards foram revisados</p>
         </div>
     </div>
     {% endif %}
@@ -148,11 +147,19 @@
 </div>
 
 <script>
+var reviewQueue = [
+    {% for card in due_cards %}
+    {id: {{ card.id }}, front: {{ card.front | tojson }}, back: {{ card.back | tojson }}, subject: {{ (card.subject.name if card.subject else 'Geral') | tojson }}}
+    {% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+var reviewIndex = 0;
+
 function flipCard() {
     var card = document.getElementById('flashcard-inner');
     var btn = document.getElementById('btn-show-answer');
     var buttons = document.getElementById('review-buttons');
-    
+
     if (card.classList.contains('flipped')) {
         card.classList.remove('flipped');
         btn.style.display = 'inline-flex';
@@ -162,6 +169,47 @@ function flipCard() {
         btn.style.display = 'none';
         buttons.style.display = 'flex';
     }
+}
+
+function reviewCard(quality) {
+    if (reviewIndex >= reviewQueue.length) return;
+    var card = reviewQueue[reviewIndex];
+
+    fetch('/flashcards/' + card.id + '/review', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'quality=' + quality
+    }).then(function() {
+        reviewIndex++;
+        if (reviewIndex >= reviewQueue.length) {
+            document.getElementById('flashcard-3d').style.display = 'none';
+            document.querySelector('.flashcard-actions').style.display = 'none';
+            document.getElementById('review-progress').style.display = 'none';
+            document.getElementById('review-complete').style.display = 'block';
+        } else {
+            loadCard(reviewQueue[reviewIndex]);
+        }
+    }).catch(function() {
+        reviewIndex++;
+        if (reviewIndex >= reviewQueue.length) {
+            document.getElementById('flashcard-3d').style.display = 'none';
+            document.querySelector('.flashcard-actions').style.display = 'none';
+            document.getElementById('review-progress').style.display = 'none';
+            document.getElementById('review-complete').style.display = 'block';
+        } else {
+            loadCard(reviewQueue[reviewIndex]);
+        }
+    });
+}
+
+function loadCard(card) {
+    var inner = document.getElementById('flashcard-inner');
+    inner.classList.remove('flipped');
+    document.getElementById('card-front').textContent = card.front;
+    document.getElementById('card-back').textContent = card.back;
+    document.getElementById('review-current').textContent = reviewIndex + 1;
+    document.getElementById('btn-show-answer').style.display = 'inline-flex';
+    document.getElementById('review-buttons').style.display = 'none';
 }
 
 var fileInput = document.getElementById('file-input');
@@ -243,7 +291,10 @@ function handleFile(file) {
                 importPreview.appendChild(itemDiv);
             }
             if (cards.length > 10) {
-                importPreview.innerHTML += '<div style="padding: 8px; text-align: center; color: var(--text-muted); font-size: 13px;">...e mais ' + (cards.length - 10) + ' cards</div>';
+                var moreDiv = document.createElement('div');
+                moreDiv.style.cssText = 'padding:8px;text-align:center;color:var(--text-muted);font-size:13px;';
+                moreDiv.textContent = '...e mais ' + (cards.length - 10) + ' cards';
+                importPreview.appendChild(moreDiv);
             }
             importCount.textContent = cards.length + ' cards encontrados';
             importPreviewContainer.style.display = 'block';
