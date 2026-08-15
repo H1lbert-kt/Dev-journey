@@ -9,6 +9,7 @@ from app.services.phase_service import PhaseService
 from app.services.calendar_service import CalendarService
 from app.models.study_session import StudySession
 from app.models.today_plan import TodayPlanItem
+from app.models.subject import Subject
 from app.routers.auth import require_auth
 
 router = APIRouter()
@@ -93,6 +94,8 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
     avg_daily = week_minutes / max(1, today.weekday() + 1) if week_minutes > 0 else 0
     week_pct = ((week_minutes - last_week_minutes) / last_week_minutes * 100) if last_week_minutes > 0 else 0
 
+    subjects = db.query(Subject).filter(Subject.user_id == user.id).all()
+
     return request.app.state.templates.TemplateResponse(
         request,
         "dashboard.html",
@@ -114,5 +117,6 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
             "total_plan_items": total_plan_items,
             "avg_daily": round(avg_daily, 1),
             "week_pct": round(week_pct, 1),
+            "subjects": subjects,
         },
     )

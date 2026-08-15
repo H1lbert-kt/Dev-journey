@@ -4273,3 +4273,52 @@ textarea.input {
         grid-template-columns: 1fr;
     }
 }
+
+.quick-log-form {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+}
+
+.quick-log-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.quick-log-row .input {
+    min-width: 0;
+}
+
+.quick-log-row select:first-child {
+    flex: 1;
+    min-width: 120px;
+}
+
+.quick-log-row input[type="number"] {
+    width: 90px;
+    flex-shrink: 0;
+}
+
+.quick-log-row select:last-of-type {
+    flex: 1;
+    min-width: 110px;
+}
+
+@media (max-width: 640px) {
+    .quick-log-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .quick-log-row select,
+    .quick-log-row input {
+        width: 100%;
+    }
+
+    .quick-log-row .btn {
+        width: 100%;
+    }
+}

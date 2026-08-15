@@ -105,6 +105,31 @@
     </div>
 
     <div class="section">
+        <h2 class="section-title">Registro Rapido</h2>
+        <div class="quick-log-form">
+            <div class="quick-log-row">
+                <select id="ql-subject" class="input" required>
+                    <option value="">Materia</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.name }}">{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" id="ql-minutes" class="input" placeholder="Minutos" min="1" max="600" required>
+                <select id="ql-type" class="input">
+                    <option value="estudo">Estudo</option>
+                    <option value="teoria">Teoria</option>
+                    <option value="exercicios">Exercicios</option>
+                    <option value="revisao">Revisao</option>
+                    <option value="projeto">Projeto</option>
+                    <option value="simulado">Simulado</option>
+                </select>
+                <button class="btn btn-primary" onclick="quickLogSave()">Salvar</button>
+            </div>
+            <div id="ql-feedback" style="display:none; margin-top:8px; font-size:13px;"></div>
+        </div>
+    </div>
+
+    <div class="section">
         <div class="section-header">
             <h2 class="section-title">Plano de Hoje</h2>
             {% if total_plan_items > 0 %}
@@ -273,6 +298,49 @@ function updatePlanCount() {
     if (countEl.length > 1) {
         countEl[1].textContent = completed + '/' + total;
     }
+}
+
+function quickLogSave() {
+    var subject = document.getElementById('ql-subject').value;
+    var minutes = document.getElementById('ql-minutes').value;
+    var type = document.getElementById('ql-type').value;
+    var feedback = document.getElementById('ql-feedback');
+
+    if (!subject || !minutes) {
+        feedback.style.display = 'block';
+        feedback.style.color = 'var(--danger)';
+        feedback.textContent = 'Selecione a materia e informe os minutos.';
+        return;
+    }
+
+    var formData = new FormData();
+    formData.append('subject', subject);
+    formData.append('duration', parseInt(minutes) * 60);
+    formData.append('session_type', type);
+
+    fetch('/timer/save', { method: 'POST', body: formData })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            feedback.style.display = 'block';
+            feedback.style.color = 'var(--success)';
+            feedback.textContent = minutes + 'min de ' + subject + ' registrados!';
+            document.getElementById('ql-subject').value = '';
+            document.getElementById('ql-minutes').value = '';
+            setTimeout(function() {
+                feedback.style.display = 'none';
+                location.reload();
+            }, 1200);
+        } else {
+            feedback.style.display = 'block';
+            feedback.style.color = 'var(--danger)';
+            feedback.textContent = 'Erro ao salvar. Tente novamente.';
+        }
+    }).catch(function() {
+        feedback.style.display = 'block';
+        feedback.style.color = 'var(--danger)';
+        feedback.textContent = 'Erro de conexao.';
+    });
 }
 </script>
 {% endblock %}
