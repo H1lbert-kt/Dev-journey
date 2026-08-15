@@ -1,0 +1,515 @@
+{% extends "base.html" %}
+
+{% block title %}Habilidades - DevJourney{% endblock %}
+
+{% block content %}
+<style>
+    .skills-filter-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+    }
+    .skills-filter-tabs::-webkit-scrollbar { display: none; }
+    .filter-tab {
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition);
+        white-space: nowrap;
+        min-height: 36px;
+    }
+    .filter-tab:hover {
+        border-color: var(--accent);
+        color: var(--text-primary);
+    }
+    .filter-tab.active {
+        background-color: rgba(88, 166, 255, 0.15);
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+    .skills-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+    }
+    .skill-card {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        transition: border-color var(--transition);
+    }
+    .skill-card:hover {
+        border-color: var(--accent);
+    }
+    .skill-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        gap: 8px;
+    }
+    .skill-name {
+        font-size: 16px;
+        font-weight: 600;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .skill-category-badge {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .cat-frontend { background-color: rgba(88, 166, 255, 0.15); color: var(--accent); }
+    .cat-backend { background-color: rgba(63, 185, 80, 0.15); color: var(--success); }
+    .cat-banco_dados { background-color: rgba(210, 153, 34, 0.15); color: var(--warning); }
+    .cat-devops { background-color: rgba(188, 140, 255, 0.15); color: var(--purple); }
+    .cat-ferramentas { background-color: rgba(248, 81, 73, 0.15); color: var(--danger); }
+    .cat-geral { background-color: var(--bg-tertiary); color: var(--text-secondary); }
+    .skill-description {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+        line-height: 1.4;
+    }
+    .skill-progress-section {
+        margin-bottom: 12px;
+    }
+    .skill-progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+    .skill-progress-label {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    .skill-progress-value {
+        font-size: 14px;
+        font-weight: 700;
+        min-width: 40px;
+        text-align: right;
+    }
+    .skill-progress-bar {
+        width: 100%;
+        height: 8px;
+        background-color: var(--bg-tertiary);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+    }
+    .skill-progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .skill-progress-fill.low { background: linear-gradient(90deg, #f85149, #f85149); }
+    .skill-progress-fill.mid { background: linear-gradient(90deg, #f85149, #d29922); }
+    .skill-progress-fill.high { background: linear-gradient(90deg, #d29922, #3fb950); }
+    .skill-progress-fill.full { background: linear-gradient(90deg, #3fb950, #3fb950); }
+    .skill-progress-text {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 4px;
+    }
+    .skill-progress-bar-text {
+        flex: 1;
+        height: 6px;
+        background-color: var(--bg-tertiary);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .skill-progress-bar-text .fill {
+        height: 100%;
+        border-radius: 3px;
+    }
+    .skill-progress-bar-text .fill-block { display: inline-block; }
+    .skill-progress-bar-text .fill-empty { display: inline-block; }
+    .skill-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border-color);
+    }
+    .skill-inline-edit {
+        display: none;
+        margin-top: 8px;
+        padding: 12px;
+        background-color: var(--bg-tertiary);
+        border-radius: var(--radius);
+    }
+    .skill-inline-edit.active {
+        display: block;
+    }
+    .skill-slider-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .skill-slider {
+        flex: 1;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--bg-primary);
+        outline: none;
+    }
+    .skill-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        border: 2px solid var(--bg-secondary);
+    }
+    .skill-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        border: 2px solid var(--bg-secondary);
+    }
+    .skill-slider-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--accent);
+        min-width: 36px;
+        text-align: center;
+    }
+    .skill-slider-save {
+        padding: 6px 12px;
+        border-radius: var(--radius);
+        background-color: var(--accent);
+        color: var(--bg-primary);
+        border: none;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        min-height: 32px;
+        transition: background-color var(--transition);
+    }
+    .skill-slider-save:hover {
+        background-color: var(--accent-hover);
+    }
+    .skill-empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+    }
+    .skill-empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        display: block;
+    }
+    .skill-empty-text {
+        font-size: 16px;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+    }
+    .skill-empty-hint {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+    .skill-category-section {
+        margin-bottom: 32px;
+    }
+    .skill-category-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .skill-category-count {
+        font-size: 12px;
+        background-color: var(--bg-tertiary);
+        padding: 2px 8px;
+        border-radius: 10px;
+        color: var(--text-muted);
+    }
+    @media (max-width: 640px) {
+        .skills-grid {
+            grid-template-columns: 1fr;
+        }
+        .skills-filter-tabs {
+            gap: 6px;
+        }
+        .filter-tab {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+    }
+</style>
+
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Habilidades</h1>
+        <p class="page-subtitle">Acompanhe suas competencias tecnicas</p>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <div class="skills-filter-tabs" id="filter-tabs">
+                <button class="filter-tab active" data-filter="all">Todas</button>
+                <button class="filter-tab" data-filter="frontend">Frontend</button>
+                <button class="filter-tab" data-filter="backend">Backend</button>
+                <button class="filter-tab" data-filter="banco_dados">Banco de Dados</button>
+                <button class="filter-tab" data-filter="devops">DevOps</button>
+                <button class="filter-tab" data-filter="ferramentas">Ferramentas</button>
+                <button class="filter-tab" data-filter="geral">Geral</button>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('create-skill-modal')">+ Nova Habilidade</button>
+        </div>
+
+        {% if skills %}
+        <div id="skills-container">
+            {% for cat_key, cat_label in category_labels.items() %}
+            {% if categories[cat_key] %}
+            <div class="skill-category-section" data-category="{{ cat_key }}">
+                <div class="skill-category-title">
+                    {{ cat_label }}
+                    <span class="skill-category-count">{{ categories[cat_key]|length }}</span>
+                </div>
+                <div class="skills-grid">
+                    {% for skill in categories[cat_key] %}
+                    <div class="skill-card" data-skill-id="{{ skill.id }}" data-category="{{ skill.category }}">
+                        <div class="skill-card-header">
+                            <span class="skill-name">{{ skill.name }}</span>
+                            <span class="skill-category-badge cat-{{ skill.category }}">{{ category_labels.get(skill.category, skill.category) }}</span>
+                        </div>
+
+                        {% if skill.description %}
+                        <p class="skill-description">{{ skill.description }}</p>
+                        {% endif %}
+
+                        <div class="skill-progress-section">
+                            <div class="skill-progress-header">
+                                <span class="skill-progress-label">Progresso</span>
+                                <span class="skill-progress-value" id="progress-text-{{ skill.id }}">{{ skill.progress|int }}%</span>
+                            </div>
+                            <div class="skill-progress-bar">
+                                <div class="skill-progress-fill {% if skill.progress < 30 %}low{% elif skill.progress < 60 %}mid{% elif skill.progress < 90 %}high{% else %}full{% endif %}" id="progress-bar-{{ skill.id }}" style="width: {{ skill.progress }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="skill-actions">
+                            <button class="btn btn-small" onclick="toggleInlineEdit({{ skill.id }})">Editar Progresso</button>
+                            <button class="btn btn-small" onclick="openModal('edit-skill-modal-{{ skill.id }}')">Editar</button>
+                            <form action="/skills/{{ skill.id }}/delete" method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir esta habilidade?')">
+                                <button type="submit" class="btn btn-danger btn-small">Excluir</button>
+                            </form>
+                        </div>
+
+                        <div class="skill-inline-edit" id="inline-edit-{{ skill.id }}">
+                            <div class="skill-slider-row">
+                                <input type="range" class="skill-slider" min="0" max="100" value="{{ skill.progress|int }}" id="slider-{{ skill.id }}" oninput="updateSliderLabel({{ skill.id }}, this.value)">
+                                <span class="skill-slider-value" id="slider-label-{{ skill.id }}">{{ skill.progress|int }}%</span>
+                                <button class="skill-slider-save" onclick="saveProgress({{ skill.id }})">Salvar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="edit-skill-modal-{{ skill.id }}" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2>Editar Habilidade</h2>
+                                <button class="modal-close" onclick="closeModal('edit-skill-modal-{{ skill.id }}')">&times;</button>
+                            </div>
+                            <form action="/skills/{{ skill.id }}/update" method="post">
+                                <div class="form-group">
+                                    <label>Nome</label>
+                                    <input type="text" name="name" value="{{ skill.name }}" required class="input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Categoria</label>
+                                    <select name="category" class="input">
+                                        {% for ck, cl in category_labels.items() %}
+                                        <option value="{{ ck }}" {% if skill.category == ck %}selected{% endif %}>{{ cl }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Progresso (0-100)</label>
+                                    <input type="number" name="progress" value="{{ skill.progress|int }}" min="0" max="100" class="input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Descricao</label>
+                                    <textarea name="description" class="input">{{ skill.description or '' }}</textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">Salvar</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="skill-empty-state" id="no-results" style="display:none">
+            <span class="skill-empty-icon">&#128269;</span>
+            <p class="skill-empty-text">Nenhuma habilidade encontrada nesta categoria.</p>
+        </div>
+        {% else %}
+        <div class="skill-empty-state">
+            <span class="skill-empty-icon">&#128736;</span>
+            <p class="skill-empty-text">Nenhuma habilidade cadastrada.</p>
+            <p class="skill-empty-hint">Adicione suas habilidades para acompanhar seu progresso.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div id="create-skill-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Nova Habilidade</h2>
+            <button class="modal-close" onclick="closeModal('create-skill-modal')">&times;</button>
+        </div>
+        <form action="/skills/create" method="post">
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" name="name" required class="input" placeholder="Ex: Python, React, SQL...">
+            </div>
+            <div class="form-group">
+                <label>Categoria</label>
+                <select name="category" class="input">
+                    <option value="frontend">Frontend</option>
+                    <option value="backend">Backend</option>
+                    <option value="banco_dados">Banco de Dados</option>
+                    <option value="devops">DevOps</option>
+                    <option value="ferramentas">Ferramentas</option>
+                    <option value="geral" selected>Geral</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Progresso (0-100)</label>
+                <input type="number" name="progress" value="0" min="0" max="100" class="input">
+            </div>
+            <div class="form-group">
+                <label>Descricao</label>
+                <textarea name="description" class="input" placeholder="Opcional: detalhe seu nivel nesta habilidade"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Criar Habilidade</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var currentFilter = 'all';
+
+    document.querySelectorAll('.filter-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.filter-tab').forEach(function(t) { t.classList.remove('active'); });
+            this.classList.add('active');
+            currentFilter = this.getAttribute('data-filter');
+            filterSkills();
+        });
+    });
+
+    function filterSkills() {
+        var sections = document.querySelectorAll('.skill-category-section');
+        var anyVisible = false;
+        sections.forEach(function(section) {
+            var cat = section.getAttribute('data-category');
+            if (currentFilter === 'all' || cat === currentFilter) {
+                section.style.display = '';
+                anyVisible = true;
+            } else {
+                section.style.display = 'none';
+            }
+        });
+        var noResults = document.getElementById('no-results');
+        var allEmpty = document.querySelector('.skill-empty-state');
+        if (noResults) {
+            noResults.style.display = anyVisible ? 'none' : (allEmpty && allEmpty !== noResults ? 'none' : 'block');
+        }
+    }
+
+    window.toggleInlineEdit = function(skillId) {
+        var el = document.getElementById('inline-edit-' + skillId);
+        if (el) {
+            el.classList.toggle('active');
+        }
+    };
+
+    window.updateSliderLabel = function(skillId, value) {
+        var label = document.getElementById('slider-label-' + skillId);
+        if (label) {
+            label.textContent = value + '%';
+        }
+    };
+
+    window.saveProgress = function(skillId) {
+        var slider = document.getElementById('slider-' + skillId);
+        if (!slider) return;
+        var progress = parseInt(slider.value, 10);
+        var formData = new FormData();
+        formData.append('progress', progress);
+
+        fetch('/skills/' + skillId + '/update', {
+            method: 'POST',
+            body: formData
+        }).then(function(response) {
+            if (response.redirected || response.ok) {
+                var fill = document.getElementById('progress-bar-' + skillId);
+                var text = document.getElementById('progress-text-' + skillId);
+                if (fill) {
+                    fill.style.width = progress + '%';
+                    fill.className = 'skill-progress-fill';
+                    if (progress < 30) fill.classList.add('low');
+                    else if (progress < 60) fill.classList.add('mid');
+                    else if (progress < 90) fill.classList.add('high');
+                    else fill.classList.add('full');
+                }
+                if (text) {
+                    text.textContent = progress + '%';
+                }
+                var editEl = document.getElementById('inline-edit-' + skillId);
+                if (editEl) {
+                    editEl.classList.remove('active');
+                }
+            }
+        }).catch(function() {});
+    };
+
+    document.querySelectorAll('.skill-progress-fill').forEach(function(fill) {
+        var target = fill.style.width;
+        fill.style.width = '0%';
+        setTimeout(function() {
+            fill.style.width = target;
+        }, 100);
+    });
+})();
+</script>
+{% endblock %}

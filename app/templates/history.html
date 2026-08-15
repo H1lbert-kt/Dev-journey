@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Historico de Estudos - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Historico de Estudos</h1>
+        <p class="page-subtitle">{{ total_sessions }} sessoes registradas</p>
+    </div>
+
+    <div class="section">
+        <form id="filter-form" method="get" action="/history">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label">Periodo</label>
+                    <div class="btn-group">
+                        <button type="submit" name="period" value="today" class="btn btn-small {% if filters.period == 'today' %}btn-primary{% else %}{% endif %}">Hoje</button>
+                        <button type="submit" name="period" value="week" class="btn btn-small {% if filters.period == 'week' %}btn-primary{% else %}{% endif %}">7 dias</button>
+                        <button type="submit" name="period" value="month" class="btn btn-small {% if filters.period == 'month' %}btn-primary{% else %}{% endif %}">30 dias</button>
+                        <button type="submit" name="period" value="all" class="btn btn-small {% if filters.period == 'all' %}btn-primary{% else %}{% endif %}">Todos</button>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Materia</label>
+                    <select name="subject" class="input input-small" onchange="applyFilters()">
+                        <option value="">Todas</option>
+                        {% for sub in subjects %}
+                        <option value="{{ sub.name }}" {% if filters.subject == sub.name %}selected{% endif %}>{{ sub.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Tipo</label>
+                    <select name="session_type" class="input input-small" onchange="applyFilters()">
+                        <option value="">Todos</option>
+                        <option value="estudo" {% if filters.session_type == 'estudo' %}selected{% endif %}>Estudo</option>
+                        <option value="teoria" {% if filters.session_type == 'teoria' %}selected{% endif %}>Teoria</option>
+                        <option value="exercicios" {% if filters.session_type == 'exercicios' %}selected{% endif %}>Exercicios</option>
+                        <option value="revisao" {% if filters.session_type == 'revisao' %}selected{% endif %}>Revisao</option>
+                        <option value="projeto" {% if filters.session_type == 'projeto' %}selected{% endif %}>Projeto</option>
+                        <option value="simulado" {% if filters.session_type == 'simulado' %}selected{% endif %}>Simulado</option>
+                    </select>
+                </div>
+
+                {% if study_mode == 'programacao' %}
+                <div class="filter-group">
+                    <label class="filter-label">Projeto</label>
+                    <select name="project_id" class="input input-small" onchange="applyFilters()">
+                        <option value="0">Todos</option>
+                        {% for proj in projects %}
+                        <option value="{{ proj.id }}" {% if filters.project_id == proj.id %}selected{% endif %}>{{ proj.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                {% if study_mode == 'concursos' %}
+                <div class="filter-group">
+                    <label class="filter-label">Concurso</label>
+                    <select name="exam_id" class="input input-small" onchange="applyFilters()">
+                        <option value="0">Todos</option>
+                        {% for ex in exams %}
+                        <option value="{{ ex.id }}" {% if filters.exam_id == ex.id %}selected{% endif %}>{{ ex.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+            </div>
+
+            <input type="hidden" name="period" value="{{ filters.period }}">
+        </form>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">&#9203;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ total_minutes }}</span>
+                <span class="stat-label">Minutos Totais</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">&#128218;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ total_sessions }}</span>
+                <span class="stat-label">Sessoes</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">&#128200;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ (total_minutes / (total_sessions if total_sessions > 0 else 1))|round(1) }}</span>
+                <span class="stat-label">Media por Sessao</span>
+            </div>
+        </div>
+    </div>
+
+    {% if by_subject %}
+    <div class="section">
+        <h2 class="section-title">Por Materia</h2>
+        <div class="stats-grid">
+            {% for subj, mins in by_subject.items() %}
+            <div class="stat-card">
+                <div class="stat-info">
+                    <span class="stat-number">{{ mins|round(0)|int }}</span>
+                    <span class="stat-label">{{ subj }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="section">
+        <h2 class="section-title">Sessoes</h2>
+        {% if sessions %}
+        <div class="session-list">
+            {% for session in sessions %}
+            <div class="session-card">
+                <div class="session-card-header">
+                    <span class="session-subject">{{ session.subject }}</span>
+                    <span class="session-duration">{{ session.duration_minutes|int }}min</span>
+                </div>
+                <div class="session-card-meta">
+                    {% set type_colors = {
+                        'teoria': ('#58a6ff', 'rgba(88, 166, 255, 0.15)'),
+                        'exercicios': ('#3fb950', 'rgba(63, 185, 80, 0.15)'),
+                        'revisao': ('#bc8cff', 'rgba(188, 140, 255, 0.15)'),
+                        'projeto': ('#d29922', 'rgba(210, 153, 34, 0.15)'),
+                        'simulado': ('#f85149', 'rgba(248, 81, 73, 0.15)'),
+                        'estudo': ('#8b949e', 'rgba(139, 148, 158, 0.15)')
+                    } %}
+                    {% set type_color = type_colors.get(session.session_type, ('#8b949e', 'rgba(139, 148, 158, 0.15)')) %}
+                    <span class="session-type-badge" style="background-color: {{ type_color[1] }}; color: {{ type_color[0] }}">{{ session.session_type or 'estudo' }}</span>
+                    <span class="session-date">{{ session.date.strftime('%d/%m/%Y') }} &#8226; {{ session.date.strftime('%H:%M') }}</span>
+                </div>
+                <div class="session-card-links">
+                    {% if session.project %}
+                    <span class="session-link">&#128640; {{ session.project.name }}</span>
+                    {% endif %}
+                    {% if session.exam %}
+                    <span class="session-link">&#128220; {{ session.exam.name }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-state-icon">&#128269;</span>
+            <h3>Nenhuma sessao encontrada</h3>
+            <p>Nenhuma sessao encontrada com os filtros selecionados.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function applyFilters() {
+    var form = document.getElementById('filter-form');
+    var periodInput = form.querySelector('input[name="period"]');
+    if (!periodInput) {
+        periodInput = document.createElement('input');
+        periodInput.type = 'hidden';
+        periodInput.name = 'period';
+        periodInput.value = '{{ filters.period }}';
+        form.appendChild(periodInput);
+    }
+    form.submit();
+}
+</script>
+{% endblock %}

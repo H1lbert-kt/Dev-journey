@@ -13,19 +13,134 @@
         </p>
     </div>
 
-    <div class="dashboard-today">
-        <div class="today-card">
-            <div class="today-info">
-                <h2>Hoje</h2>
-                <span class="today-time">{{ today_minutes }}min</span>
+    <div class="section">
+        <h2 class="section-title">Resumo do Dia</h2>
+        <div class="today-summary-grid">
+            <div class="today-card">
+                <div class="today-info">
+                    <h2>Tempo Estudado</h2>
+                    <span class="today-time">{{ today_minutes }}min</span>
+                </div>
+                <div class="today-progress">
+                    <span class="today-goal">Meta diaria: {{ daily_goal }}min</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ (today_minutes / daily_goal * 100) if daily_goal > 0 else 0 }}%"></div>
+                    </div>
+                </div>
             </div>
-            <div class="today-progress">
-                <span class="today-goal">Meta: {{ daily_goal }}min</span>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: {{ (today_minutes / daily_goal * 100) if daily_goal > 0 else 0 }}%"></div>
+
+            <div class="today-stat-card">
+                <span class="today-stat-icon">&#128218;</span>
+                <span class="today-stat-number">{{ today_sessions_count }}</span>
+                <span class="today-stat-label">Sessoes realizadas</span>
+            </div>
+
+            <div class="today-stat-card">
+                <span class="today-stat-icon">&#9989;</span>
+                <span class="today-stat-number">{{ completed_plan_items }}/{{ total_plan_items }}</span>
+                <span class="today-stat-label">Itens do plano</span>
+            </div>
+
+            <div class="today-stat-card">
+                <span class="today-stat-icon">&#128293;</span>
+                <span class="today-stat-number">{{ current_streak }}</span>
+                <span class="today-stat-label">Streak atual</span>
+            </div>
+
+            <div class="today-stat-card">
+                <span class="today-stat-icon">&#128218;</span>
+                <span class="today-stat-number">{{ most_studied_subject or '-' }}</span>
+                <span class="today-stat-label">Mais estudada hoje</span>
+            </div>
+
+            {% if last_session %}
+            <div class="today-stat-card">
+                <span class="today-stat-icon">&#9200;</span>
+                <span class="today-stat-number">{{ last_session.subject }} ({{ last_session.duration|int }}min)</span>
+                <span class="today-stat-label">Ultima sessao</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Comparacoes</h2>
+        <div class="comparison-grid">
+            <div class="comparison-card">
+                <div class="comparison-header">
+                    <span class="comparison-label">Hoje vs Media dos ultimos 7 dias</span>
+                </div>
+                <div class="comparison-body">
+                    <span class="comparison-value">{{ today_minutes }}min</span>
+                    <span class="comparison-vs">vs</span>
+                    <span class="comparison-value">{{ avg_daily }}min</span>
+                    {% if today_minutes > avg_daily %}
+                    <span class="comparison-arrow up">&#9650; {{ ((today_minutes - avg_daily) / (avg_daily if avg_daily > 0 else 1) * 100)|round(0) }}%</span>
+                    {% elif today_minutes < avg_daily %}
+                    <span class="comparison-arrow down">&#9660; {{ ((avg_daily - today_minutes) / (avg_daily if avg_daily > 0 else 1) * 100)|round(0) }}%</span>
+                    {% else %}
+                    <span class="comparison-arrow">-</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="comparison-card">
+                <div class="comparison-header">
+                    <span class="comparison-label">Esta semana vs Semana anterior</span>
+                </div>
+                <div class="comparison-body">
+                    <span class="comparison-value">{{ week_minutes }}min</span>
+                    <span class="comparison-vs">vs</span>
+                    <span class="comparison-value">{{ last_week_minutes }}min</span>
+                    {% if week_pct > 0 %}
+                    <span class="comparison-arrow up">&#9650; {{ week_pct }}%</span>
+                    {% elif week_pct < 0 %}
+                    <span class="comparison-arrow down">&#9660; {{ (week_pct * -1)|round(0) }}%</span>
+                    {% else %}
+                    <span class="comparison-arrow">-</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Plano de Hoje</h2>
+            {% if total_plan_items > 0 %}
+            <a href="/today-plan" class="btn btn-small">Gerenciar</a>
+            {% endif %}
+        </div>
+
+        {% if today_plan_items %}
+        <div class="plan-list">
+            {% for item in today_plan_items %}
+            <div class="plan-item {% if item.completed %}completed{% endif %}" id="dash-plan-item-{{ item.id }}">
+                <button class="plan-checkbox {% if item.completed %}checked{% endif %}" onclick="toggleDashPlanItem({{ item.id }})" id="dash-checkbox-{{ item.id }}">
+                    {% if item.completed %}&#10004;{% else %}&#9744;{% endif %}
+                </button>
+                <div class="plan-item-content">
+                    <span class="plan-item-title {% if item.completed %}completed-text{% endif %}" id="dash-title-{{ item.id }}">{{ item.title }}</span>
+                    <div class="plan-item-meta">
+                        {% if item.estimated_minutes %}
+                        <span class="plan-meta-item">&#9203; {{ item.estimated_minutes }}min</span>
+                        {% endif %}
+                        {% if item.subject %}
+                        <span class="plan-badge plan-badge-subject" style="background-color: {{ item.subject.color or '#58a6ff' }}20; color: {{ item.subject.color or '#58a6ff' }}">{{ item.subject.name }}</span>
+                        {% endif %}
+                        <span class="plan-badge plan-badge-priority priority-{{ item.priority }}">{{ item.priority }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-state-icon">&#128203;</span>
+            <h3>Nenhum item no plano de hoje</h3>
+            <p>Crie seu plano em <a href="/today-plan">Plano de Hoje</a></p>
+        </div>
+        {% endif %}
     </div>
 
     <div class="progress-section">
@@ -124,4 +239,40 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function toggleDashPlanItem(id) {
+    fetch('/today-plan/' + id + '/toggle', { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.error) return;
+        var item = document.getElementById('dash-plan-item-' + id);
+        var checkbox = document.getElementById('dash-checkbox-' + id);
+        var title = document.getElementById('dash-title-' + id);
+
+        if (data.completed) {
+            item.classList.add('completed');
+            checkbox.classList.add('checked');
+            checkbox.innerHTML = '&#10004;';
+            title.classList.add('completed-text');
+        } else {
+            item.classList.remove('completed');
+            checkbox.classList.remove('checked');
+            checkbox.innerHTML = '&#9744;';
+            title.classList.remove('completed-text');
+        }
+
+        updatePlanCount();
+    }).catch(function() {});
+}
+
+function updatePlanCount() {
+    var total = document.querySelectorAll('#plan-list .plan-item, .plan-list .plan-item').length;
+    var completed = document.querySelectorAll('#plan-list .plan-item.completed, .plan-list .plan-item.completed').length;
+    var countEl = document.querySelectorAll('.today-stat-number');
+    if (countEl.length > 1) {
+        countEl[1].textContent = completed + '/' + total;
+    }
+}
+</script>
 {% endblock %}

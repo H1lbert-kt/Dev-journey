@@ -10,8 +10,13 @@ class StudySession(Base):
     id = Column(Integer, primary_key=True, index=True)
     subject = Column(String(100), nullable=False)
     duration_minutes = Column(Float, nullable=False, default=0.0)
+    session_type = Column(String(20), nullable=True, default="estudo")
+    exam_id = Column(Integer, ForeignKey("exams.id", ondelete="SET NULL"), nullable=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
     date = Column(DateTime, server_default=func.now())
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="study_sessions")
+    exam = relationship("Exam")
+    project = relationship("Project")

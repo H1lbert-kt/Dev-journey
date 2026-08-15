@@ -8,6 +8,8 @@ from app.models.study_session import StudySession
 from app.models.subject import Subject
 from app.models.calendar_day import CalendarDay
 from app.models.weekly_schedule import WeeklySchedule
+from app.models.exam import Exam
+from app.models.project import Project
 from app.routers.auth import require_auth
 
 router = APIRouter()
@@ -24,6 +26,9 @@ async def timer_page(request: Request, db: Session = Depends(get_db)):
     ).order_by(StudySession.date.desc()).limit(10).all()
 
     subjects = db.query(Subject).filter(Subject.user_id == user.id).all()
+
+    exams = db.query(Exam).filter(Exam.user_id == user.id).all()
+    projects = db.query(Project).filter(Project.user_id == user.id).all()
 
     today = datetime.now().date()
     today_sessions = db.query(StudySession).filter(
@@ -43,6 +48,8 @@ async def timer_page(request: Request, db: Session = Depends(get_db)):
             "sessions": sessions,
             "study_mode": user.study_mode,
             "subjects": subjects,
+            "exams": exams,
+            "projects": projects,
             "today_minutes": round(today_minutes, 1),
             "daily_goal": user.daily_goal_minutes,
             "subject_minutes": subject_minutes,
@@ -55,6 +62,9 @@ async def save_session(
     request: Request,
     subject: str = Form(...),
     duration: float = Form(...),
+    session_type: str = Form("estudo"),
+    exam_id: int = Form(None),
+    project_id: int = Form(None),
     db: Session = Depends(get_db),
 ):
     user = require_auth(request, db)
@@ -70,6 +80,9 @@ async def save_session(
         subject=subject.strip(),
         duration_minutes=round(duration / 60, 2),
         user_id=user.id,
+        session_type=session_type,
+        exam_id=exam_id,
+        project_id=project_id,
     )
     db.add(session)
 

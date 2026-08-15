@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Diario - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Diario de Desenvolvimento</h1>
+        <p class="page-subtitle">{{ entries|length }} entrada(s) registrada(s)</p>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Minhas Entradas</h2>
+            <button class="btn btn-primary" onclick="openModal('create-entry-modal')">+ Nova Entrada</button>
+        </div>
+
+        {% if entries %}
+        <div class="journal-list">
+            {% for entry in entries %}
+            <div class="journal-card" id="entry-{{ entry.id }}">
+                <div class="journal-card-header">
+                    <div class="journal-card-title-row">
+                        <h3 class="journal-card-title">{{ entry.title }}</h3>
+                        <span class="journal-card-date">{{ entry.date.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                    <div class="journal-card-badges">
+                        {% if entry.project %}
+                        <span class="journal-badge journal-badge-project">{{ entry.project.name }}</span>
+                        {% endif %}
+                        {% if entry.subject %}
+                        <span class="journal-badge journal-badge-subject">{{ entry.subject.name }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="journal-card-content">
+                    <p class="journal-card-preview" id="preview-{{ entry.id }}">{{ entry.content[:150] }}{% if entry.content|length > 150 %}...{% endif %}</p>
+                    {% if entry.content|length > 150 %}
+                    <div class="journal-card-full" id="full-{{ entry.id }}" style="display:none">
+                        <p>{{ entry.content }}</p>
+                    </div>
+                    <button class="btn-link" onclick="toggleExpand({{ entry.id }})" id="expand-btn-{{ entry.id }}">Ver mais</button>
+                    {% endif %}
+                </div>
+                <div class="journal-card-actions">
+                    <button class="btn btn-small" onclick="openModal('edit-entry-{{ entry.id }}')">Editar</button>
+                    <form action="/journal/{{ entry.id }}/delete" method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir esta entrada?')">
+                        <button type="submit" class="btn btn-danger btn-small">Excluir</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="edit-entry-{{ entry.id }}" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Editar Entrada</h2>
+                        <button class="modal-close" onclick="closeModal('edit-entry-{{ entry.id }}')">&times;</button>
+                    </div>
+                    <form action="/journal/{{ entry.id }}/update" method="post">
+                        <div class="form-group">
+                            <label>Titulo</label>
+                            <input type="text" name="title" value="{{ entry.title }}" required class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Conteudo</label>
+                            <textarea name="content" required class="input" rows="6">{{ entry.content }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Data</label>
+                            <input type="date" name="entry_date" value="{{ entry.date.isoformat() }}" required class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Projeto (opcional)</label>
+                            <select name="project_id" class="input">
+                                <option value="0">Nenhum</option>
+                                {% for project in projects %}
+                                <option value="{{ project.id }}" {% if entry.project_id == project.id %}selected{% endif %}>{{ project.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Materia (opcional)</label>
+                            <select name="subject_id" class="input">
+                                <option value="0">Nenhuma</option>
+                                {% for subject in subjects %}
+                                <option value="{{ subject.id }}" {% if entry.subject_id == subject.id %}selected{% endif %}>{{ subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Salvar</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-state-icon">&#128221;</span>
+            <h3>Nenhuma entrada no diario</h3>
+            <p>Comece registrando o que voce aprendeu hoje.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div id="create-entry-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Nova Entrada no Diario</h2>
+            <button class="modal-close" onclick="closeModal('create-entry-modal')">&times;</button>
+        </div>
+        <form action="/journal/create" method="post">
+            <div class="form-group">
+                <label>Titulo</label>
+                <input type="text" name="title" required class="input" placeholder="O que voce aprendeu hoje?">
+            </div>
+            <div class="form-group">
+                <label>Conteudo</label>
+                <textarea name="content" required class="input" rows="6" placeholder="Descreva o que voce estudou, aprendeu ou refletiu..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Data</label>
+                <input type="date" name="entry_date" value="{{ today }}" required class="input">
+            </div>
+            <div class="form-group">
+                <label>Projeto (opcional)</label>
+                <select name="project_id" class="input">
+                    <option value="0">Nenhum</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}">{{ project.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Materia (opcional)</label>
+                <select name="subject_id" class="input">
+                    <option value="0">Nenhuma</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Salvar Entrada</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleExpand(id) {
+    var preview = document.getElementById('preview-' + id);
+    var full = document.getElementById('full-' + id);
+    var btn = document.getElementById('expand-btn-' + id);
+    if (full.style.display === 'none') {
+        preview.style.display = 'none';
+        full.style.display = 'block';
+        btn.textContent = 'Ver menos';
+    } else {
+        preview.style.display = 'block';
+        full.style.display = 'none';
+        btn.textContent = 'Ver mais';
+    }
+}
+</script>
+{% endblock %}

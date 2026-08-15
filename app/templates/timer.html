@@ -75,7 +75,45 @@
             </div>
 
             <div class="timer-subject-area" id="manual-subject-area">
-                <label>Materia</label>
+                <label>Tipo de Sessao</label>
+                <div class="session-type-chips" id="session-type-chips">
+                    <button class="chip chip-active" data-type="estudo" onclick="setSessionType('estudo')">Estudo</button>
+                    <button class="chip" data-type="teoria" onclick="setSessionType('teoria')">Teoria</button>
+                    <button class="chip" data-type="exercicios" onclick="setSessionType('exercicios')">Exercicios</button>
+                    <button class="chip" data-type="revisao" onclick="setSessionType('revisao')">Revisao</button>
+                    <button class="chip" data-type="projeto" onclick="setSessionType('projeto')">Projeto</button>
+                    <button class="chip" data-type="simulado" onclick="setSessionType('simulado')">Simulado</button>
+                </div>
+
+                {% if study_mode == "programacao" and projects %}
+                <div id="project-selector" style="margin-top: 10px;">
+                    <label>Projeto (opcional)</label>
+                    <select id="timer-project" class="input" onchange="currentProjectId = this.value || null">
+                        <option value="">Nenhum projeto</option>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}">{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% else %}
+                <div id="project-selector" style="display:none;"></div>
+                {% endif %}
+
+                {% if study_mode == "concursos" and exams %}
+                <div id="exam-selector" style="margin-top: 10px;">
+                    <label>Concurso (opcional)</label>
+                    <select id="timer-exam" class="input" onchange="currentExamId = this.value || null">
+                        <option value="">Nenhum concurso</option>
+                        {% for exam in exams %}
+                        <option value="{{ exam.id }}">{{ exam.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% else %}
+                <div id="exam-selector" style="display:none;"></div>
+                {% endif %}
+
+                <label style="margin-top: 10px;">Materia</label>
                 <select id="timer-subject" class="input">
                     {% for subject in subjects %}
                     <option value="{{ subject.name }}">{{ subject.name }}</option>
@@ -157,6 +195,34 @@
     </div>
 </div>
 
+<style>
+.session-type-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+    background: var(--bg-secondary, rgba(255,255,255,0.05));
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1.2;
+}
+.chip:hover {
+    background: var(--bg-tertiary, rgba(255,255,255,0.1));
+    color: var(--text-primary);
+}
+.chip-active {
+    background: var(--primary, #6366f1);
+    color: white;
+    border-color: var(--primary, #6366f1);
+}
+</style>
+
 <script>
 var timerInterval = null;
 var pomodoroMinutes = 0;
@@ -166,6 +232,21 @@ var scheduleSubjects = [];
 var currentScheduleIndex = 0;
 var sessionMode = false;
 var sessionResults = [];
+
+var currentSessionType = 'estudo';
+var currentProjectId = null;
+var currentExamId = null;
+
+function setSessionType(type) {
+    currentSessionType = type;
+    var chips = document.querySelectorAll('#session-type-chips .chip');
+    for (var i = 0; i < chips.length; i++) {
+        chips[i].classList.remove('chip-active');
+        if (chips[i].getAttribute('data-type') === type) {
+            chips[i].classList.add('chip-active');
+        }
+    }
+}
 
 function loadDaySchedule() {
     var dayVal = document.getElementById('schedule-day').value;
@@ -391,6 +472,9 @@ function saveAndMoveNext() {
         var formData = new FormData();
         formData.append('subject', subjectName);
         formData.append('duration', duration);
+        formData.append('session_type', currentSessionType);
+        if (currentProjectId) formData.append('project_id', currentProjectId);
+        if (currentExamId) formData.append('exam_id', currentExamId);
         fetch('/timer/save', { method: 'POST', body: formData }).catch(function() {});
     }
 

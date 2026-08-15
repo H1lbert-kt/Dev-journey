@@ -57,6 +57,7 @@ def init_database():
     from app.models import User, Phase, Goal, Project, Habit, CalendarDay
     from app.models import Achievement, StudySession, Subject, Flashcard
     from app.models import Simulado, SubjectGoal, UserSession, WeeklySchedule
+    from app.models import Exam, ExamSubject, Skill, JournalEntry, TodayPlanItem
 
     inspector = inspect(engine)
     existing_tables = inspector.get_table_names()
@@ -65,7 +66,8 @@ def init_database():
         "users", "user_sessions", "phases", "goals", "projects",
         "habits", "calendar_days", "achievements", "study_sessions",
         "subjects", "flashcards", "simulados", "subject_goals",
-        "weekly_schedule",
+        "weekly_schedule", "exams", "exam_subjects", "skills",
+        "journal_entries", "today_plan_items",
     ]
 
     missing_tables = [t for t in required_tables if t not in existing_tables]
@@ -99,6 +101,11 @@ def _add_missing_columns(inspector):
         "users": [
             ("timer_state_seconds", "INTEGER", "0"),
             ("timer_state_subject", "VARCHAR(100)", "''"),
+        ],
+        "study_sessions": [
+            ("session_type", "VARCHAR(20)", "'estudo'"),
+            ("exam_id", "INTEGER", None),
+            ("project_id", "INTEGER", None),
         ],
     }
 

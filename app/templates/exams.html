@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Concursos - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Concursos</h1>
+        <p class="page-subtitle">Acompanhe seus concursos e progresso</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card large">
+            <div class="stat-icon">&#128220;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ total_exams }}</span>
+                <span class="stat-label">Total de Concursos</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#128218;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ studying_count }}</span>
+                <span class="stat-label">Em Estudo</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#9200;</div>
+            <div class="stat-info">
+                <span class="stat-number">{% if next_days is not none %}{{ next_days }}{% else %}-{% endif %}</span>
+                <span class="stat-label">{% if next_days is not none %}Dias Proximo{% else %}Sem Prova{% endif %}</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#127942;</div>
+            <div class="stat-info">
+                <span class="stat-number">{% if next_exam %}{{ next_exam.name[:15] }}{% else %}-{% endif %}</span>
+                <span class="stat-label">{% if next_exam %}Proxima Prova{% else %}Nenhuma Prova{% endif %}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Meus Concursos</h2>
+            <button class="btn btn-primary" onclick="openModal('create-exam-modal')">+ Novo Concurso</button>
+        </div>
+
+        {% if exams %}
+        <div class="exams-grid">
+            {% for item in exams %}
+            {% set exam = item.exam %}
+            {% set stats = item.stats %}
+            {% set subjects = item.subjects %}
+            <div class="exam-card">
+                <div class="exam-card-header">
+                    <div class="exam-card-title">
+                        <h3>{{ exam.name }}</h3>
+                        <span class="status-badge status-exam-{{ exam.status }}">{{ item.status_label }}</span>
+                    </div>
+                    <div class="exam-card-org">
+                        {% if exam.organization %}<span>{{ exam.organization }}</span>{% endif %}
+                        {% if exam.banca %}<span class="exam-banca">{{ exam.banca }}</span>{% endif %}
+                    </div>
+                </div>
+
+                {% if exam.exam_date %}
+                <div class="exam-countdown">
+                    {% set days = (exam.exam_date - today).days %}
+                    {% if days > 0 %}
+                    <span class="countdown-text">&#128197; Faltam <strong>{{ days }}</strong> dias</span>
+                    {% elif days == 0 %}
+                    <span class="countdown-text countdown-today">&#128197; Prova hoje!</span>
+                    {% else %}
+                    <span class="countdown-text countdown-past">&#128197; Prova realizada</span>
+                    {% endif %}
+                    <span class="countdown-date">{{ exam.exam_date.strftime('%d/%m/%Y') }}</span>
+                </div>
+                {% endif %}
+
+                <div class="exam-subjects">
+                    {% if subjects %}
+                    {% for subj in subjects %}
+                    <div class="exam-subject-row">
+                        <span class="exam-subject-name">{{ subj.name }}</span>
+                        <div class="exam-subject-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ subj.progress }}%"></div>
+                            </div>
+                            <span class="exam-subject-pct">{{ subj.progress|int }}%</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="exam-no-subjects">Nenhuma materia adicionada</p>
+                    {% endif %}
+                </div>
+
+                {% if exam.salary or exam.vacancies %}
+                <div class="exam-meta">
+                    {% if exam.salary %}<span>&#128176; {{ exam.salary }}</span>{% endif %}
+                    {% if exam.vacancies %}<span>&#128101; {{ exam.vacancies }} vagas</span>{% endif %}
+                </div>
+                {% endif %}
+
+                <div class="exam-card-footer">
+                    <a href="/exams/{{ exam.id }}" class="btn btn-small">Ver Detalhes</a>
+                    <button class="btn btn-small" onclick="openModal('edit-exam-{{ exam.id }}')">Editar</button>
+                    <form action="/exams/{{ exam.id }}/delete" method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir este concurso?')">
+                        <button type="submit" class="btn btn-danger btn-small">Excluir</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="edit-exam-{{ exam.id }}" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Editar Concurso</h2>
+                        <button class="modal-close" onclick="closeModal('edit-exam-{{ exam.id }}')">&times;</button>
+                    </div>
+                    <form action="/exams/{{ exam.id }}/update" method="post">
+                        <div class="form-group">
+                            <label>Nome do Concurso</label>
+                            <input type="text" name="name" value="{{ exam.name }}" required class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Orgao / Empresa</label>
+                            <input type="text" name="organization" value="{{ exam.organization or '' }}" class="input" placeholder="Ex: IBGE, Petrobras">
+                        </div>
+                        <div class="form-group">
+                            <label>Cargo / Posicao</label>
+                            <input type="text" name="position" value="{{ exam.position or '' }}" class="input" placeholder="Ex: Analista de TI">
+                        </div>
+                        <div class="form-group">
+                            <label>Banca</label>
+                            <input type="text" name="banca" value="{{ exam.banca or '' }}" class="input" placeholder="Ex: CESPE, FCC, VUNESP">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select name="status" class="input">
+                                <option value="planejando" {% if exam.status == 'planejando' %}selected{% endif %}>Planejando</option>
+                                <option value="estudando" {% if exam.status == 'estudando' %}selected{% endif %}>Estudando</option>
+                                <option value="inscrito" {% if exam.status == 'inscrito' %}selected{% endif %}>Inscrito</option>
+                                <option value="prova_realizada" {% if exam.status == 'prova_realizada' %}selected{% endif %}>Prova Realizada</option>
+                                <option value="finalizado" {% if exam.status == 'finalizado' %}selected{% endif %}>Finalizado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Data da Prova</label>
+                            <input type="date" name="exam_date" value="{{ exam.exam_date.isoformat() if exam.exam_date else '' }}" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Remuneracao</label>
+                            <input type="text" name="salary" value="{{ exam.salary or '' }}" class="input" placeholder="Ex: R$ 5.000,00">
+                        </div>
+                        <div class="form-group">
+                            <label>Vagas</label>
+                            <input type="number" name="vacancies" value="{{ exam.vacancies or 0 }}" class="input" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Notas</label>
+                            <textarea name="notes" class="input" placeholder="Informacoes adicionais...">{{ exam.notes or '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Salvar Alteracoes</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">&#128220;</div>
+            <h3>Nenhum concurso cadastrado</h3>
+            <p>Cadastre seu primeiro concurso para acompanhar seus estudos.</p>
+            <button class="btn btn-primary" onclick="openModal('create-exam-modal')">+ Cadastrar Concurso</button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div id="create-exam-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Novo Concurso</h2>
+            <button class="modal-close" onclick="closeModal('create-exam-modal')">&times;</button>
+        </div>
+        <form action="/exams/create" method="post">
+            <div class="form-group">
+                <label>Nome do Concurso</label>
+                <input type="text" name="name" required class="input" placeholder="Ex: Concurso IBGE 2025">
+            </div>
+            <div class="form-group">
+                <label>Orgao / Empresa</label>
+                <input type="text" name="organization" class="input" placeholder="Ex: IBGE, Petrobras">
+            </div>
+            <div class="form-group">
+                <label>Cargo / Posicao</label>
+                <input type="text" name="position" class="input" placeholder="Ex: Analista de TI">
+            </div>
+            <div class="form-group">
+                <label>Banca</label>
+                <input type="text" name="banca" class="input" placeholder="Ex: CESPE, FCC, VUNESP">
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select name="status" class="input">
+                    <option value="planejando">Planejando</option>
+                    <option value="estudando">Estudando</option>
+                    <option value="inscrito">Inscrito</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Data da Prova</label>
+                <input type="date" name="exam_date" class="input">
+            </div>
+            <div class="form-group">
+                <label>Remuneracao</label>
+                <input type="text" name="salary" class="input" placeholder="Ex: R$ 5.000,00">
+            </div>
+            <div class="form-group">
+                <label>Vagas</label>
+                <input type="number" name="vacancies" value="0" class="input" min="0">
+            </div>
+            <div class="form-group">
+                <label>Notas</label>
+                <textarea name="notes" class="input" placeholder="Informacoes adicionais..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Criar Concurso</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

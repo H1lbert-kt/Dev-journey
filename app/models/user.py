@@ -29,3 +29,7 @@ class User(Base):
     subject_goals = relationship("SubjectGoal", back_populates="user", cascade="all, delete-orphan")
     sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
     weekly_schedule = relationship("WeeklySchedule", back_populates="user", cascade="all, delete-orphan")
+    exams = relationship("Exam", back_populates="user", cascade="all, delete-orphan")
+    skills = relationship("Skill", back_populates="user", cascade="all, delete-orphan")
+    journal_entries = relationship("JournalEntry", back_populates="user", cascade="all, delete-orphan")
+    today_plan_items = relationship("TodayPlanItem", back_populates="user", cascade="all, delete-orphan")

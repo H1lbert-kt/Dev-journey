@@ -12,5 +12,9 @@ from app.models.simulado import Simulado
 from app.models.subject_goal import SubjectGoal
 from app.models.user_session import UserSession
 from app.models.weekly_schedule import WeeklySchedule
+from app.models.exam import Exam, ExamSubject
+from app.models.skill import Skill
+from app.models.journal import JournalEntry
+from app.models.today_plan import TodayPlanItem
 
-__all__ = ["User", "Phase", "Goal", "Project", "Habit", "CalendarDay", "Achievement", "StudySession", "Subject", "Flashcard", "Simulado", "SubjectGoal", "UserSession", "WeeklySchedule"]
+__all__ = ["User", "Phase", "Goal", "Project", "Habit", "CalendarDay", "Achievement", "StudySession", "Subject", "Flashcard", "Simulado", "SubjectGoal", "UserSession", "WeeklySchedule", "Exam", "ExamSubject", "Skill", "JournalEntry", "TodayPlanItem"]

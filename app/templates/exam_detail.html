@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exam.name }} - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <a href="/exams" class="btn btn-small" style="margin-bottom: 8px;">&#8592; Voltar</a>
+        <h1 class="page-title">{{ exam.name }}</h1>
+        <div class="exam-detail-meta">
+            {% if exam.organization %}<span class="exam-meta-item">&#127970; {{ exam.organization }}</span>{% endif %}
+            {% if exam.position %}<span class="exam-meta-item">&#128188; {{ exam.position }}</span>{% endif %}
+            {% if exam.banca %}<span class="exam-meta-item">&#128220; {{ exam.banca }}</span>{% endif %}
+            <span class="status-badge status-exam-{{ exam.status }}">{{ status_label }}</span>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card large">
+            <div class="stat-icon">&#9200;</div>
+            <div class="stat-info">
+                <span class="stat-number">
+                    {% if stats.days_until is not none %}
+                        {% if stats.days_until > 0 %}{{ stats.days_until }}{% elif stats.days_until == 0 %}Hoje{% else %}-{% endif %}
+                    {% else %}-{% endif %}
+                </span>
+                <span class="stat-label">
+                    {% if stats.days_until is not none %}
+                        {% if stats.days_until > 0 %}Dias Restantes{% elif stats.days_until == 0 %}Prova Hoje{% else %}Prova Realizada{% endif %}
+                    {% else %}Sem Data{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#128200;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ stats.weighted_progress }}%</span>
+                <span class="stat-label">Progresso Ponderado</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#9203;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ stats.total_minutes }}</span>
+                <span class="stat-label">Minutos Estudados</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#128214;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ stats.sessions_count }}</span>
+                <span class="stat-label">Sessoes</span>
+            </div>
+        </div>
+    </div>
+
+    {% if exam.exam_date %}
+    <div class="section">
+        <div class="countdown-section">
+            {% set days = (exam.exam_date - today).days %}
+            {% if days > 0 %}
+            <div class="countdown-big">
+                <span class="countdown-number">{{ days }}</span>
+                <span class="countdown-label">dias para a prova</span>
+            </div>
+            <div class="countdown-date-full">{{ exam.exam_date.strftime('%d/%m/%Y') }}</div>
+            {% elif days == 0 %}
+            <div class="countdown-big countdown-today-big">
+                <span class="countdown-number">&#127881;</span>
+                <span class="countdown-label">Prova hoje!</span>
+            </div>
+            {% else %}
+            <div class="countdown-big countdown-past-big">
+                <span class="countdown-number">&#9989;</span>
+                <span class="countdown-label">Prova realizada</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Materias do Concurso</h2>
+            <button class="btn btn-primary" onclick="openModal('add-subject-modal')">+ Adicionar Materia</button>
+        </div>
+
+        {% if exam_subjects %}
+        <div class="exam-subjects-list">
+            {% for subj in exam_subjects %}
+            <div class="exam-subject-card">
+                <div class="exam-subject-header">
+                    <div class="exam-subject-info">
+                        <h3>{{ subj.name }}</h3>
+                        <span class="exam-subject-weight">Peso: {{ subj.weight }}</span>
+                    </div>
+                    <div class="exam-subject-actions">
+                        <button class="btn btn-small" onclick="openModal('edit-subject-{{ subj.id }}')">Editar</button>
+                        <form action="/exams/{{ exam.id }}/subject/{{ subj.id }}/delete" method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir esta materia?')">
+                            <button type="submit" class="btn btn-danger btn-small">Excluir</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="exam-subject-progress-detail">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ subj.progress }}%"></div>
+                    </div>
+                    <span class="progress-value-small">{{ subj.progress|int }}%</span>
+                </div>
+            </div>
+
+            <div id="edit-subject-{{ subj.id }}" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Editar Materia</h2>
+                        <button class="modal-close" onclick="closeModal('edit-subject-{{ subj.id }}')">&times;</button>
+                    </div>
+                    <form action="/exams/{{ exam.id }}/subject/{{ subj.id }}/update" method="post">
+                        <div class="form-group">
+                            <label>Nome da Materia</label>
+                            <input type="text" name="name" value="{{ subj.name }}" required class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Peso</label>
+                            <input type="number" name="weight" value="{{ subj.weight }}" class="input" min="0" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Progresso (%)</label>
+                            <input type="number" name="progress" value="{{ subj.progress|int }}" class="input" min="0" max="100" step="1">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Salvar Alteracoes</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state-small">
+            <p>Nenhuma materia adicionada a este concurso.</p>
+            <button class="btn btn-primary" onclick="openModal('add-subject-modal')">+ Adicionar Materia</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Sessoes de Estudo</h2>
+        </div>
+
+        {% if study_sessions %}
+        <div class="sessions-list">
+            {% for session in study_sessions %}
+            <div class="session-item">
+                <div class="session-info">
+                    <span class="session-subject">{{ session.subject }}</span>
+                    <span class="session-type">{{ session.session_type or 'estudo' }}</span>
+                </div>
+                <div class="session-meta">
+                    <span class="session-duration">{{ session.duration_minutes|int }}min</span>
+                    <span class="session-date">{{ session.date.strftime('%d/%m/%Y') if session.date else '-' }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state-small">
+            <p>Nenhuma sessao de estudo registrada para este concurso.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if exam.notes %}
+    <div class="section">
+        <h2 class="section-title">Notas</h2>
+        <div class="exam-notes">
+            <p>{{ exam.notes }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div id="add-subject-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Adicionar Materia</h2>
+            <button class="modal-close" onclick="closeModal('add-subject-modal')">&times;</button>
+        </div>
+        <form action="/exams/{{ exam.id }}/subject/create" method="post">
+            <div class="form-group">
+                <label>Nome da Materia</label>
+                <input type="text" name="name" required class="input" placeholder="Ex: Portugues, Direito Administrativo">
+            </div>
+            <div class="form-group">
+                <label>Peso</label>
+                <input type="number" name="weight" value="1.0" class="input" min="0" step="0.1">
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Adicionar Materia</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

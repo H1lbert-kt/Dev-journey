@@ -33,11 +33,12 @@
                 </a>
             </li>
             <li>
-                <a href="/roadmap" class="nav-link {% if '/roadmap' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128506;</span>
-                    Roadmap
+                <a href="/today-plan" class="nav-link {% if '/today-plan' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128203;</span>
+                    Plano de Hoje
                 </a>
             </li>
+            <li class="nav-section-title">Desenvolvimento</li>
             <li>
                 <a href="/timer" class="nav-link {% if '/timer' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#9200;</span>
@@ -51,9 +52,21 @@
                 </a>
             </li>
             <li>
-                <a href="/schedule" class="nav-link {% if '/schedule' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128197;</span>
-                    Agenda Semanal
+                <a href="/projects" class="nav-link {% if '/projects' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128640;</span>
+                    Projetos
+                </a>
+            </li>
+            <li>
+                <a href="/roadmap" class="nav-link {% if '/roadmap' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128506;</span>
+                    Roadmap
+                </a>
+            </li>
+            <li>
+                <a href="/skills" class="nav-link {% if '/skills' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128736;</span>
+                    Habilidades
                 </a>
             </li>
             <li>
@@ -69,25 +82,25 @@
                 </a>
             </li>
             <li>
-                <a href="/reviews" class="nav-link {% if '/reviews' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128260;</span>
-                    Revisoes
+                <a href="/journal" class="nav-link {% if '/journal' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128221;</span>
+                    Diario
                 </a>
             </li>
-            {% if request.state.study_mode|default('programacao') != 'concursos' %}
+            <li class="nav-section-title">Concursos</li>
             <li>
-                <a href="/projects" class="nav-link {% if '/projects' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128640;</span>
-                    Projetos
+                <a href="/exams" class="nav-link {% if '/exams' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127963;</span>
+                    Concursos
                 </a>
             </li>
-            {% endif %}
             <li>
-                <a href="/habits" class="nav-link {% if '/habits' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#9989;</span>
-                    Habitos
+                <a href="/schedule" class="nav-link {% if '/schedule' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128197;</span>
+                    Cronograma
                 </a>
             </li>
+            <li class="nav-section-title">Geral</li>
             <li>
                 <a href="/calendar" class="nav-link {% if '/calendar' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#128197;</span>
@@ -95,9 +108,21 @@
                 </a>
             </li>
             <li>
-                <a href="/methods" class="nav-link {% if '/methods' in request.url.path %}active{% endif %}">
+                <a href="/habits" class="nav-link {% if '/habits' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#9989;</span>
+                    Habitos
+                </a>
+            </li>
+            <li>
+                <a href="/reviews" class="nav-link {% if '/reviews' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128260;</span>
+                    Revisoes
+                </a>
+            </li>
+            <li>
+                <a href="/history" class="nav-link {% if '/history' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#128214;</span>
-                    Metodos
+                    Historico
                 </a>
             </li>
             <li>
@@ -110,6 +135,12 @@
                 <a href="/achievements" class="nav-link {% if '/achievements' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#127942;</span>
                     Conquistas
+                </a>
+            </li>
+            <li>
+                <a href="/methods" class="nav-link {% if '/methods' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128214;</span>
+                    Metodos
                 </a>
             </li>
         </ul>
@@ -180,6 +211,12 @@
                 <a href="/stats" class="bottom-nav-link {% if '/stats' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#128200;</span>
                     Stats
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/history" class="bottom-nav-link {% if '/history' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128214;</span>
+                    Histor.
                 </a>
             </li>
             <li class="bottom-nav-item">
