@@ -7,6 +7,7 @@
     <div class="page-header">
         <h1 class="page-title">
             {% if study_mode == "programacao" %}Ola, Desenvolvedor!
+            {% elif study_mode == "vestibulares" %}Ola, Vestibulando!
             {% else %}Ola, Concursando!
             {% endif %}
         </h1>
@@ -16,6 +17,34 @@
             {% endif %}
         </p>
     </div>
+
+    {% if active_goal %}
+    <div class="goal-banner">
+        <div class="goal-banner-header">
+            <span class="goal-banner-icon">&#127919;</span>
+            <div class="goal-banner-info">
+                <h3>Seu objetivo</h3>
+                <p class="goal-banner-title">{{ active_goal.title }}</p>
+            </div>
+            {% if goal_days_until is not none %}
+            <div class="goal-banner-countdown">
+                <span class="goal-countdown-number">{{ goal_days_until }}</span>
+                <span class="goal-countdown-label">dias</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if recommendation %}
+    <div class="recommendation-card">
+        <span class="recommendation-icon">&#128161;</span>
+        <div class="recommendation-content">
+            <strong>Sugestao para hoje</strong>
+            <p>{{ recommendation.message }}</p>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="section">
         <h2 class="section-title">Resumo do Dia</h2>
@@ -36,61 +65,36 @@
             <div class="today-stat-card">
                 <span class="today-stat-icon">&#128218;</span>
                 <span class="today-stat-number">{{ today_sessions_count }}</span>
-                <span class="today-stat-label">Sessoes realizadas</span>
+                <span class="today-stat-label">Sessoes</span>
             </div>
 
             <div class="today-stat-card">
                 <span class="today-stat-icon">&#9989;</span>
                 <span class="today-stat-number">{{ completed_plan_items }}/{{ total_plan_items }}</span>
-                <span class="today-stat-label">Itens do plano</span>
+                <span class="today-stat-label">Plano</span>
             </div>
 
             <div class="today-stat-card">
                 <span class="today-stat-icon">&#128293;</span>
                 <span class="today-stat-number">{{ current_streak }}</span>
-                <span class="today-stat-label">Streak atual</span>
+                <span class="today-stat-label">Streak</span>
             </div>
-
-            <div class="today-stat-card">
-                <span class="today-stat-icon">&#128218;</span>
-                <span class="today-stat-number">{{ most_studied_subject or '-' }}</span>
-                <span class="today-stat-label">Mais estudada hoje</span>
-            </div>
-
-            {% if last_session %}
-            <div class="today-stat-card">
-                <span class="today-stat-icon">&#9200;</span>
-                <span class="today-stat-number">{{ last_session.subject }} ({{ last_session.duration|int }}min)</span>
-                <span class="today-stat-label">Ultima sessao</span>
-            </div>
-            {% endif %}
         </div>
     </div>
 
+    {% if weak_subjects and study_mode == "concursos" %}
     <div class="section">
-        <h2 class="section-title">Registro Rapido</h2>
-        <div class="quick-log-form">
-            <div class="quick-log-row">
-                <select id="ql-subject" class="input" required>
-                    <option value="">Materia</option>
-                    {% for subject in subjects %}
-                    <option value="{{ subject.name }}">{{ subject.name }}</option>
-                    {% endfor %}
-                </select>
-                <input type="number" id="ql-minutes" class="input" placeholder="Minutos" min="1" max="600" required>
-                <select id="ql-type" class="input">
-                    <option value="estudo">Estudo</option>
-                    <option value="teoria">Teoria</option>
-                    <option value="exercicios">Exercicios</option>
-                    <option value="revisao">Revisao</option>
-                    <option value="projeto">Projeto</option>
-                    <option value="simulado">Simulado</option>
-                </select>
-                <button class="btn btn-primary" onclick="quickLogSave()">Salvar</button>
+        <h2 class="section-title">&#9888; Atencao</h2>
+        <div class="weak-subjects-list">
+            {% for w in weak_subjects %}
+            <div class="weak-subject-item">
+                <span class="weak-subject-name">{{ w.name }}</span>
+                <span class="weak-subject-minutes">{{ w.minutes }}min esta semana</span>
             </div>
-            <div id="ql-feedback" style="display:none; margin-top:8px; font-size:13px;"></div>
+            {% endfor %}
         </div>
     </div>
+    {% endif %}
 
     <div class="section">
         <div class="section-header">
@@ -130,6 +134,28 @@
         </div>
         {% endif %}
     </div>
+
+    {% if study_mode == "programacao" %}
+    {% if phases %}
+    <div class="section">
+        <h2 class="section-title">Roadmap</h2>
+        <div class="phases-grid">
+            {% for phase in phases %}
+            <div class="phase-card">
+                <div class="phase-header">
+                    <h3>{{ phase.name }}</h3>
+                    <span class="phase-progress-value">{{ phase.progress }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ phase.progress }}%"></div>
+                </div>
+                <a href="/roadmap" class="phase-link">Abrir</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
 
     <div class="section">
         <div class="section-header">
@@ -173,30 +199,6 @@
             </div>
         </div>
     </div>
-
-    {% if phases %}
-    <div class="section">
-        <h2 class="section-title">
-            {% if study_mode == "programacao" %}Fases em Andamento
-            {% else %}Materias em Estudo
-            {% endif %}
-        </h2>
-        <div class="phases-grid">
-            {% for phase in phases %}
-            <div class="phase-card">
-                <div class="phase-header">
-                    <h3>{{ phase.name }}</h3>
-                    <span class="phase-progress-value">{{ phase.progress }}%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: {{ phase.progress }}%"></div>
-                </div>
-                <a href="/roadmap" class="phase-link">Abrir</a>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
 </div>
 
 <script>
@@ -232,49 +234,6 @@ function updatePlanCount() {
     if (countEl.length > 1) {
         countEl[1].textContent = completed + '/' + total;
     }
-}
-
-function quickLogSave() {
-    var subject = document.getElementById('ql-subject').value;
-    var minutes = document.getElementById('ql-minutes').value;
-    var type = document.getElementById('ql-type').value;
-    var feedback = document.getElementById('ql-feedback');
-
-    if (!subject || !minutes) {
-        feedback.style.display = 'block';
-        feedback.style.color = 'var(--danger)';
-        feedback.textContent = 'Selecione a materia e informe os minutos.';
-        return;
-    }
-
-    var formData = new FormData();
-    formData.append('subject', subject);
-    formData.append('duration', parseInt(minutes) * 60);
-    formData.append('session_type', type);
-
-    fetch('/timer/save', { method: 'POST', body: formData })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.success) {
-            feedback.style.display = 'block';
-            feedback.style.color = 'var(--success)';
-            feedback.textContent = minutes + 'min de ' + subject + ' registrados!';
-            document.getElementById('ql-subject').value = '';
-            document.getElementById('ql-minutes').value = '';
-            setTimeout(function() {
-                feedback.style.display = 'none';
-                location.reload();
-            }, 1200);
-        } else {
-            feedback.style.display = 'block';
-            feedback.style.color = 'var(--danger)';
-            feedback.textContent = 'Erro ao salvar. Tente novamente.';
-        }
-    }).catch(function() {
-        feedback.style.display = 'block';
-        feedback.style.color = 'var(--danger)';
-        feedback.textContent = 'Erro de conexao.';
-    });
 }
 </script>
 {% endblock %}

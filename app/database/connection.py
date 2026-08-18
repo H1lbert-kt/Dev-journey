@@ -135,6 +135,9 @@ def _add_missing_columns(inspector):
         "subject_goals": [
             ("study_mode", "VARCHAR(20)", "'programacao'"),
         ],
+        "simulados": [
+            ("exam_id", "INTEGER", None),
+        ],
     }
 
     for table_name, expected_columns in columns_map.items():

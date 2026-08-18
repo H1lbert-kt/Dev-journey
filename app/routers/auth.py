@@ -175,7 +175,7 @@ async def switch_mode(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    if mode not in ["programacao", "concursos"]:
+    if mode not in ["programacao", "concursos", "vestibulares"]:
         mode = "programacao"
 
     user.study_mode = mode

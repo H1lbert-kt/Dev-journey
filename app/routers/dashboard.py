@@ -10,6 +10,8 @@ from app.services.calendar_service import CalendarService
 from app.models.study_session import StudySession
 from app.models.today_plan import TodayPlanItem
 from app.models.subject import Subject
+from app.models.study_goal import StudyGoal
+from app.models.simulado import Simulado
 from app.routers.auth import require_auth
 
 router = APIRouter()
@@ -102,6 +104,38 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
 
     subjects = db.query(Subject).filter(Subject.user_id == user.id, Subject.study_mode == user.study_mode).all()
 
+    active_goal = db.query(StudyGoal).filter(
+        StudyGoal.user_id == user.id,
+        StudyGoal.study_mode == user.study_mode,
+        StudyGoal.active == True,
+    ).first()
+
+    weak_subjects = []
+    if subjects:
+        subject_scores = {}
+        for subj in subjects:
+            subj_sessions = [s for s in today_sessions + week_sessions if s.subject == subj.name]
+            if subj_sessions:
+                avg_dur = sum(s.duration_minutes for s in subj_sessions) / len(subj_sessions)
+                subject_scores[subj.name] = avg_dur
+        if subject_scores:
+            sorted_subjects = sorted(subject_scores.items(), key=lambda x: x[1])
+            weak_subjects = [{"name": n, "minutes": round(m, 1)} for n, m in sorted_subjects[:3]]
+
+    recommendation = None
+    if weak_subjects and user.daily_goal_minutes > 0:
+        weakest = weak_subjects[0]
+        if today_minutes < user.daily_goal_minutes:
+            recommendation = {
+                "subject": weakest["name"],
+                "message": f"{weakest['name']} esta com menor desempenho. Considere uma sessao de 45 min.",
+            }
+
+    goal_days_until = None
+    if active_goal and active_goal.target_date:
+        from datetime import date as date_type
+        goal_days_until = (active_goal.target_date - date_type.today()).days
+
     return request.app.state.templates.TemplateResponse(
         request,
         "dashboard.html",
@@ -124,5 +158,9 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
             "avg_daily": round(avg_daily, 1),
             "week_pct": round(week_pct, 1),
             "subjects": subjects,
+            "active_goal": active_goal,
+            "goal_days_until": goal_days_until,
+            "weak_subjects": weak_subjects,
+            "recommendation": recommendation,
         },
     )

@@ -14,7 +14,7 @@ import time
 
 from app.database.connection import engine, Base, SessionLocal, DATABASE_URL, IS_POSTGRESQL, init_database
 from app.config.settings import get_settings
-from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews, schedule, exams, journal, today_plan, skills, history, help
+from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews, schedule, exams, journal, today_plan, skills, history, help, study_goal
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -223,6 +223,7 @@ app.include_router(today_plan.router, prefix="/today-plan", tags=["Today Plan"])
 app.include_router(skills.router, prefix="/skills", tags=["Skills"])
 app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(help.router, tags=["Help"])
+app.include_router(study_goal.router, prefix="/study-goal", tags=["Study Goal"])
 
 
 @app.get("/")

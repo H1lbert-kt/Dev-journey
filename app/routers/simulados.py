@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.database.connection import get_db
 from app.models.simulado import Simulado
+from app.models.study_goal import StudyGoal
 from app.routers.auth import require_auth
 
 router = APIRouter()
@@ -52,6 +53,21 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
 
     last_simulado = simulados[0] if simulados else None
 
+    active_goal = db.query(StudyGoal).filter(
+        StudyGoal.user_id == user.id,
+        StudyGoal.study_mode == user.study_mode,
+        StudyGoal.active == True,
+    ).first()
+
+    goal_simulados = []
+    goal_avg = 0
+    if active_goal and active_goal.exam_id:
+        goal_simulados = [s for s in simulados if s.exam_id == active_goal.exam_id]
+        if goal_simulados:
+            goal_total = sum(s.total_questions for s in goal_simulados)
+            goal_correct = sum(s.correct_answers for s in goal_simulados)
+            goal_avg = round(goal_correct / goal_total * 100, 1) if goal_total > 0 else 0
+
     comparisons = {}
     for i in range(len(simulados)):
         curr = simulados[i]
@@ -76,6 +92,9 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
             "best_score": best_score,
             "worst_score": worst_score if simulados else 0,
             "last_simulado": last_simulado,
+            "active_goal": active_goal,
+            "goal_simulados": goal_simulados,
+            "goal_avg": goal_avg,
         },
     )
 
@@ -135,6 +154,60 @@ async def chart_data(request: Request, db: Session = Depends(get_db)):
     })
 
 
+@router.get("/chart-data/goal")
+async def chart_data_goal(request: Request, db: Session = Depends(get_db)):
+    user = require_auth(request, db)
+    if not user:
+        return JSONResponse({"error": "Unauthorized"}, status_code=401)
+
+    active_goal = db.query(StudyGoal).filter(
+        StudyGoal.user_id == user.id,
+        StudyGoal.study_mode == user.study_mode,
+        StudyGoal.active == True,
+    ).first()
+
+    if not active_goal or not active_goal.exam_id:
+        return JSONResponse({"count": 0, "avg_score": 0, "trend": "stable", "labels": [], "scores": []})
+
+    simulados = db.query(Simulado).filter(
+        Simulado.user_id == user.id,
+        Simulado.study_mode == user.study_mode,
+        Simulado.exam_id == active_goal.exam_id,
+    ).order_by(
+        Simulado.display_order.asc(),
+        Simulado.created_at.desc()
+    ).all()
+
+    labels = []
+    scores = []
+    for s in simulados:
+        labels.append(s.name)
+        scores.append(_get_points(s))
+
+    avg_score = 0
+    if simulados:
+        total_points = sum(_get_points(s) for s in simulados)
+        avg_score = round(total_points / len(simulados), 1)
+
+    trend = "stable"
+    if len(simulados) >= 2:
+        recent = _get_points(simulados[0])
+        prev = _get_points(simulados[1])
+        diff = round(recent - prev, 1)
+        if diff > 0:
+            trend = "up"
+        elif diff < 0:
+            trend = "down"
+
+    return JSONResponse({
+        "labels": labels,
+        "scores": scores,
+        "avg_score": avg_score,
+        "trend": trend,
+        "count": len(simulados),
+    })
+
+
 @router.post("/reorder")
 async def reorder_simulados(request: Request, db: Session = Depends(get_db)):
     user = require_auth(request, db)
@@ -180,6 +253,7 @@ async def create_simulado(
     correction_method: str = Form("normal"),
     time_minutes: float = Form(0),
     time_minutes_manual: float = Form(0),
+    exam_id: int = Form(0),
     db: Session = Depends(get_db),
 ):
     user = require_auth(request, db)
@@ -228,6 +302,7 @@ async def create_simulado(
         display_order=next_order,
         user_id=user.id,
         study_mode=user.study_mode,
+        exam_id=exam_id if exam_id > 0 else None,
     )
     db.add(simulado)
     try:

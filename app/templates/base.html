@@ -27,18 +27,44 @@
         </div>
         {% set mode = request.state.study_mode|default("programacao") %}
         <ul class="nav-links">
-            {% if mode == "concursos" %}
-            <li class="nav-section-title">Concursos</li>
+            {% if mode == "programacao" %}
+            <li class="nav-section-title">Principal</li>
             <li>
                 <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
                     <span class="nav-icon">&#128202;</span>
                     Home
                 </a>
             </li>
+
+            <li class="nav-section-title">Estudos</li>
             <li>
                 <a href="/timer" class="nav-link {% if '/timer' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#9200;</span>
                     Cronometro
+                </a>
+            </li>
+            <li>
+                <a href="/today-plan" class="nav-link {% if '/today-plan' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128203;</span>
+                    Plano de Hoje
+                </a>
+            </li>
+            <li>
+                <a href="/roadmap" class="nav-link {% if '/roadmap' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128506;</span>
+                    Roadmap
+                </a>
+            </li>
+            <li>
+                <a href="/projects" class="nav-link {% if '/projects' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128640;</span>
+                    Projetos
+                </a>
+            </li>
+            <li>
+                <a href="/skills" class="nav-link {% if '/skills' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128736;</span>
+                    Habilidades
                 </a>
             </li>
             <li>
@@ -47,6 +73,8 @@
                     Materias
                 </a>
             </li>
+
+            <li class="nav-section-title">Ferramentas</li>
             <li>
                 <a href="/simulados" class="nav-link {% if '/simulados' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#128220;</span>
@@ -59,24 +87,29 @@
                     Flashcards
                 </a>
             </li>
+
+            <li class="nav-section-title">Acompanhamento</li>
+            <li>
+                <a href="/stats" class="nav-link {% if '/stats' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128200;</span>
+                    Estatisticas
+                </a>
+            </li>
+
+            <li class="nav-section-title">Suporte</li>
             <li>
                 <a href="/help" class="nav-link {% if '/help' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#10067;</span>
                     Ajuda
                 </a>
             </li>
-            {% else %}
+
+            {% elif mode == "concursos" %}
             <li class="nav-section-title">Principal</li>
             <li>
                 <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
                     <span class="nav-icon">&#128202;</span>
                     Home
-                </a>
-            </li>
-            <li>
-                <a href="/today-plan" class="nav-link {% if '/today-plan' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128203;</span>
-                    Plano de Hoje
                 </a>
             </li>
 
@@ -88,21 +121,15 @@
                 </a>
             </li>
             <li>
+                <a href="/today-plan" class="nav-link {% if '/today-plan' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128203;</span>
+                    Plano de Hoje
+                </a>
+            </li>
+            <li>
                 <a href="/subjects" class="nav-link {% if '/subjects' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#128218;</span>
                     Materias
-                </a>
-            </li>
-            <li>
-                <a href="/projects" class="nav-link {% if '/projects' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128640;</span>
-                    Projetos
-                </a>
-            </li>
-            <li>
-                <a href="/roadmap" class="nav-link {% if '/roadmap' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128506;</span>
-                    Roadmap
                 </a>
             </li>
             <li>
@@ -125,32 +152,8 @@
                     Flashcards
                 </a>
             </li>
-            <li>
-                <a href="/journal" class="nav-link {% if '/journal' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128221;</span>
-                    Diario
-                </a>
-            </li>
-            <li>
-                <a href="/skills" class="nav-link {% if '/skills' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128736;</span>
-                    Habilidades
-                </a>
-            </li>
-            <li>
-                <a href="/schedule" class="nav-link {% if '/schedule' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128197;</span>
-                    Cronograma
-                </a>
-            </li>
 
             <li class="nav-section-title">Acompanhamento</li>
-            <li>
-                <a href="/history" class="nav-link {% if '/history' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128214;</span>
-                    Historico
-                </a>
-            </li>
             <li>
                 <a href="/stats" class="nav-link {% if '/stats' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#128200;</span>
@@ -158,37 +161,78 @@
                 </a>
             </li>
             <li>
-                <a href="/achievements" class="nav-link {% if '/achievements' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#127942;</span>
-                    Conquistas
+                <a href="/study-goal" class="nav-link {% if '/study-goal' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127919;</span>
+                    Objetivos
                 </a>
             </li>
 
-            <li class="nav-section-title">Configuracoes</li>
+            <li class="nav-section-title">Suporte</li>
             <li>
-                <a href="/calendar" class="nav-link {% if '/calendar' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128197;</span>
-                    Calendario
+                <a href="/help" class="nav-link {% if '/help' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#10067;</span>
+                    Ajuda
+                </a>
+            </li>
+
+            {% elif mode == "vestibulares" %}
+            <li class="nav-section-title">Principal</li>
+            <li>
+                <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
+                    <span class="nav-icon">&#128202;</span>
+                    Home
+                </a>
+            </li>
+
+            <li class="nav-section-title">Estudos</li>
+            <li>
+                <a href="/timer" class="nav-link {% if '/timer' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#9200;</span>
+                    Cronometro
                 </a>
             </li>
             <li>
-                <a href="/habits" class="nav-link {% if '/habits' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#9989;</span>
-                    Habitos
+                <a href="/today-plan" class="nav-link {% if '/today-plan' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128203;</span>
+                    Plano de Hoje
                 </a>
             </li>
             <li>
-                <a href="/reviews" class="nav-link {% if '/reviews' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128260;</span>
-                    Revisoes
+                <a href="/subjects" class="nav-link {% if '/subjects' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128218;</span>
+                    Materias
+                </a>
+            </li>
+
+            <li class="nav-section-title">Ferramentas</li>
+            <li>
+                <a href="/simulados" class="nav-link {% if '/simulados' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128220;</span>
+                    Simulados
                 </a>
             </li>
             <li>
-                <a href="/methods" class="nav-link {% if '/methods' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128214;</span>
-                    Metodos
+                <a href="/flashcards" class="nav-link {% if '/flashcards' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127183;</span>
+                    Flashcards
                 </a>
             </li>
+
+            <li class="nav-section-title">Acompanhamento</li>
+            <li>
+                <a href="/stats" class="nav-link {% if '/stats' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128200;</span>
+                    Estatisticas
+                </a>
+            </li>
+            <li>
+                <a href="/study-goal" class="nav-link {% if '/study-goal' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127919;</span>
+                    Objetivos
+                </a>
+            </li>
+
+            <li class="nav-section-title">Suporte</li>
             <li>
                 <a href="/help" class="nav-link {% if '/help' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#10067;</span>
@@ -208,6 +252,9 @@
                 <button type="button" class="mode-switch-btn {% if mode == 'concursos' %}active{% endif %}" onclick="switchMode('concursos')" id="mode-conc">
                     &#128218; <span>Concursos</span>
                 </button>
+                <button type="button" class="mode-switch-btn {% if mode == 'vestibulares' %}active{% endif %}" onclick="switchMode('vestibulares')" id="mode-ves">
+                    &#128214; <span>Vestibulares</span>
+                </button>
             </div>
             <form action="/logout" method="post" style="margin: 0;">
                 <button type="submit" class="nav-link" style="background: none; border: none; cursor: pointer; width: 100%; text-align: left;">
@@ -218,13 +265,20 @@
         </div>
     </nav>
 
+    <div class="command-palette-overlay" id="command-palette" style="display:none;">
+        <div class="command-palette">
+            <input type="text" class="command-palette-input" id="command-input" placeholder="Pesquisar... (Ctrl+K)" autocomplete="off">
+            <div class="command-palette-results" id="command-results"></div>
+        </div>
+    </div>
+
     <main class="content">
         {% block content %}{% endblock %}
     </main>
 
     <nav class="bottom-nav" id="bottom-nav">
         <ul class="bottom-nav-list">
-            {% if mode == "concursos" %}
+            {% if mode == "concursos" or mode == "vestibulares" %}
             <li class="bottom-nav-item">
                 <a href="/" class="bottom-nav-link {% if request.url.path == '/' %}active{% endif %}">
                     <span class="nav-icon">&#128202;</span>
@@ -590,6 +644,63 @@
     function switchMode(mode) {
         document.getElementById('mode-input').value = mode;
         document.getElementById('mode-form').submit();
+    }
+
+    var cmdPalette = document.getElementById('command-palette');
+    var cmdInput = document.getElementById('command-input');
+    var cmdResults = document.getElementById('command-results');
+
+    var commands = [
+        { name: 'Home', path: '/', icon: '&#128202;' },
+        { name: 'Cronometro', path: '/timer', icon: '&#9200;' },
+        { name: 'Plano de Hoje', path: '/today-plan', icon: '&#128203;' },
+        { name: 'Materias', path: '/subjects', icon: '&#128218;' },
+        { name: 'Simulados', path: '/simulados', icon: '&#128220;' },
+        { name: 'Flashcards', path: '/flashcards', icon: '&#127183;' },
+        { name: 'Estatisticas', path: '/stats', icon: '&#128200;' },
+        { name: 'Concursos', path: '/exams', icon: '&#127963;' },
+        { name: 'Objetivos', path: '/study-goal', icon: '&#127919;' },
+        { name: 'Ajuda', path: '/help', icon: '&#10067;' },
+    ];
+
+    function renderCmdResults(query) {
+        var q = query.toLowerCase().trim();
+        var filtered = q ? commands.filter(function(c) { return c.name.toLowerCase().indexOf(q) !== -1; }) : commands;
+        cmdResults.innerHTML = filtered.map(function(c) {
+            return '<a href="' + c.path + '" class="command-result-item">' +
+                '<span class="command-result-icon">' + c.icon + '</span>' +
+                '<span class="command-result-name">' + c.name + '</span>' +
+                '<span class="command-result-path">' + c.path + '</span>' +
+                '</a>';
+        }).join('');
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            if (cmdPalette.style.display === 'none') {
+                cmdPalette.style.display = 'flex';
+                cmdInput.value = '';
+                renderCmdResults('');
+                setTimeout(function() { cmdInput.focus(); }, 50);
+            } else {
+                cmdPalette.style.display = 'none';
+            }
+        }
+        if (e.key === 'Escape' && cmdPalette.style.display !== 'none') {
+            cmdPalette.style.display = 'none';
+        }
+    });
+
+    if (cmdPalette) {
+        cmdPalette.addEventListener('click', function(e) {
+            if (e.target === cmdPalette) {
+                cmdPalette.style.display = 'none';
+            }
+        });
+        cmdInput.addEventListener('input', function() {
+            renderCmdResults(cmdInput.value);
+        });
     }
 
     if ('serviceWorker' in navigator) {
