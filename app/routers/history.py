@@ -28,7 +28,7 @@ async def history(
         return RedirectResponse(url="/login", status_code=303)
 
     today = datetime.now().date()
-    query = db.query(StudySession).filter(StudySession.user_id == user.id)
+    query = db.query(StudySession).filter(StudySession.user_id == user.id, StudySession.study_mode == user.study_mode)
 
     if period == "today":
         query = query.filter(func.date(StudySession.date) == today)
@@ -61,9 +61,9 @@ async def history(
         by_subject[s.subject] = by_subject.get(s.subject, 0) + s.duration_minutes
     by_subject = dict(sorted(by_subject.items(), key=lambda x: x[1], reverse=True))
 
-    user_subjects = db.query(Subject).filter(Subject.user_id == user.id).all()
-    user_exams = db.query(Exam).filter(Exam.user_id == user.id).all()
-    user_projects = db.query(Project).filter(Project.user_id == user.id).all()
+    user_subjects = db.query(Subject).filter(Subject.user_id == user.id, Subject.study_mode == user.study_mode).all()
+    user_exams = db.query(Exam).filter(Exam.user_id == user.id, Exam.study_mode == user.study_mode).all()
+    user_projects = db.query(Project).filter(Project.user_id == user.id, Project.study_mode == user.study_mode).all()
 
     filters = {
         "period": period,

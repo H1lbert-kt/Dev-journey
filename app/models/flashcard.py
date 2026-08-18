@@ -15,6 +15,7 @@ class Flashcard(Base):
     interval_days = Column(Integer, nullable=False, default=1)
     next_review = Column(DateTime, nullable=False, default=datetime.now)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    study_mode = Column(String(20), nullable=False, default="programacao")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, onupdate=datetime.now)
 

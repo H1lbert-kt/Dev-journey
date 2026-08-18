@@ -92,9 +92,11 @@ def _add_missing_columns(inspector):
             ("correction_method", "VARCHAR(20)", "'normal'"),
             ("final_score", "FLOAT", None),
             ("display_order", "INTEGER", "0"),
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
         ],
         "subjects": [
             ("color", "VARCHAR(7)", "'#58a6ff'"),
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
         ],
         "weekly_schedule": [
             ("order", "INTEGER", "0"),
@@ -107,6 +109,31 @@ def _add_missing_columns(inspector):
             ("session_type", "VARCHAR(20)", "'estudo'"),
             ("exam_id", "INTEGER", None),
             ("project_id", "INTEGER", None),
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
+        ],
+        "flashcards": [
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
+        ],
+        "today_plan_items": [
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
+        ],
+        "skills": [
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
+        ],
+        "projects": [
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
+        ],
+        "phases": [
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
+        ],
+        "journal_entries": [
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
+        ],
+        "exams": [
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
+        ],
+        "subject_goals": [
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
         ],
     }
 

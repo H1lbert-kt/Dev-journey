@@ -20,6 +20,7 @@ async def reviews_page(request: Request, db: Session = Depends(get_db)):
 
     due_cards = db.query(Flashcard).filter(
         Flashcard.user_id == user.id,
+        Flashcard.study_mode == user.study_mode,
         Flashcard.next_review <= now
     ).all()
 
@@ -28,6 +29,7 @@ async def reviews_page(request: Request, db: Session = Depends(get_db)):
         review_date = now + timedelta(days=days_ahead)
         cards = db.query(Flashcard).filter(
             Flashcard.user_id == user.id,
+            Flashcard.study_mode == user.study_mode,
             Flashcard.next_review > now,
             Flashcard.next_review <= review_date
         ).count()

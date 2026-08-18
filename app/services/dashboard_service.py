@@ -7,10 +7,10 @@ from app.services.calendar_service import CalendarService
 
 
 class DashboardService:
-    def __init__(self, db: Session, user_id: int):
-        self.phase_service = PhaseService(db, user_id)
-        self.goal_service = GoalService(db, user_id)
-        self.project_service = ProjectService(db, user_id)
+    def __init__(self, db: Session, user_id: int, study_mode: str = "programacao"):
+        self.phase_service = PhaseService(db, user_id, study_mode)
+        self.goal_service = GoalService(db, user_id, study_mode)
+        self.project_service = ProjectService(db, user_id, study_mode)
         self.calendar_service = CalendarService(db, user_id)
 
     def get_dashboard_data(self) -> dict:

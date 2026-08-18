@@ -6,10 +6,11 @@ from app.services.phase_service import PhaseService
 
 
 class GoalService:
-    def __init__(self, db: Session, user_id: int):
-        self.goal_repo = GoalRepository(db, user_id)
-        self.phase_service = PhaseService(db, user_id)
+    def __init__(self, db: Session, user_id: int, study_mode: Optional[str] = None):
+        self.goal_repo = GoalRepository(db, user_id, study_mode)
+        self.phase_service = PhaseService(db, user_id, study_mode)
         self.user_id = user_id
+        self.study_mode = study_mode
 
     def get_all_goals(self) -> List[Goal]:
         return self.goal_repo.get_all()

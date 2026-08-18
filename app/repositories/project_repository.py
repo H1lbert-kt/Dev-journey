@@ -4,18 +4,25 @@ from app.models.project import Project
 
 
 class ProjectRepository:
-    def __init__(self, db: Session, user_id: int):
+    def __init__(self, db: Session, user_id: int, study_mode: Optional[str] = None):
         self.db = db
         self.user_id = user_id
+        self.study_mode = study_mode
+
+    def _base_query(self):
+        q = self.db.query(Project).filter(Project.user_id == self.user_id)
+        if self.study_mode is not None:
+            q = q.filter(Project.study_mode == self.study_mode)
+        return q
 
     def get_all(self) -> List[Project]:
-        return self.db.query(Project).filter(Project.user_id == self.user_id).order_by(Project.created_at.desc()).all()
+        return self._base_query().order_by(Project.created_at.desc()).all()
 
     def get_by_id(self, project_id: int) -> Optional[Project]:
-        return self.db.query(Project).filter(Project.id == project_id, Project.user_id == self.user_id).first()
+        return self._base_query().filter(Project.id == project_id).first()
 
     def get_by_status(self, status: str) -> List[Project]:
-        return self.db.query(Project).filter(Project.status == status, Project.user_id == self.user_id).all()
+        return self._base_query().filter(Project.status == status).all()
 
     def create(self, project: Project) -> Project:
         self.db.add(project)

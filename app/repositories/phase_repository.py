@@ -4,15 +4,22 @@ from app.models.phase import Phase
 
 
 class PhaseRepository:
-    def __init__(self, db: Session, user_id: int):
+    def __init__(self, db: Session, user_id: int, study_mode: Optional[str] = None):
         self.db = db
         self.user_id = user_id
+        self.study_mode = study_mode
+
+    def _base_query(self):
+        q = self.db.query(Phase).filter(Phase.user_id == self.user_id)
+        if self.study_mode is not None:
+            q = q.filter(Phase.study_mode == self.study_mode)
+        return q
 
     def get_all(self) -> List[Phase]:
-        return self.db.query(Phase).filter(Phase.user_id == self.user_id).order_by(Phase.order).all()
+        return self._base_query().order_by(Phase.order).all()
 
     def get_by_id(self, phase_id: int) -> Optional[Phase]:
-        return self.db.query(Phase).filter(Phase.id == phase_id, Phase.user_id == self.user_id).first()
+        return self._base_query().filter(Phase.id == phase_id).first()
 
     def create(self, phase: Phase) -> Phase:
         self.db.add(phase)

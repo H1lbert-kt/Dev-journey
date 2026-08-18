@@ -22,17 +22,19 @@ async def timer_page(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse(url="/login", status_code=303)
 
     sessions = db.query(StudySession).filter(
-        StudySession.user_id == user.id
+        StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode
     ).order_by(StudySession.date.desc()).limit(10).all()
 
-    subjects = db.query(Subject).filter(Subject.user_id == user.id).all()
+    subjects = db.query(Subject).filter(Subject.user_id == user.id, Subject.study_mode == user.study_mode).all()
 
-    exams = db.query(Exam).filter(Exam.user_id == user.id).all()
-    projects = db.query(Project).filter(Project.user_id == user.id).all()
+    exams = db.query(Exam).filter(Exam.user_id == user.id, Exam.study_mode == user.study_mode).all()
+    projects = db.query(Project).filter(Project.user_id == user.id, Project.study_mode == user.study_mode).all()
 
     today = datetime.now().date()
     today_sessions = db.query(StudySession).filter(
         StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
         func.date(StudySession.date) == today
     ).all()
     today_minutes = sum(s.duration_minutes for s in today_sessions)
@@ -83,6 +85,7 @@ async def save_session(
         session_type=session_type,
         exam_id=exam_id,
         project_id=project_id,
+        study_mode=user.study_mode,
     )
     db.add(session)
 
@@ -107,6 +110,7 @@ async def save_session(
         studied_today = set()
         today_sessions = db.query(StudySession).filter(
             StudySession.user_id == user.id,
+            StudySession.study_mode == user.study_mode,
             func.date(StudySession.date) == today,
         ).all()
         for s in today_sessions:
@@ -185,6 +189,7 @@ async def check_day_completed(request: Request, db: Session = Depends(get_db)):
 
     today_sessions = db.query(StudySession).filter(
         StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
         func.date(StudySession.date) == today,
     ).all()
     studied_today = {s.subject for s in today_sessions}

@@ -19,10 +19,11 @@ async def flashcards_page(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    subjects = db.query(Subject).filter(Subject.user_id == user.id).all()
-    flashcards = db.query(Flashcard).filter(Flashcard.user_id == user.id).all()
+    subjects = db.query(Subject).filter(Subject.user_id == user.id, Subject.study_mode == user.study_mode).all()
+    flashcards = db.query(Flashcard).filter(Flashcard.user_id == user.id, Flashcard.study_mode == user.study_mode).all()
     due_cards = db.query(Flashcard).filter(
         Flashcard.user_id == user.id,
+        Flashcard.study_mode == user.study_mode,
         Flashcard.next_review <= datetime.now()
     ).all()
 
@@ -51,7 +52,7 @@ async def create_flashcard(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first()
+    subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id, Subject.study_mode == user.study_mode).first()
     if not subject:
         return RedirectResponse(url="/flashcards", status_code=303)
 
@@ -60,6 +61,7 @@ async def create_flashcard(
         back=back,
         subject_id=subject_id,
         user_id=user.id,
+        study_mode=user.study_mode,
     )
     db.add(flashcard)
     try:
@@ -80,7 +82,7 @@ async def import_flashcards(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first()
+    subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id, Subject.study_mode == user.study_mode).first()
     if not subject:
         return RedirectResponse(url="/flashcards", status_code=303)
 
@@ -113,6 +115,7 @@ async def import_flashcards(
                     back=back,
                     subject_id=subject_id,
                     user_id=user.id,
+                    study_mode=user.study_mode,
                 )
                 db.add(flashcard)
                 imported += 1
@@ -135,7 +138,7 @@ async def review_flashcard(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    card = db.query(Flashcard).filter(Flashcard.id == card_id, Flashcard.user_id == user.id).first()
+    card = db.query(Flashcard).filter(Flashcard.id == card_id, Flashcard.user_id == user.id, Flashcard.study_mode == user.study_mode).first()
     if card:
         quality = max(0, min(5, quality))
 
@@ -161,7 +164,7 @@ async def delete_flashcard(card_id: int, request: Request, db: Session = Depends
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    card = db.query(Flashcard).filter(Flashcard.id == card_id, Flashcard.user_id == user.id).first()
+    card = db.query(Flashcard).filter(Flashcard.id == card_id, Flashcard.user_id == user.id, Flashcard.study_mode == user.study_mode).first()
     if card:
         db.delete(card)
         try:

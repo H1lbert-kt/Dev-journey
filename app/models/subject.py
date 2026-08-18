@@ -11,6 +11,7 @@ class Subject(Base):
     name = Column(String(100), nullable=False)
     color = Column(String(7), nullable=True, default="#58a6ff")
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    study_mode = Column(String(20), nullable=False, default="programacao")
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="subjects")

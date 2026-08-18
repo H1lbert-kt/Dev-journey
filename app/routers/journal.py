@@ -18,11 +18,12 @@ async def journal_page(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse(url="/login", status_code=303)
 
     entries = db.query(JournalEntry).filter(
-        JournalEntry.user_id == user.id
+        JournalEntry.user_id == user.id,
+        JournalEntry.study_mode == user.study_mode
     ).order_by(JournalEntry.date.desc(), JournalEntry.id.desc()).all()
 
-    projects = db.query(Project).filter(Project.user_id == user.id).all()
-    subjects = db.query(Subject).filter(Subject.user_id == user.id).all()
+    projects = db.query(Project).filter(Project.user_id == user.id, Project.study_mode == user.study_mode).all()
+    subjects = db.query(Subject).filter(Subject.user_id == user.id, Subject.study_mode == user.study_mode).all()
 
     return request.app.state.templates.TemplateResponse(
         request,
@@ -63,6 +64,7 @@ async def create_entry(
         project_id=project_id if project_id else None,
         subject_id=subject_id if subject_id else None,
         user_id=user.id,
+        study_mode=user.study_mode,
     )
     db.add(entry)
     try:
@@ -88,7 +90,7 @@ async def update_entry(
         return RedirectResponse(url="/login", status_code=303)
 
     entry = db.query(JournalEntry).filter(
-        JournalEntry.id == entry_id, JournalEntry.user_id == user.id
+        JournalEntry.id == entry_id, JournalEntry.user_id == user.id, JournalEntry.study_mode == user.study_mode
     ).first()
     if not entry:
         return RedirectResponse(url="/journal", status_code=303)
@@ -117,7 +119,7 @@ async def delete_entry(entry_id: int, request: Request, db: Session = Depends(ge
         return RedirectResponse(url="/login", status_code=303)
 
     entry = db.query(JournalEntry).filter(
-        JournalEntry.id == entry_id, JournalEntry.user_id == user.id
+        JournalEntry.id == entry_id, JournalEntry.user_id == user.id, JournalEntry.study_mode == user.study_mode
     ).first()
     if entry:
         db.delete(entry)

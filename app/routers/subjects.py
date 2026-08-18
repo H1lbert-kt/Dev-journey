@@ -17,7 +17,7 @@ async def subjects_page(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    subjects = db.query(Subject).filter(Subject.user_id == user.id).all()
+    subjects = db.query(Subject).filter(Subject.user_id == user.id, Subject.study_mode == user.study_mode).all()
 
     return request.app.state.templates.TemplateResponse(
         request,
@@ -37,7 +37,7 @@ async def create_subject(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    subject = Subject(name=name.strip(), color=color, user_id=user.id)
+    subject = Subject(name=name.strip(), color=color, user_id=user.id, study_mode=user.study_mode)
     db.add(subject)
     try:
         db.commit()
@@ -53,7 +53,7 @@ async def delete_subject(subject_id: int, request: Request, db: Session = Depend
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first()
+    subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id, Subject.study_mode == user.study_mode).first()
     if subject:
         try:
             db.query(WeeklySchedule).filter(

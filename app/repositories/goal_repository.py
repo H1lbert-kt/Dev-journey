@@ -5,18 +5,25 @@ from app.models.phase import Phase
 
 
 class GoalRepository:
-    def __init__(self, db: Session, user_id: int):
+    def __init__(self, db: Session, user_id: int, study_mode: Optional[str] = None):
         self.db = db
         self.user_id = user_id
+        self.study_mode = study_mode
+
+    def _base_query(self):
+        q = self.db.query(Goal).join(Phase).filter(Phase.user_id == self.user_id)
+        if self.study_mode is not None:
+            q = q.filter(Phase.study_mode == self.study_mode)
+        return q
 
     def get_all(self) -> List[Goal]:
-        return self.db.query(Goal).join(Phase).filter(Phase.user_id == self.user_id).all()
+        return self._base_query().all()
 
     def get_by_id(self, goal_id: int) -> Optional[Goal]:
-        return self.db.query(Goal).join(Phase).filter(Goal.id == goal_id, Phase.user_id == self.user_id).first()
+        return self._base_query().filter(Goal.id == goal_id).first()
 
     def get_by_phase(self, phase_id: int) -> List[Goal]:
-        return self.db.query(Goal).join(Phase).filter(Goal.phase_id == phase_id, Phase.user_id == self.user_id).all()
+        return self._base_query().filter(Goal.phase_id == phase_id).all()
 
     def create(self, goal: Goal) -> Goal:
         self.db.add(goal)

@@ -19,10 +19,11 @@ async def today_plan_page(request: Request, db: Session = Depends(get_db)):
     today = date.today()
     items = db.query(TodayPlanItem).filter(
         TodayPlanItem.user_id == user.id,
+        TodayPlanItem.study_mode == user.study_mode,
         TodayPlanItem.date == today,
     ).order_by(TodayPlanItem.completed.asc(), TodayPlanItem.id.asc()).all()
 
-    subjects = db.query(Subject).filter(Subject.user_id == user.id).all()
+    subjects = db.query(Subject).filter(Subject.user_id == user.id, Subject.study_mode == user.study_mode).all()
 
     completed_count = sum(1 for item in items if item.completed)
     total_count = len(items)
@@ -69,6 +70,7 @@ async def create_item(
         item_type=item_type,
         date=date.today(),
         user_id=user.id,
+        study_mode=user.study_mode,
     )
     db.add(item)
     try:
@@ -85,7 +87,7 @@ async def toggle_item(item_id: int, request: Request, db: Session = Depends(get_
         return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
 
     item = db.query(TodayPlanItem).filter(
-        TodayPlanItem.id == item_id, TodayPlanItem.user_id == user.id
+        TodayPlanItem.id == item_id, TodayPlanItem.user_id == user.id, TodayPlanItem.study_mode == user.study_mode
     ).first()
     if not item:
         return JSONResponse(content={"error": "Not found"}, status_code=404)
@@ -119,7 +121,7 @@ async def update_item(
         return RedirectResponse(url="/login", status_code=303)
 
     item = db.query(TodayPlanItem).filter(
-        TodayPlanItem.id == item_id, TodayPlanItem.user_id == user.id
+        TodayPlanItem.id == item_id, TodayPlanItem.user_id == user.id, TodayPlanItem.study_mode == user.study_mode
     ).first()
     if not item:
         return RedirectResponse(url="/today-plan", status_code=303)
@@ -149,7 +151,7 @@ async def delete_item(item_id: int, request: Request, db: Session = Depends(get_
         return RedirectResponse(url="/login", status_code=303)
 
     item = db.query(TodayPlanItem).filter(
-        TodayPlanItem.id == item_id, TodayPlanItem.user_id == user.id
+        TodayPlanItem.id == item_id, TodayPlanItem.user_id == user.id, TodayPlanItem.study_mode == user.study_mode
     ).first()
     if item:
         db.delete(item)

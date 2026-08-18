@@ -16,8 +16,8 @@ async def roadmap(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    phase_service = PhaseService(db, user.id)
-    goal_service = GoalService(db, user.id)
+    phase_service = PhaseService(db, user.id, user.study_mode)
+    goal_service = GoalService(db, user.id, user.study_mode)
 
     phases = phase_service.get_all_phases()
     goals = goal_service.get_all_goals()
@@ -50,7 +50,7 @@ async def create_phase(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    phase_service = PhaseService(db, user.id)
+    phase_service = PhaseService(db, user.id, user.study_mode)
     phase_service.create_phase(name=name, description=description, order=order)
     return RedirectResponse(url="/roadmap", status_code=303)
 
@@ -61,7 +61,7 @@ async def delete_phase(phase_id: int, request: Request, db: Session = Depends(ge
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    phase_service = PhaseService(db, user.id)
+    phase_service = PhaseService(db, user.id, user.study_mode)
     phase_service.delete_phase(phase_id)
     return RedirectResponse(url="/roadmap", status_code=303)
 
@@ -77,11 +77,11 @@ async def create_goal(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    phase = db.query(Phase).filter(Phase.id == phase_id, Phase.user_id == user.id).first()
+    phase = db.query(Phase).filter(Phase.id == phase_id, Phase.user_id == user.id, Phase.study_mode == user.study_mode).first()
     if not phase:
         return RedirectResponse(url="/roadmap", status_code=303)
 
-    goal_service = GoalService(db, user.id)
+    goal_service = GoalService(db, user.id, user.study_mode)
     goal_service.create_goal(title=title, phase_id=phase_id)
     return RedirectResponse(url="/roadmap", status_code=303)
 
@@ -92,7 +92,7 @@ async def toggle_goal(goal_id: int, request: Request, db: Session = Depends(get_
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    goal_service = GoalService(db, user.id)
+    goal_service = GoalService(db, user.id, user.study_mode)
     goal_service.toggle_goal(goal_id)
     return RedirectResponse(url="/roadmap", status_code=303)
 
@@ -103,6 +103,6 @@ async def delete_goal(goal_id: int, request: Request, db: Session = Depends(get_
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    goal_service = GoalService(db, user.id)
+    goal_service = GoalService(db, user.id, user.study_mode)
     goal_service.delete_goal(goal_id)
     return RedirectResponse(url="/roadmap", status_code=303)

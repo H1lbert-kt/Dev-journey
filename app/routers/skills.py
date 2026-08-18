@@ -23,7 +23,7 @@ async def skills(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    all_skills = db.query(Skill).filter(Skill.user_id == user.id).order_by(Skill.name).all()
+    all_skills = db.query(Skill).filter(Skill.user_id == user.id, Skill.study_mode == user.study_mode).order_by(Skill.name).all()
 
     categories = {key: [] for key in CATEGORIES}
     for skill in all_skills:
@@ -66,6 +66,7 @@ async def create_skill(
         progress=progress,
         description=description.strip() if description else "",
         user_id=user.id,
+        study_mode=user.study_mode,
     )
     db.add(skill)
     try:
@@ -90,7 +91,7 @@ async def update_skill(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    skill = db.query(Skill).filter(Skill.id == skill_id, Skill.user_id == user.id).first()
+    skill = db.query(Skill).filter(Skill.id == skill_id, Skill.user_id == user.id, Skill.study_mode == user.study_mode).first()
     if not skill:
         return RedirectResponse(url="/skills", status_code=303)
 
@@ -117,7 +118,7 @@ async def delete_skill(skill_id: int, request: Request, db: Session = Depends(ge
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    skill = db.query(Skill).filter(Skill.id == skill_id, Skill.user_id == user.id).first()
+    skill = db.query(Skill).filter(Skill.id == skill_id, Skill.user_id == user.id, Skill.study_mode == user.study_mode).first()
     if skill:
         db.delete(skill)
         try:

@@ -15,6 +15,7 @@ class StudySession(Base):
     project_id = Column(Integer, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
     date = Column(DateTime, server_default=func.now())
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    study_mode = Column(String(20), nullable=False, default="programacao")
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="study_sessions")

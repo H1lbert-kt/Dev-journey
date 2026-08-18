@@ -17,6 +17,7 @@ class TodayPlanItem(Base):
     item_type = Column(String(20), nullable=False, default="estudo")
     date = Column(Date, nullable=False, default=datetime.now)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    study_mode = Column(String(20), nullable=False, default="programacao")
     created_at = Column(DateTime, default=datetime.now)
 
     user = relationship("User", back_populates="today_plan_items")

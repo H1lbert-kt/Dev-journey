@@ -26,7 +26,8 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse(url="/login", status_code=303)
 
     simulados = db.query(Simulado).filter(
-        Simulado.user_id == user.id
+        Simulado.user_id == user.id,
+        Simulado.study_mode == user.study_mode
     ).order_by(
         Simulado.display_order.asc(),
         Simulado.created_at.desc()
@@ -86,7 +87,8 @@ async def chart_data(request: Request, db: Session = Depends(get_db)):
         return JSONResponse({"error": "Unauthorized"}, status_code=401)
 
     simulados = db.query(Simulado).filter(
-        Simulado.user_id == user.id
+        Simulado.user_id == user.id,
+        Simulado.study_mode == user.study_mode
     ).order_by(
         Simulado.display_order.asc(),
         Simulado.created_at.desc()
@@ -153,7 +155,8 @@ async def reorder_simulados(request: Request, db: Session = Depends(get_db)):
             continue
         simulado = db.query(Simulado).filter(
             Simulado.id == simulado_id,
-            Simulado.user_id == user.id
+            Simulado.user_id == user.id,
+            Simulado.study_mode == user.study_mode
         ).first()
         if simulado:
             simulado.display_order = idx
@@ -209,7 +212,7 @@ async def create_simulado(
         final_score = correct_answers
         score = round(correct_answers / total_questions * 100, 1) if total_questions > 0 else 0
 
-    max_order = db.query(func.max(Simulado.display_order)).filter(Simulado.user_id == user.id).scalar()
+    max_order = db.query(func.max(Simulado.display_order)).filter(Simulado.user_id == user.id, Simulado.study_mode == user.study_mode).scalar()
     next_order = (max_order or 0) + 1
 
     simulado = Simulado(
@@ -224,6 +227,7 @@ async def create_simulado(
         score=score,
         display_order=next_order,
         user_id=user.id,
+        study_mode=user.study_mode,
     )
     db.add(simulado)
     try:
@@ -239,7 +243,7 @@ async def delete_simulado(simulado_id: int, request: Request, db: Session = Depe
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    simulado = db.query(Simulado).filter(Simulado.id == simulado_id, Simulado.user_id == user.id).first()
+    simulado = db.query(Simulado).filter(Simulado.id == simulado_id, Simulado.user_id == user.id, Simulado.study_mode == user.study_mode).first()
     if simulado:
         db.delete(simulado)
         try:

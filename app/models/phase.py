@@ -13,6 +13,7 @@ class Phase(Base):
     order = Column(Integer, nullable=False, default=0)
     progress = Column(Float, nullable=False, default=0.0)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    study_mode = Column(String(20), nullable=False, default="programacao")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 

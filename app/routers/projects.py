@@ -14,7 +14,7 @@ async def projects(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    project_service = ProjectService(db, user.id)
+    project_service = ProjectService(db, user.id, user.study_mode)
     projects = project_service.get_all_projects()
 
     return request.app.state.templates.TemplateResponse(
@@ -41,7 +41,7 @@ async def create_project(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    project_service = ProjectService(db, user.id)
+    project_service = ProjectService(db, user.id, user.study_mode)
     project_service.create_project(
         name=name,
         description=description,
@@ -69,7 +69,7 @@ async def update_project(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    project_service = ProjectService(db, user.id)
+    project_service = ProjectService(db, user.id, user.study_mode)
     project_service.update_project(
         project_id,
         {
@@ -90,6 +90,6 @@ async def delete_project(project_id: int, request: Request, db: Session = Depend
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    project_service = ProjectService(db, user.id)
+    project_service = ProjectService(db, user.id, user.study_mode)
     project_service.delete_project(project_id)
     return RedirectResponse(url="/projects", status_code=303)

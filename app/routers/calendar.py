@@ -59,6 +59,7 @@ async def calendar_page(
         func.sum(StudySession.duration_minutes)
     ).filter(
         StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
         StudySession.date >= month_start_date,
         StudySession.date < month_end_date
     ).group_by(func.date(StudySession.date)).all()

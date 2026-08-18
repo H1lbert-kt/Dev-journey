@@ -28,7 +28,7 @@ AUTO_ACHIEVEMENTS = [
 ]
 
 
-def check_auto_achievements(user_id, db):
+def check_auto_achievements(user_id, db, study_mode=None):
     """Check and unlock auto-achievements based on user data."""
     achievements = db.query(Achievement).filter(
         Achievement.user_id == user_id
@@ -43,16 +43,28 @@ def check_auto_achievements(user_id, db):
         should_unlock = False
 
         if auto["check"] == "first_session":
-            count = db.query(func.count(StudySession.id)).filter(StudySession.user_id == user_id).scalar()
+            q = db.query(func.count(StudySession.id)).filter(StudySession.user_id == user_id)
+            if study_mode:
+                q = q.filter(StudySession.study_mode == study_mode)
+            count = q.scalar()
             should_unlock = count >= 1
         elif auto["check"] == "one_hour":
-            total = db.query(func.coalesce(func.sum(StudySession.duration_minutes), 0)).filter(StudySession.user_id == user_id).scalar()
+            q = db.query(func.coalesce(func.sum(StudySession.duration_minutes), 0)).filter(StudySession.user_id == user_id)
+            if study_mode:
+                q = q.filter(StudySession.study_mode == study_mode)
+            total = q.scalar()
             should_unlock = total >= 60
         elif auto["check"] == "ten_hours":
-            total = db.query(func.coalesce(func.sum(StudySession.duration_minutes), 0)).filter(StudySession.user_id == user_id).scalar()
+            q = db.query(func.coalesce(func.sum(StudySession.duration_minutes), 0)).filter(StudySession.user_id == user_id)
+            if study_mode:
+                q = q.filter(StudySession.study_mode == study_mode)
+            total = q.scalar()
             should_unlock = total >= 600
         elif auto["check"] == "fifty_hours":
-            total = db.query(func.coalesce(func.sum(StudySession.duration_minutes), 0)).filter(StudySession.user_id == user_id).scalar()
+            q = db.query(func.coalesce(func.sum(StudySession.duration_minutes), 0)).filter(StudySession.user_id == user_id)
+            if study_mode:
+                q = q.filter(StudySession.study_mode == study_mode)
+            total = q.scalar()
             should_unlock = total >= 3000
         elif auto["check"] == "streak_7":
             streak = _get_streak(user_id, db)
@@ -61,13 +73,22 @@ def check_auto_achievements(user_id, db):
             streak = _get_streak(user_id, db)
             should_unlock = streak >= 30
         elif auto["check"] == "first_simulado":
-            count = db.query(func.count(Simulado.id)).filter(Simulado.user_id == user_id).scalar()
+            q = db.query(func.count(Simulado.id)).filter(Simulado.user_id == user_id)
+            if study_mode:
+                q = q.filter(Simulado.study_mode == study_mode)
+            count = q.scalar()
             should_unlock = count >= 1
         elif auto["check"] == "first_project":
-            count = db.query(func.count(Project.id)).filter(Project.user_id == user_id).scalar()
+            q = db.query(func.count(Project.id)).filter(Project.user_id == user_id)
+            if study_mode:
+                q = q.filter(Project.study_mode == study_mode)
+            count = q.scalar()
             should_unlock = count >= 1
         elif auto["check"] == "first_exam":
-            count = db.query(func.count(Exam.id)).filter(Exam.user_id == user_id).scalar()
+            q = db.query(func.count(Exam.id)).filter(Exam.user_id == user_id)
+            if study_mode:
+                q = q.filter(Exam.study_mode == study_mode)
+            count = q.scalar()
             should_unlock = count >= 1
 
         if should_unlock:
@@ -121,7 +142,7 @@ async def achievements(request: Request, db: Session = Depends(get_db)):
 
     achievement_service = AchievementService(db, user.id)
     achievement_service.initialize_default_achievements()
-    check_auto_achievements(user.id, db)
+    check_auto_achievements(user.id, db, study_mode=user.study_mode)
 
     achievements = db.query(Achievement).filter(
         Achievement.user_id == user.id

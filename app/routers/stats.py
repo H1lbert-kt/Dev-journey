@@ -20,9 +20,9 @@ async def stats(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    phase_service = PhaseService(db, user.id)
-    goal_service = GoalService(db, user.id)
-    project_service = ProjectService(db, user.id)
+    phase_service = PhaseService(db, user.id, user.study_mode)
+    goal_service = GoalService(db, user.id, user.study_mode)
+    project_service = ProjectService(db, user.id, user.study_mode)
     calendar_service = CalendarService(db, user.id)
 
     phases = phase_service.get_all_phases()
@@ -37,7 +37,8 @@ async def stats(request: Request, db: Session = Depends(get_db)):
         total_progress = round(sum(p.progress for p in phases) / len(phases), 1)
 
     total_study_time = db.query(func.sum(StudySession.duration_minutes)).filter(
-        StudySession.user_id == user.id
+        StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
     ).scalar() or 0
     total_study_hours = round(total_study_time / 60, 1)
 
@@ -46,12 +47,14 @@ async def stats(request: Request, db: Session = Depends(get_db)):
 
     today_sessions = db.query(StudySession).filter(
         StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
         func.date(StudySession.date) == today
     ).all()
     today_minutes = sum(s.duration_minutes for s in today_sessions)
 
     yesterday_sessions = db.query(StudySession).filter(
         StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
         func.date(StudySession.date) == yesterday
     ).all()
     yesterday_minutes = sum(s.duration_minutes for s in yesterday_sessions)
@@ -59,6 +62,7 @@ async def stats(request: Request, db: Session = Depends(get_db)):
     week_start = today - timedelta(days=today.weekday())
     week_sessions = db.query(StudySession).filter(
         StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
         StudySession.date >= week_start
     ).all()
     week_minutes = sum(s.duration_minutes for s in week_sessions)
@@ -66,6 +70,7 @@ async def stats(request: Request, db: Session = Depends(get_db)):
     month_start = today.replace(day=1)
     month_sessions = db.query(StudySession).filter(
         StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
         StudySession.date >= month_start
     ).all()
     month_minutes = sum(s.duration_minutes for s in month_sessions)
@@ -78,7 +83,8 @@ async def stats(request: Request, db: Session = Depends(get_db)):
         func.count(StudySession.id),
         func.max(StudySession.date)
     ).filter(
-        StudySession.user_id == user.id
+        StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
     ).group_by(StudySession.subject).all()
 
     subjects_detail = []

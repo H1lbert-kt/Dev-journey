@@ -38,11 +38,13 @@ def _compute_exam_stats(exam, db, user_id):
     total_minutes = db.query(func.coalesce(func.sum(StudySession.duration_minutes), 0.0)).filter(
         StudySession.exam_id == exam.id,
         StudySession.user_id == user_id,
+        StudySession.study_mode == exam.study_mode,
     ).scalar()
 
     sessions_count = db.query(func.count(StudySession.id)).filter(
         StudySession.exam_id == exam.id,
         StudySession.user_id == user_id,
+        StudySession.study_mode == exam.study_mode,
     ).scalar()
 
     return {
@@ -70,7 +72,7 @@ async def exams_page(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    exams = db.query(Exam).filter(Exam.user_id == user.id).order_by(Exam.created_at.desc()).all()
+    exams = db.query(Exam).filter(Exam.user_id == user.id, Exam.study_mode == user.study_mode).order_by(Exam.created_at.desc()).all()
 
     exams_data = []
     for exam in exams:
@@ -149,6 +151,7 @@ async def create_exam(
         vacancies=vacancies if vacancies > 0 else None,
         notes=notes.strip() or None,
         user_id=user.id,
+        study_mode=user.study_mode,
     )
     db.add(exam)
     try:
@@ -178,7 +181,7 @@ async def update_exam(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id).first()
+    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id, Exam.study_mode == user.study_mode).first()
     if not exam:
         return RedirectResponse(url="/exams", status_code=303)
 
@@ -216,12 +219,13 @@ async def delete_exam(exam_id: int, request: Request, db: Session = Depends(get_
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id).first()
+    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id, Exam.study_mode == user.study_mode).first()
     if exam:
         try:
             db.query(StudySession).filter(
                 StudySession.exam_id == exam_id,
                 StudySession.user_id == user.id,
+                StudySession.study_mode == user.study_mode,
             ).update({StudySession.exam_id: None})
             db.delete(exam)
             db.commit()
@@ -237,21 +241,22 @@ async def exam_detail(exam_id: int, request: Request, db: Session = Depends(get_
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id).first()
+    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id, Exam.study_mode == user.study_mode).first()
     if not exam:
         return RedirectResponse(url="/exams", status_code=303)
 
     exam_subjects = db.query(ExamSubject).filter(ExamSubject.exam_id == exam.id).order_by(ExamSubject.name).all()
-    user_subjects = db.query(Subject).filter(Subject.user_id == user.id).order_by(Subject.name).all()
+    user_subjects = db.query(Subject).filter(Subject.user_id == user.id, Subject.study_mode == user.study_mode).order_by(Subject.name).all()
 
     stats = _compute_exam_stats(exam, db, user.id)
 
     study_sessions = db.query(StudySession).filter(
         StudySession.exam_id == exam.id,
         StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
     ).order_by(StudySession.date.desc()).all()
 
-    simulados = db.query(Simulado).filter(Simulado.user_id == user.id).order_by(Simulado.created_at.desc()).all()
+    simulados = db.query(Simulado).filter(Simulado.user_id == user.id, Simulado.study_mode == user.study_mode).order_by(Simulado.created_at.desc()).all()
 
     return request.app.state.templates.TemplateResponse(
         request,
@@ -282,7 +287,7 @@ async def create_exam_subject(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id).first()
+    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id, Exam.study_mode == user.study_mode).first()
     if not exam:
         return RedirectResponse(url="/exams", status_code=303)
 
@@ -318,7 +323,7 @@ async def update_exam_subject(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id).first()
+    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id, Exam.study_mode == user.study_mode).first()
     if not exam:
         return RedirectResponse(url="/exams", status_code=303)
 
@@ -352,7 +357,7 @@ async def delete_exam_subject(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id).first()
+    exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id, Exam.study_mode == user.study_mode).first()
     if not exam:
         return RedirectResponse(url="/exams", status_code=303)
 

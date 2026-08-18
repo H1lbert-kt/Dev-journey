@@ -6,10 +6,11 @@ from app.repositories.goal_repository import GoalRepository
 
 
 class PhaseService:
-    def __init__(self, db: Session, user_id: int):
-        self.phase_repo = PhaseRepository(db, user_id)
-        self.goal_repo = GoalRepository(db, user_id)
+    def __init__(self, db: Session, user_id: int, study_mode: Optional[str] = None):
+        self.phase_repo = PhaseRepository(db, user_id, study_mode)
+        self.goal_repo = GoalRepository(db, user_id, study_mode)
         self.user_id = user_id
+        self.study_mode = study_mode
 
     def get_all_phases(self) -> List[Phase]:
         return self.phase_repo.get_all()
@@ -18,7 +19,7 @@ class PhaseService:
         return self.phase_repo.get_by_id(phase_id)
 
     def create_phase(self, name: str, description: Optional[str] = None, order: int = 0) -> Phase:
-        phase = Phase(name=name, description=description, order=order, user_id=self.user_id)
+        phase = Phase(name=name, description=description, order=order, user_id=self.user_id, study_mode=self.study_mode or "programacao")
         return self.phase_repo.create(phase)
 
     def update_phase(self, phase_id: int, data: dict) -> Optional[Phase]:
