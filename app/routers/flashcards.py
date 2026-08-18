@@ -9,6 +9,9 @@ from app.routers.auth import require_auth
 
 router = APIRouter()
 
+MAX_UPLOAD_SIZE = 1 * 1024 * 1024  # 1 MB
+MAX_IMPORT_LINES = 500
+
 
 @router.get("/")
 async def flashcards_page(request: Request, db: Session = Depends(get_db)):
@@ -83,10 +86,13 @@ async def import_flashcards(
 
     try:
         content = await file.read()
+        if len(content) > MAX_UPLOAD_SIZE:
+            return RedirectResponse(url="/flashcards", status_code=303)
         text = content.decode("utf-8")
     except UnicodeDecodeError:
         return RedirectResponse(url="/flashcards", status_code=303)
     lines = [line.strip() for line in text.split("\n") if line.strip()]
+    lines = lines[:MAX_IMPORT_LINES]
 
     imported = 0
     for line in lines:

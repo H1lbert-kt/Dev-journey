@@ -314,6 +314,31 @@ button { font-family: inherit; }
 }
 
 .section-title { font-size:16px; font-weight:600; }
+.section-subtitle { font-size:12px; color:var(--fg-3); margin-left:auto; }
+
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--fg-2);
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: var(--fg-1); }
+.empty-state p { font-size: 13px; margin-bottom: 16px; }
+
+.form-error {
+    background: var(--red-subtle);
+    color: var(--red);
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+}
+.form-row .form-group { flex: 1; }
 
 /* ==================== BUTTONS ==================== */
 .btn {
@@ -3236,6 +3261,83 @@ textarea.input {
     font-weight: 600;
 }
 
+/* ==================== HELP CENTER ==================== */
+.help-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.help-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    text-decoration: none;
+    color: var(--fg-0);
+    transition: border-color var(--t);
+    text-align: center;
+}
+
+.help-card:hover { border-color:var(--accent); }
+
+.help-card-icon { font-size:32px; display:block; margin-bottom:10px; }
+.help-card h3 { font-size:14px; font-weight:600; margin-bottom:4px; }
+.help-card p { font-size:12px; color:var(--fg-2); margin:0; }
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.faq-item {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.faq-question {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: none;
+    border: none;
+    color: var(--fg-0);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+}
+
+.faq-arrow {
+    font-size: 12px;
+    color: var(--fg-3);
+    transition: transform .2s;
+}
+
+.faq-item.open .faq-arrow { transform:rotate(180deg); }
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .3s ease;
+}
+
+.faq-item.open .faq-answer { max-height:200px; }
+
+.faq-answer p {
+    padding: 0 16px 14px;
+    font-size: 13px;
+    color: var(--fg-2);
+    line-height: 1.5;
+    margin: 0;
+}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */
@@ -3408,6 +3510,10 @@ textarea.input {
     .exams-grid { grid-template-columns:1fr; }
     .exam-card-footer { flex-direction:column; }
     .exam-card-footer .btn { width:100%; }
+
+    .help-grid { grid-template-columns:repeat(2, 1fr); gap:8px; }
+    .help-card { padding:14px; }
+    .help-card-icon { font-size:26px; }
 
     .today-summary-grid { grid-template-columns:repeat(2, 1fr); }
     .today-stat-number { font-size:13px; }

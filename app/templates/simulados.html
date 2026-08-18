@@ -6,36 +6,30 @@
 <div class="page">
     <div class="page-header">
         <h1 class="page-title">Simulados</h1>
-        <p class="page-subtitle">Acompanhe seu desempenho</p>
+        <button class="btn btn-primary" onclick="openModal('create-simulado-modal')">+ Novo</button>
     </div>
 
+    {% if simulados %}
     <div class="stats-grid">
-        <div class="stat-card large">
-            <div class="stat-icon">&#128220;</div>
+        <div class="stat-card">
             <div class="stat-info">
                 <span class="stat-number">{{ total_questions }}</span>
-                <span class="stat-label">Total de Questoes</span>
+                <span class="stat-label">Questoes</span>
             </div>
         </div>
-
-        <div class="stat-card large">
-            <div class="stat-icon">&#127919;</div>
+        <div class="stat-card">
             <div class="stat-info">
                 <span class="stat-number">{{ avg_score }}%</span>
                 <span class="stat-label">Aproveitamento</span>
             </div>
         </div>
-
-        <div class="stat-card large">
-            <div class="stat-icon">&#9200;</div>
+        <div class="stat-card">
             <div class="stat-info">
                 <span class="stat-number">{{ total_time }}h</span>
                 <span class="stat-label">Tempo Total</span>
             </div>
         </div>
-
-        <div class="stat-card large">
-            <div class="stat-icon">&#128200;</div>
+        <div class="stat-card">
             <div class="stat-info">
                 <span class="stat-number">{{ best_score }}%</span>
                 <span class="stat-label">Melhor Nota</span>
@@ -45,10 +39,8 @@
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Evolucao de Desempenho</h2>
-            <button class="btn btn-primary" onclick="openModal('create-simulado-modal')">+ Novo Simulado</button>
+            <h2 class="section-title">Desempenho</h2>
         </div>
-
         <div class="chart-container">
             <div class="chart-filters">
                 <button class="chart-filter active" data-filter="all" onclick="filterChart('all', this)">Todos</button>
@@ -60,7 +52,7 @@
             </div>
             <div class="chart-stats">
                 <div class="chart-stat">
-                    <span class="chart-stat-label">Media de Pontos</span>
+                    <span class="chart-stat-label">Media</span>
                     <span class="chart-stat-value" id="chart-avg">--</span>
                 </div>
                 <div class="chart-stat">
@@ -77,13 +69,13 @@
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Historico</h2>
+            <h2 class="section-title">Meus Simulados</h2>
             <p class="section-subtitle">Arraste para reordenar</p>
         </div>
         <div class="simulados-list" id="simulados-list">
             {% for simulado in simulados %}
             <div class="simulado-item" data-id="{{ simulado.id }}">
-                <div class="drag-handle" title="Arrastar para reordenar">&#9776;</div>
+                <div class="drag-handle" title="Arrastar">&#9776;</div>
                 <div class="simulado-info">
                     <h3>{{ simulado.name }}</h3>
                     <div class="simulado-meta">
@@ -95,8 +87,8 @@
                 </div>
                 <div class="simulado-stats">
                     <div class="simulado-score-group">
-                        <span class="simulado-score {% if simulado.score >= 70 %}score-good{% elif simulado.score >= 50 %}score-medium{% else %}score-bad{% endif %}">
-                            {{ simulado.score }}%
+                        <span class="simulado-score {% if simulado.score is not none and simulado.score >= 70 %}score-good{% elif simulado.score is not none and simulado.score >= 50 %}score-medium{% else %}score-bad{% endif %}">
+                            {{ simulado.score if simulado.score is not none else 0 }}%
                         </span>
                         {% if simulado.final_score is not none %}
                         <span class="simulado-points">{{ simulado.final_score|int }}pts</span>
@@ -109,20 +101,25 @@
                     </span>
                     {% endif %}
                     <span class="simulado-questions">
-                        &#10004;{{ simulado.correct_answers }}
-                        {% if simulado.wrong_answers > 0 %}&#10008;{{ simulado.wrong_answers }}{% endif %}
-                        {% if simulado.null_answers > 0 %}&#8212;{{ simulado.null_answers }}{% endif %}
-                        /{{ simulado.total_questions }}
+                        {{ simulado.correct_answers }}/{{ simulado.total_questions }}
                     </span>
                     <span class="simulado-time">{{ "%.0f"|format(simulado.time_minutes) }}min</span>
                 </div>
-                <form action="/simulados/{{ simulado.id }}/delete" method="post" onsubmit="return confirm('Tem certeza que deseja excluir este simulado?')">
+                <form action="/simulados/{{ simulado.id }}/delete" method="post" onsubmit="return confirm('Excluir este simulado?')">
                     <button type="submit" class="delete-btn" title="Excluir">&times;</button>
                 </form>
             </div>
             {% endfor %}
         </div>
     </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">&#128220;</div>
+        <h3>Nenhum simulado registrado</h3>
+        <p>Registre seu primeiro simulado para acompanhar seu desempenho.</p>
+        <button class="btn btn-primary" onclick="openModal('create-simulado-modal')">+ Registrar Simulado</button>
+    </div>
+    {% endif %}
 </div>
 
 <div id="create-simulado-modal" class="modal">
@@ -131,10 +128,10 @@
             <h2>Registrar Simulado</h2>
             <button class="modal-close" onclick="closeModal('create-simulado-modal')">&times;</button>
         </div>
-        <form action="/simulados/create" method="post" id="simulado-form">
+        <form action="/simulados/create" method="post" id="simulado-form" onsubmit="return validateSimuladoForm()">
             <div class="form-group">
-                <label>Nome do Simulado</label>
-                <input type="text" name="name" required class="input" placeholder="Ex: CESPE 2024">
+                <label>Nome</label>
+                <input type="text" name="name" required class="input" placeholder="Ex: CESPE 2024" maxlength="200">
             </div>
 
             <div class="form-group">
@@ -147,47 +144,47 @@
                     </label>
                     <label class="correction-option">
                         <input type="radio" name="correction_method" value="cespe" onchange="updateCorrectionInfo()">
-                        <span class="correction-label">CESPE (Anula)</span>
+                        <span class="correction-label">CESPE</span>
                         <span class="correction-desc">Erradas anulam certas</span>
                     </label>
                 </div>
                 <p class="correction-info" id="correction-info">Pontuacao = Acertos / Total x 100</p>
             </div>
 
-            <div class="form-group">
-                <label>Total de Questoes</label>
-                <input type="number" name="total_questions" required class="input" min="1" id="total-questions" oninput="updateNullPreview()">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Total</label>
+                    <input type="number" name="total_questions" required class="input" min="1" id="total-questions" oninput="updateNullPreview()">
+                </div>
+                <div class="form-group">
+                    <label>Certas</label>
+                    <input type="number" name="correct_answers" required class="input" min="0" id="correct-answers" oninput="updateNullPreview()">
+                </div>
+                <div class="form-group">
+                    <label>Erradas</label>
+                    <input type="number" name="wrong_answers" value="0" class="input" min="0" id="wrong-answers" oninput="updateNullPreview()">
+                </div>
             </div>
 
             <div class="form-group">
-                <label>Questoes Certas</label>
-                <input type="number" name="correct_answers" required class="input" min="0" id="correct-answers" oninput="updateNullPreview()">
-            </div>
-
-            <div class="form-group" id="wrong-answers-group">
-                <label>Questoes Erradas</label>
-                <input type="number" name="wrong_answers" value="0" class="input" min="0" id="wrong-answers" oninput="updateNullPreview()">
-            </div>
-
-            <div class="form-group">
-                <label>Questoes Nulas (nao respondidas)</label>
+                <label>Nulas (nao respondidas)</label>
                 <div class="null-preview" id="null-preview">-</div>
             </div>
 
             <div class="score-preview" id="score-preview" style="display:none">
                 <span class="score-preview-label">Pontuacao:</span>
                 <span class="score-preview-value" id="score-preview-value">0%</span>
-                {% if last_simulado %}
+                {% if last_simulado and last_simulado.score is not none %}
                 <span class="score-comparison" id="score-comparison"></span>
                 {% endif %}
             </div>
 
             <div class="form-group">
-                <label>Cronometro do Simulado</label>
+                <label>Cronometro</label>
                 <div class="simulado-timer-area">
                     <div class="simulado-timer-display" id="simulado-timer-display">00:00:00</div>
                     <div class="simulado-timer-controls">
-                        <button type="button" class="btn btn-primary" id="sim-btn-start" onclick="simStartTimer()">Iniciar Cronometro</button>
+                        <button type="button" class="btn btn-primary" id="sim-btn-start" onclick="simStartTimer()">Iniciar</button>
                         <button type="button" class="btn btn-danger" id="sim-btn-stop" onclick="simStopTimer()" style="display:none">Parar</button>
                         <button type="button" class="btn" id="sim-btn-reset" onclick="simResetTimer()" style="display:none">Resetar</button>
                     </div>
@@ -196,11 +193,13 @@
             </div>
 
             <div class="form-group">
-                <label>Ou informe o tempo manualmente (minutos)</label>
+                <label>Ou tempo manual (minutos)</label>
                 <input type="number" name="time_minutes_manual" class="input" min="0.5" step="0.5" id="time-manual" oninput="syncManualTime()">
             </div>
 
-            <button type="submit" class="btn btn-primary btn-full">Registrar Simulado</button>
+            <div id="form-error" class="form-error" style="display:none"></div>
+
+            <button type="submit" class="btn btn-primary btn-full">Registrar</button>
         </form>
     </div>
 </div>
@@ -230,9 +229,7 @@ function initSortable() {
             animation: 200,
             ghostClass: 'simulado-item-ghost',
             dragClass: 'simulado-item-drag',
-            onEnd: function(evt) {
-                saveOrder();
-            }
+            onEnd: function() { saveOrder(); }
         });
     }
 }
@@ -241,15 +238,12 @@ function saveOrder() {
     var list = document.getElementById('simulados-list');
     var items = list.querySelectorAll('.simulado-item');
     var order = [];
-    items.forEach(function(item) {
-        order.push(parseInt(item.dataset.id));
-    });
-
+    items.forEach(function(item) { order.push(parseInt(item.dataset.id)); });
     fetch('/simulados/reorder', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({order: order})
-    });
+    }).catch(function() {});
 }
 
 function loadChartData() {
@@ -258,7 +252,7 @@ function loadChartData() {
         .then(function(data) {
             chartData = data;
             document.getElementById('chart-avg').textContent = data.avg_score + 'pts';
-            document.getElementById('chart-count').textContent = data.count + ' simulados';
+            document.getElementById('chart-count').textContent = data.count;
             var trendEl = document.getElementById('chart-trend');
             if (data.trend === 'up') {
                 trendEl.textContent = '↑ Melhorando';
@@ -271,6 +265,10 @@ function loadChartData() {
                 trendEl.className = 'chart-stat-value';
             }
             renderChart();
+        })
+        .catch(function() {
+            document.getElementById('chart-avg').textContent = '--';
+            document.getElementById('chart-trend').textContent = 'Erro ao carregar';
         });
 }
 
@@ -283,9 +281,7 @@ function filterChart(filter, btn) {
 
 function renderChart() {
     var ctx = document.getElementById('performanceChart').getContext('2d');
-    if (performanceChart) {
-        performanceChart.destroy();
-    }
+    if (performanceChart) performanceChart.destroy();
 
     var labels = chartData.labels.slice().reverse();
     var datasets = [];
@@ -298,15 +294,11 @@ function renderChart() {
                 data: normalData,
                 borderColor: '#58a6ff',
                 backgroundColor: 'rgba(88, 166, 255, 0.1)',
-                borderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                tension: 0.3,
-                spanGaps: false
+                borderWidth: 2, pointRadius: 4, pointHoverRadius: 6,
+                tension: 0.3, spanGaps: false
             });
         }
     }
-
     if (currentFilter === 'all' || currentFilter === 'cespe') {
         var cespeData = chartData.cespe_scores.slice().reverse();
         if (cespeData.some(function(v) { return v !== null; })) {
@@ -315,81 +307,57 @@ function renderChart() {
                 data: cespeData,
                 borderColor: '#f97583',
                 backgroundColor: 'rgba(249, 117, 131, 0.1)',
-                borderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                tension: 0.3,
-                spanGaps: false
+                borderWidth: 2, pointRadius: 4, pointHoverRadius: 6,
+                tension: 0.3, spanGaps: false
             });
         }
     }
-
     if (datasets.length === 0) {
-        var allData = chartData.scores.slice().reverse();
         datasets.push({
-            label: 'Nota (%)',
-            data: allData,
+            label: 'Pontos',
+            data: chartData.scores.slice().reverse(),
             borderColor: '#58a6ff',
             backgroundColor: 'rgba(88, 166, 255, 0.1)',
-            borderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            tension: 0.3
+            borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: 0.3
         });
     }
 
     performanceChart = new Chart(ctx, {
         type: 'line',
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
+        data: { labels: labels, datasets: datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    display: datasets.length > 1,
-                    labels: {
-                        color: '#8b949e',
-                        font: { size: 12 }
-                    }
-                },
+                legend: { display: datasets.length > 1, labels: { color: '#8b949e', font: { size: 12 } } },
                 tooltip: {
-                    backgroundColor: '#161b22',
-                    titleColor: '#f0f6fc',
-                    bodyColor: '#8b949e',
-                    borderColor: '#30363d',
-                    borderWidth: 1,
-                    callbacks: {
-                        afterLabel: function(ctx) {
-                            var idx = ctx.dataIndex;
-                            var reversedIdx = chartData.labels.length - 1 - idx;
-                            return 'Data: ' + (reversedIdx < chartData.labels.length ? '' : '');
-                        }
-                    }
+                    backgroundColor: '#161b22', titleColor: '#f0f6fc', bodyColor: '#8b949e',
+                    borderColor: '#30363d', borderWidth: 1
                 }
             },
             scales: {
-                x: {
-                    grid: { color: '#21262d' },
-                    ticks: {
-                        color: '#8b949e',
-                        maxRotation: 45,
-                        font: { size: 11 }
-                    }
-                },
-                y: {
-                    min: 0,
-                    grid: { color: '#21262d' },
-                    ticks: {
-                        color: '#8b949e',
-                        callback: function(value) { return value + 'pts'; }
-                    }
-                }
+                x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', maxRotation: 45, font: { size: 11 } } },
+                y: { min: 0, grid: { color: '#21262d' }, ticks: { color: '#8b949e', callback: function(v) { return v + 'pts'; } } }
             }
         }
     });
+}
+
+function validateSimuladoForm() {
+    var err = document.getElementById('form-error');
+    err.style.display = 'none';
+    var total = parseInt(document.getElementById('total-questions').value) || 0;
+    var correct = parseInt(document.getElementById('correct-answers').value) || 0;
+    var wrong = parseInt(document.getElementById('wrong-answers').value) || 0;
+    if (total <= 0) { showFormError('Total de questoes deve ser maior que 0'); return false; }
+    if (correct < 0 || wrong < 0) { showFormError('Valores nao podem ser negativos'); return false; }
+    if (correct + wrong > total) { showFormError('Certas + erradas nao pode exceder o total'); return false; }
+    return true;
+}
+function showFormError(msg) {
+    var err = document.getElementById('form-error');
+    err.textContent = msg;
+    err.style.display = 'block';
 }
 
 function simStartTimer() {
@@ -398,35 +366,28 @@ function simStartTimer() {
     document.getElementById('sim-btn-start').style.display = 'none';
     document.getElementById('sim-btn-stop').style.display = 'inline-flex';
     document.getElementById('sim-btn-reset').style.display = 'inline-flex';
-    simInterval = setInterval(function() {
-        simSeconds++;
-        simUpdateDisplay();
-    }, 1000);
+    simInterval = setInterval(function() { simSeconds++; simUpdateDisplay(); }, 1000);
 }
-
 function simStopTimer() {
     clearInterval(simInterval);
     simRunning = false;
     document.getElementById('sim-btn-stop').style.display = 'none';
     document.getElementById('sim-btn-start').style.display = 'inline-flex';
     document.getElementById('sim-btn-start').textContent = 'Retomar';
-    var minutes = Math.round((simSeconds / 60) * 100) / 100;
-    document.getElementById('sim-time-input').value = minutes;
+    document.getElementById('sim-time-input').value = Math.round((simSeconds / 60) * 100) / 100;
     document.getElementById('time-manual').value = '';
 }
-
 function simResetTimer() {
     clearInterval(simInterval);
     simSeconds = 0;
     simRunning = false;
     simUpdateDisplay();
     document.getElementById('sim-btn-start').style.display = 'inline-flex';
-    document.getElementById('sim-btn-start').textContent = 'Iniciar Cronometro';
+    document.getElementById('sim-btn-start').textContent = 'Iniciar';
     document.getElementById('sim-btn-stop').style.display = 'none';
     document.getElementById('sim-btn-reset').style.display = 'none';
     document.getElementById('sim-time-input').value = 0;
 }
-
 function simUpdateDisplay() {
     var h = Math.floor(simSeconds / 3600);
     var m = Math.floor((simSeconds % 3600) / 60);
@@ -434,62 +395,40 @@ function simUpdateDisplay() {
     document.getElementById('simulado-timer-display').textContent =
         String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
 }
-
 function syncManualTime() {
     var val = parseFloat(document.getElementById('time-manual').value) || 0;
     document.getElementById('sim-time-input').value = val;
-    if (val > 0 && simRunning) {
-        simStopTimer();
-    }
+    if (val > 0 && simRunning) simStopTimer();
 }
-
 function updateCorrectionInfo() {
     var method = document.querySelector('input[name="correction_method"]:checked').value;
     var info = document.getElementById('correction-info');
-    if (method === 'cespe') {
-        info.textContent = 'Pontuacao = Acertos - Erradas (erradas anulam as certas). Nao respondidas = neutras.';
-    } else {
-        info.textContent = 'Pontuacao = Acertos / Total x 100';
-    }
+    info.textContent = method === 'cespe'
+        ? 'Pontuacao = Acertos - Erradas. Nao respondidas = neutras.'
+        : 'Pontuacao = Acertos / Total x 100';
     updateNullPreview();
 }
-
 function updateNullPreview() {
     var total = parseInt(document.getElementById('total-questions').value) || 0;
     var correct = parseInt(document.getElementById('correct-answers').value) || 0;
     var wrong = parseInt(document.getElementById('wrong-answers').value) || 0;
     var method = document.querySelector('input[name="correction_method"]:checked').value;
     var nulls = Math.max(0, total - correct - wrong);
-
     document.getElementById('null-preview').textContent = total > 0 ? nulls : '-';
-
     if (total > 0) {
-        var score;
-        if (method === 'cespe') {
-            score = Math.max(0, ((correct - wrong) / total) * 100);
-        } else {
-            score = (correct / total) * 100;
-        }
+        var score = method === 'cespe'
+            ? Math.max(0, ((correct - wrong) / total) * 100)
+            : (correct / total) * 100;
         score = Math.round(score * 10) / 10;
-
-        var preview = document.getElementById('score-preview');
-        preview.style.display = 'flex';
+        document.getElementById('score-preview').style.display = 'flex';
         document.getElementById('score-preview-value').textContent = score + '%';
-
-        {% if last_simulado %}
+        {% if last_simulado and last_simulado.score is not none %}
         var comp = document.getElementById('score-comparison');
-        var lastScore = {{ last_simulado.score or 0 }};
+        var lastScore = {{ last_simulado.score }};
         var diff = Math.round((score - lastScore) * 10) / 10;
-        if (diff > 0) {
-            comp.textContent = '+' + diff + '% vs ultimo';
-            comp.className = 'score-comparison score-better';
-        } else if (diff < 0) {
-            comp.textContent = diff + '% vs ultimo';
-            comp.className = 'score-comparison score-worse';
-        } else {
-            comp.textContent = 'igual ao ultimo';
-            comp.className = 'score-comparison score-same';
-        }
+        if (diff > 0) { comp.textContent = '+' + diff + '%'; comp.className = 'score-comparison score-better'; }
+        else if (diff < 0) { comp.textContent = diff + '%'; comp.className = 'score-comparison score-worse'; }
+        else { comp.textContent = '='; comp.className = 'score-comparison score-same'; }
         {% endif %}
     } else {
         document.getElementById('score-preview').style.display = 'none';

@@ -152,7 +152,10 @@ async def set_daily_goal(
         return RedirectResponse(url="/login", status_code=303)
 
     user.daily_goal_minutes = max(10, min(720, daily_goal))
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
     return RedirectResponse(url="/timer", status_code=303)
 
 

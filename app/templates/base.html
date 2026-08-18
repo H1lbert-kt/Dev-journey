@@ -21,15 +21,16 @@
 
     <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-    <nav class="sidebar" id="sidebar">
+    <nav class="sidebar" id="sidebar" aria-label="Navegacao principal">
         <div class="sidebar-header">
             <h1 class="logo" id="site-logo">DevJourney</h1>
         </div>
         <ul class="nav-links">
+            <li class="nav-section-title">Principal</li>
             <li>
                 <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
                     <span class="nav-icon">&#128202;</span>
-                    Dashboard
+                    Home
                 </a>
             </li>
             <li>
@@ -38,7 +39,8 @@
                     Plano de Hoje
                 </a>
             </li>
-            <li class="nav-section-title">Desenvolvimento</li>
+
+            <li class="nav-section-title">Estudos</li>
             <li>
                 <a href="/timer" class="nav-link {% if '/timer' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#9200;</span>
@@ -64,9 +66,17 @@
                 </a>
             </li>
             <li>
-                <a href="/skills" class="nav-link {% if '/skills' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128736;</span>
-                    Habilidades
+                <a href="/exams" class="nav-link {% if '/exams' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127963;</span>
+                    Concursos
+                </a>
+            </li>
+
+            <li class="nav-section-title">Ferramentas</li>
+            <li>
+                <a href="/simulados" class="nav-link {% if '/simulados' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128220;</span>
+                    Simulados
                 </a>
             </li>
             <li>
@@ -76,22 +86,15 @@
                 </a>
             </li>
             <li>
-                <a href="/simulados" class="nav-link {% if '/simulados' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128220;</span>
-                    Simulados
-                </a>
-            </li>
-            <li>
                 <a href="/journal" class="nav-link {% if '/journal' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#128221;</span>
                     Diario
                 </a>
             </li>
-            <li class="nav-section-title">Concursos</li>
             <li>
-                <a href="/exams" class="nav-link {% if '/exams' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#127963;</span>
-                    Concursos
+                <a href="/skills" class="nav-link {% if '/skills' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128736;</span>
+                    Habilidades
                 </a>
             </li>
             <li>
@@ -100,7 +103,28 @@
                     Cronograma
                 </a>
             </li>
-            <li class="nav-section-title">Geral</li>
+
+            <li class="nav-section-title">Acompanhamento</li>
+            <li>
+                <a href="/history" class="nav-link {% if '/history' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128214;</span>
+                    Historico
+                </a>
+            </li>
+            <li>
+                <a href="/stats" class="nav-link {% if '/stats' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128200;</span>
+                    Estatisticas
+                </a>
+            </li>
+            <li>
+                <a href="/achievements" class="nav-link {% if '/achievements' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127942;</span>
+                    Conquistas
+                </a>
+            </li>
+
+            <li class="nav-section-title">Configuracoes</li>
             <li>
                 <a href="/calendar" class="nav-link {% if '/calendar' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#128197;</span>
@@ -120,27 +144,15 @@
                 </a>
             </li>
             <li>
-                <a href="/history" class="nav-link {% if '/history' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128214;</span>
-                    Historico
-                </a>
-            </li>
-            <li>
-                <a href="/stats" class="nav-link {% if '/stats' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128200;</span>
-                    Estatisticas
-                </a>
-            </li>
-            <li>
-                <a href="/achievements" class="nav-link {% if '/achievements' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#127942;</span>
-                    Conquistas
-                </a>
-            </li>
-            <li>
                 <a href="/methods" class="nav-link {% if '/methods' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#128214;</span>
                     Metodos
+                </a>
+            </li>
+            <li>
+                <a href="/help" class="nav-link {% if '/help' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#10067;</span>
+                    Ajuda
                 </a>
             </li>
         </ul>
@@ -180,25 +192,7 @@
             <li class="bottom-nav-item">
                 <a href="/timer" class="bottom-nav-link {% if '/timer' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#9200;</span>
-                    Timer
-                </a>
-            </li>
-            <li class="bottom-nav-item">
-                <a href="/subjects" class="bottom-nav-link {% if '/subjects' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128218;</span>
-                    Materias
-                </a>
-            </li>
-            <li class="bottom-nav-item">
-                <a href="/schedule" class="bottom-nav-link {% if '/schedule' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128197;</span>
-                    Agenda
-                </a>
-            </li>
-            <li class="bottom-nav-item">
-                <a href="/flashcards" class="bottom-nav-link {% if '/flashcards' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#127183;</span>
-                    Cards
+                    Estudo
                 </a>
             </li>
             <li class="bottom-nav-item">
@@ -208,21 +202,15 @@
                 </a>
             </li>
             <li class="bottom-nav-item">
+                <a href="/flashcards" class="bottom-nav-link {% if '/flashcards' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127183;</span>
+                    Cards
+                </a>
+            </li>
+            <li class="bottom-nav-item">
                 <a href="/stats" class="bottom-nav-link {% if '/stats' in request.url.path %}active{% endif %}">
                     <span class="nav-icon">&#128200;</span>
                     Stats
-                </a>
-            </li>
-            <li class="bottom-nav-item">
-                <a href="/history" class="bottom-nav-link {% if '/history' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128214;</span>
-                    Histor.
-                </a>
-            </li>
-            <li class="bottom-nav-item">
-                <a href="/calendar" class="bottom-nav-link {% if '/calendar' in request.url.path %}active{% endif %}">
-                    <span class="nav-icon">&#128197;</span>
-                    Cal.
                 </a>
             </li>
         </ul>
@@ -263,11 +251,7 @@
 
     function updateLogo(mode) {
         var logo = document.getElementById('site-logo');
-        if (mode === 'concursos') {
-            logo.textContent = 'DevJourney | Concursos e Vestibulares';
-        } else {
-            logo.textContent = 'DevJourney';
-        }
+        logo.textContent = 'DevJourney';
     }
     updateLogo(currentStudyMode);
 
@@ -546,7 +530,6 @@
                 concBtn.classList.add('active');
                 progBtn.classList.remove('active');
             }
-            updateLogo(mode);
         }).catch(function() {
             document.getElementById('mode-prog').classList.add('active');
         });

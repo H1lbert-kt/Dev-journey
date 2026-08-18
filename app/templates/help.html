@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Central de Ajuda - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Central de Ajuda</h1>
+        <p class="page-subtitle">Como usar o DevJourney</p>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Tutoriais</h2>
+        <div class="help-grid">
+            <a href="/help/estudando" class="help-card">
+                <span class="help-card-icon">&#9200;</span>
+                <h3>Estudando</h3>
+                <p>Como usar o cronometro e registrar sessoes</p>
+            </a>
+            <a href="/help/simulados" class="help-card">
+                <span class="help-card-icon">&#128220;</span>
+                <h3>Simulados</h3>
+                <p>Criar e corrigir simulados</p>
+            </a>
+            <a href="/help/flashcards" class="help-card">
+                <span class="help-card-icon">&#127183;</span>
+                <h3>Flashcards</h3>
+                <p>Criar e revisar flashcards</p>
+            </a>
+            <a href="/help/plano" class="help-card">
+                <span class="help-card-icon">&#128203;</span>
+                <h3>Plano de Hoje</h3>
+                <p>Organizar seu dia</p>
+            </a>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Perguntas Frequentes</h2>
+        <div class="faq-list">
+            <div class="faq-item">
+                <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Como funciona o modo Programacao vs Concursos?</span>
+                    <span class="faq-arrow">&#9660;</span>
+                </button>
+                <div class="faq-answer">
+                    <p>O modo muda o contexto visual e organize suas materias. Em Programacao voce ve projetos e roadmap. Em Concursos voce ve cronograma e materias de concurso.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Como sao calculados os pontos nos simulados?</span>
+                    <span class="faq-arrow">&#9660;</span>
+                </button>
+                <div class="faq-answer">
+                    <p><strong>Normal:</strong> (acertos / total) x 100<br>
+                    <strong>CESPE:</strong> max(0, acertos - erros) / total x 100</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Posso usar no celular?</span>
+                    <span class="faq-arrow">&#9660;</span>
+                </button>
+                <div class="faq-answer">
+                    <p>Sim! O DevJourney e responsivo. Voce pode adicionar na tela inicial como um app.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Meus dados estao seguros?</span>
+                    <span class="faq-arrow">&#9660;</span>
+                </button>
+                <div class="faq-answer">
+                    <p>Sim. Senhas sao criptografadas com Argon2. Sessoes usam cookies HttpOnly/Secure. O app usa HTTPS em producao.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Como importar questoes de simulados?</span>
+                    <span class="faq-arrow">&#9660;</span>
+                </button>
+                <div class="faq-answer">
+                    <p>Na pagina de simulados, clique em "Novo Simulado" e cole o texto das questoes. O sistema extraira alternativas e gabarito automaticamente.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Contato</h2>
+        <p style="color: var(--fg-2); font-size: 14px;">
+            Encontrou um bug ou tem sugestao? Abra uma issue no
+            <a href="https://github.com/hilbert/dev-journey/issues" target="_blank" rel="noopener">GitHub</a>.
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -185,7 +185,7 @@ async def switch_mode(
         db.rollback()
 
     referer = request.headers.get("referer", "/")
-    if not referer.startswith("/"):
+    if not referer.startswith("/") or referer.startswith("//"):
         referer = "/"
     response = RedirectResponse(url=referer, status_code=303)
     response.set_cookie("study_mode", user.study_mode, httponly=True, max_age=86400, samesite="lax")

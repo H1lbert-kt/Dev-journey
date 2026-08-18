@@ -1,14 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - DevJourney{% endblock %}
+{% block title %}Home - DevJourney{% endblock %}
 
 {% block content %}
 <div class="page">
     <div class="page-header">
-        <h1 class="page-title">Dashboard</h1>
+        <h1 class="page-title">
+            {% if study_mode == "programacao" %}Ola, Desenvolvedor!
+            {% else %}Ola, Concursando!
+            {% endif %}
+        </h1>
         <p class="page-subtitle">
-            {% if study_mode == "programacao" %}Seu progresso como desenvolvedor
-            {% else %}Seu progresso nos estudos para concursos
+            {% if today_minutes > 0 %}Voce ja estudou {{ today_minutes }}min hoje
+            {% else %}Comece seus estudos de hoje!
             {% endif %}
         </p>
     </div>
@@ -60,47 +64,6 @@
                 <span class="today-stat-label">Ultima sessao</span>
             </div>
             {% endif %}
-        </div>
-    </div>
-
-    <div class="section">
-        <h2 class="section-title">Comparacoes</h2>
-        <div class="comparison-grid">
-            <div class="comparison-card">
-                <div class="comparison-header">
-                    <span class="comparison-label">Hoje vs Media dos ultimos 7 dias</span>
-                </div>
-                <div class="comparison-body">
-                    <span class="comparison-value">{{ today_minutes }}min</span>
-                    <span class="comparison-vs">vs</span>
-                    <span class="comparison-value">{{ avg_daily }}min</span>
-                    {% if today_minutes > avg_daily %}
-                    <span class="comparison-arrow up">&#9650; {{ ((today_minutes - avg_daily) / (avg_daily if avg_daily > 0 else 1) * 100)|round(0) }}%</span>
-                    {% elif today_minutes < avg_daily %}
-                    <span class="comparison-arrow down">&#9660; {{ ((avg_daily - today_minutes) / (avg_daily if avg_daily > 0 else 1) * 100)|round(0) }}%</span>
-                    {% else %}
-                    <span class="comparison-arrow">-</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="comparison-card">
-                <div class="comparison-header">
-                    <span class="comparison-label">Esta semana vs Semana anterior</span>
-                </div>
-                <div class="comparison-body">
-                    <span class="comparison-value">{{ week_minutes }}min</span>
-                    <span class="comparison-vs">vs</span>
-                    <span class="comparison-value">{{ last_week_minutes }}min</span>
-                    {% if week_pct > 0 %}
-                    <span class="comparison-arrow up">&#9650; {{ week_pct }}%</span>
-                    {% elif week_pct < 0 %}
-                    <span class="comparison-arrow down">&#9660; {{ (week_pct * -1)|round(0) }}%</span>
-                    {% else %}
-                    <span class="comparison-arrow">-</span>
-                    {% endif %}
-                </div>
-            </div>
         </div>
     </div>
 
@@ -168,74 +131,45 @@
         {% endif %}
     </div>
 
-    <div class="progress-section">
-        <div class="progress-header">
-            <h2>
-                {% if study_mode == "programacao" %}Roadmap Geral
-                {% else %}Plano de Estudos
-                {% endif %}
-            </h2>
-            <span class="progress-value">{{ dashboard.total_progress }}%</span>
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Comparacoes</h2>
         </div>
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: {{ dashboard.total_progress }}%"></div>
-        </div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">&#10004;</div>
-            <div class="stat-info">
-                <span class="stat-number">{{ dashboard.completed_goals }}</span>
-                <span class="stat-label">Metas Concluidas</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">&#9203;</div>
-            <div class="stat-info">
-                <span class="stat-number">{{ dashboard.pending_goals }}</span>
-                <span class="stat-label">Metas Pendentes</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">&#128218;</div>
-            <div class="stat-info">
-                <span class="stat-number">{{ dashboard.completed_phases }}</span>
-                <span class="stat-label">
-                    {% if study_mode == "programacao" %}Fases Concluidas
-                    {% else %}Materias Concluidas
+        <div class="comparison-grid">
+            <div class="comparison-card">
+                <div class="comparison-header">
+                    <span class="comparison-label">Hoje vs Media dos ultimos 7 dias</span>
+                </div>
+                <div class="comparison-body">
+                    <span class="comparison-value">{{ today_minutes }}min</span>
+                    <span class="comparison-vs">vs</span>
+                    <span class="comparison-value">{{ avg_daily }}min</span>
+                    {% if today_minutes > avg_daily %}
+                    <span class="comparison-arrow up">&#9650; {{ ((today_minutes - avg_daily) / (avg_daily if avg_daily > 0 else 1) * 100)|round(0) }}%</span>
+                    {% elif today_minutes < avg_daily %}
+                    <span class="comparison-arrow down">&#9660; {{ ((avg_daily - today_minutes) / (avg_daily if avg_daily > 0 else 1) * 100)|round(0) }}%</span>
+                    {% else %}
+                    <span class="comparison-arrow">-</span>
                     {% endif %}
-                </span>
+                </div>
             </div>
-        </div>
 
-        <div class="stat-card">
-            <div class="stat-icon">&#127919;</div>
-            <div class="stat-info">
-                <span class="stat-number">{{ dashboard.completed_projects }}</span>
-                <span class="stat-label">
-                    {% if study_mode == "programacao" %}Projetos Concluidos
-                    {% else %}Simulados Realizados
+            <div class="comparison-card">
+                <div class="comparison-header">
+                    <span class="comparison-label">Esta semana vs Semana anterior</span>
+                </div>
+                <div class="comparison-body">
+                    <span class="comparison-value">{{ week_minutes }}min</span>
+                    <span class="comparison-vs">vs</span>
+                    <span class="comparison-value">{{ last_week_minutes }}min</span>
+                    {% if week_pct > 0 %}
+                    <span class="comparison-arrow up">&#9650; {{ week_pct }}%</span>
+                    {% elif week_pct < 0 %}
+                    <span class="comparison-arrow down">&#9660; {{ (week_pct * -1)|round(0) }}%</span>
+                    {% else %}
+                    <span class="comparison-arrow">-</span>
                     {% endif %}
-                </span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">&#128197;</div>
-            <div class="stat-info">
-                <span class="stat-number">{{ dashboard.studied_days }}</span>
-                <span class="stat-label">Dias Estudando</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">&#128293;</div>
-            <div class="stat-info">
-                <span class="stat-number">{{ current_streak }}</span>
-                <span class="stat-label">Sequencia Atual</span>
+                </div>
             </div>
         </div>
     </div>
@@ -292,8 +226,8 @@ function toggleDashPlanItem(id) {
 }
 
 function updatePlanCount() {
-    var total = document.querySelectorAll('#plan-list .plan-item, .plan-list .plan-item').length;
-    var completed = document.querySelectorAll('#plan-list .plan-item.completed, .plan-list .plan-item.completed').length;
+    var total = document.querySelectorAll('.plan-list .plan-item').length;
+    var completed = document.querySelectorAll('.plan-list .plan-item.completed').length;
     var countEl = document.querySelectorAll('.today-stat-number');
     if (countEl.length > 1) {
         countEl[1].textContent = completed + '/' + total;

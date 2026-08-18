@@ -38,14 +38,16 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
     total_time = sum(s.time_minutes for s in simulados)
 
     best_score = 0
-    worst_score = 100
+    worst_score = None
     for s in simulados:
         sc = _get_score(s)
         if s.total_questions > 0:
             if sc > best_score:
                 best_score = sc
-            if sc < worst_score:
+            if worst_score is None or sc < worst_score:
                 worst_score = sc
+    if worst_score is None:
+        worst_score = 0
 
     last_simulado = simulados[0] if simulados else None
 
@@ -138,10 +140,18 @@ async def reorder_simulados(request: Request, db: Session = Depends(get_db)):
     if not user:
         return JSONResponse({"error": "Unauthorized"}, status_code=401)
 
-    body = await request.json()
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"error": "Invalid JSON"}, status_code=400)
+
     order = body.get("order", [])
+    if not isinstance(order, list) or len(order) > 200:
+        return JSONResponse({"error": "Invalid order"}, status_code=400)
 
     for idx, simulado_id in enumerate(order):
+        if not isinstance(simulado_id, int):
+            continue
         simulado = db.query(Simulado).filter(
             Simulado.id == simulado_id,
             Simulado.user_id == user.id
@@ -181,6 +191,10 @@ async def create_simulado(
         return RedirectResponse(url="/simulados", status_code=303)
     if time_minutes < 0:
         return RedirectResponse(url="/simulados", status_code=303)
+    if correction_method not in ("normal", "cespe"):
+        correction_method = "normal"
+    if len(name.strip()) > 200:
+        name = name.strip()[:200]
 
     null_answers = max(0, total_questions - correct_answers - wrong_answers)
 

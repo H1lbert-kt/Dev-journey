@@ -37,7 +37,7 @@ async def skills(request: Request, db: Session = Depends(get_db)):
             "skills": all_skills,
             "categories": categories,
             "category_labels": CATEGORIES,
-            "study_mode": request.state.study_mode,
+            "study_mode": user.study_mode,
         },
     )
 

@@ -5,14 +5,16 @@ from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from pathlib import Path
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
+from collections import defaultdict
 import asyncio
 import logging
 import os
+import time
 
 from app.database.connection import engine, Base, SessionLocal, DATABASE_URL, IS_POSTGRESQL, init_database
 from app.config.settings import get_settings
-from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews, schedule, exams, journal, today_plan, skills, history
+from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews, schedule, exams, journal, today_plan, skills, history, help
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -96,8 +98,22 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
         if IS_PRODUCTION:
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:; "
+            "font-src 'self'; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+        response.headers["Content-Security-Policy"] = csp
         return response
 
 
@@ -113,7 +129,77 @@ class StudyModeMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, login_limit=10, register_limit=5, general_limit=120):
+        super().__init__(app)
+        self.login_limit = login_limit
+        self.register_limit = register_limit
+        self.general_limit = general_limit
+        self._requests = defaultdict(list)
+        self._login_attempts = defaultdict(list)
+        self._register_attempts = defaultdict(list)
+        self._cleanup_interval = 300
+        self._last_cleanup = time.time()
+
+    def _get_client_ip(self, request: Request) -> str:
+        forwarded = request.headers.get("X-Forwarded-For")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+        return request.client.host if request.client else "unknown"
+
+    def _cleanup_old_entries(self):
+        now = time.time()
+        if now - self._last_cleanup < self._cleanup_interval:
+            return
+        self._last_cleanup = now
+        cutoff = now - 3600
+        for key in list(self._login_attempts.keys()):
+            self._login_attempts[key] = [t for t in self._login_attempts[key] if t > cutoff]
+            if not self._login_attempts[key]:
+                del self._login_attempts[key]
+        for key in list(self._register_attempts.keys()):
+            self._register_attempts[key] = [t for t in self._register_attempts[key] if t > cutoff]
+            if not self._register_attempts[key]:
+                del self._register_attempts[key]
+        for key in list(self._requests.keys()):
+            self._requests[key] = [t for t in self._requests[key] if t > cutoff]
+            if not self._requests[key]:
+                del self._requests[key]
+
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        if path.startswith("/static") or path == "/health":
+            return await call_next(request)
+
+        self._cleanup_old_entries()
+        client_ip = self._get_client_ip(request)
+        now = time.time()
+
+        if path == "/login" and request.method == "POST":
+            self._login_attempts[client_ip].append(now)
+            recent = [t for t in self._login_attempts[client_ip] if t > now - 900]
+            self._login_attempts[client_ip] = recent
+            if len(recent) > self.login_limit:
+                return Response(content="Too many login attempts. Try again later.", status_code=429)
+
+        if path == "/register" and request.method == "POST":
+            self._register_attempts[client_ip].append(now)
+            recent = [t for t in self._register_attempts[client_ip] if t > now - 3600]
+            self._register_attempts[client_ip] = recent
+            if len(recent) > self.register_limit:
+                return Response(content="Too many registration attempts. Try again later.", status_code=429)
+
+        self._requests[client_ip].append(now)
+        recent = [t for t in self._requests[client_ip] if t > now - 60]
+        self._requests[client_ip] = recent
+        if len(recent) > self.general_limit:
+            return Response(content="Too many requests. Slow down.", status_code=429)
+
+        return await call_next(request)
+
+
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(StudyModeMiddleware)
 
 app.include_router(auth.router, tags=["Auth"])
@@ -136,6 +222,7 @@ app.include_router(journal.router, prefix="/journal", tags=["Journal"])
 app.include_router(today_plan.router, prefix="/today-plan", tags=["Today Plan"])
 app.include_router(skills.router, prefix="/skills", tags=["Skills"])
 app.include_router(history.router, prefix="/history", tags=["History"])
+app.include_router(help.router, tags=["Help"])
 
 
 @app.get("/")

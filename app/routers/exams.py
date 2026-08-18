@@ -104,6 +104,7 @@ async def exams_page(request: Request, db: Session = Depends(get_db)):
             "studying_count": studying_count,
             "next_exam": next_exam,
             "next_days": next_days,
+            "today": date.today(),
             "study_mode": user.study_mode,
         },
     )
@@ -218,7 +219,10 @@ async def delete_exam(exam_id: int, request: Request, db: Session = Depends(get_
     exam = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id).first()
     if exam:
         try:
-            db.query(StudySession).filter(StudySession.exam_id == exam_id).update({StudySession.exam_id: None})
+            db.query(StudySession).filter(
+                StudySession.exam_id == exam_id,
+                StudySession.user_id == user.id,
+            ).update({StudySession.exam_id: None})
             db.delete(exam)
             db.commit()
         except Exception:
