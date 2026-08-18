@@ -6,7 +6,7 @@
 <div class="page">
     <div class="page-header">
         <h1 class="page-title">Flashcards</h1>
-        <p class="page-subtitle">{{ total_cards }} cartoes criados | {{ due_cards|length }} para revisar</p>
+        <p class="page-subtitle">{{ total_cards }} cartões criados | {{ due_cards|length }} para revisar</p>
     </div>
 
     <div class="section">
@@ -21,7 +21,7 @@
 
     {% if due_cards %}
     <div class="section">
-        <h2 class="section-title">Revisao Pendente</h2>
+        <h2 class="section-title">Revisão Pendente</h2>
         <div class="flashcard-review">
             <div class="review-progress" id="review-progress" style="text-align:center; margin-bottom:12px; font-size:13px; color: var(--fg-3);">
                 Cartao <span id="review-current">1</span> de <span id="review-total">{{ due_cards|length }}</span>
@@ -45,12 +45,12 @@
                     <button class="btn btn-danger btn-large" onclick="reviewCard(1)">Ruim</button>
                     <button class="btn btn-large" onclick="reviewCard(3)">Bom</button>
                     <button class="btn btn-primary btn-large" onclick="reviewCard(4)">Muito Bom</button>
-                    <button class="btn btn-success btn-large" onclick="reviewCard(5)">Facil</button>
+                    <button class="btn btn-success btn-large" onclick="reviewCard(5)">Fácil</button>
                 </div>
             </div>
         </div>
         <div id="review-complete" style="display:none; text-align:center; padding: 32px 0;">
-            <p style="font-size: 18px; color: var(--success); font-weight: 600;">Revisao concluida!</p>
+            <p style="font-size: 18px; color: var(--success); font-weight: 600;">Revisão concluída!</p>
             <p style="color: var(--fg-3); margin-top: 8px;">Todos os cards foram revisados</p>
         </div>
     </div>
@@ -91,7 +91,7 @@
         </div>
         <form action="/flashcards/create" method="post">
             <div class="form-group">
-                <label>Materia</label>
+                <label>Matéria</label>
                 <select name="subject_id" class="input" required>
                     {% for subject in subjects %}
                     <option value="{{ subject.id }}">{{ subject.name }}</option>
@@ -100,11 +100,11 @@
             </div>
             <div class="form-group">
                 <label>Frente (Pergunta)</label>
-                <textarea name="front" required class="input" placeholder="{% if study_mode == 'programacao' %}O que e uma Hash Table?{% else %}O que e improbidade administrativa?{% endif %}"></textarea>
+                <textarea name="front" required class="input" placeholder="{% if study_mode == 'programacao' %}O que é uma Hash Table?{% else %}O que e improbidade administrativa?{% endif %}"></textarea>
             </div>
             <div class="form-group">
                 <label>Verso (Resposta)</label>
-                <textarea name="back" required class="input" placeholder="{% if study_mode == 'programacao' %}E uma estrutura de dados que mapeia chaves para valores...{% else %}E o ato de agente publico que causa lesao ao patrimonio publico...{% endif %}"></textarea>
+                <textarea name="back" required class="input" placeholder="{% if study_mode == 'programacao' %}É uma estrutura de dados que mapeia chaves para valores...{% else %}E o ato de agente publico que causa lesao ao patrimonio publico...{% endif %}"></textarea>
             </div>
             <button type="submit" class="btn btn-primary btn-full">Criar Flashcard</button>
         </form>
@@ -119,7 +119,7 @@
         </div>
         <form action="/flashcards/import" method="post" enctype="multipart/form-data" id="import-form">
             <div class="form-group">
-                <label>Materia</label>
+                <label>Matéria</label>
                 <select name="subject_id" class="input" required>
                     {% for subject in subjects %}
                     <option value="{{ subject.id }}">{{ subject.name }}</option>
@@ -175,11 +175,19 @@ function reviewCard(quality) {
     if (reviewIndex >= reviewQueue.length) return;
     var card = reviewQueue[reviewIndex];
 
+    var btns = document.getElementById('review-buttons');
+    if (btns) btns.style.opacity = '0.5';
+
     fetch('/flashcards/' + card.id + '/review', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'quality=' + quality
-    }).then(function() {
+    }).then(function(r) {
+        if (!r.ok) throw new Error('Server error');
+        return r.json().catch(function() { return {}; });
+    }).then(function(data) {
+        if (data.error) throw new Error(data.error);
+        if (btns) btns.style.opacity = '1';
         reviewIndex++;
         if (reviewIndex >= reviewQueue.length) {
             document.getElementById('flashcard-3d').style.display = 'none';
@@ -190,6 +198,10 @@ function reviewCard(quality) {
             loadCard(reviewQueue[reviewIndex]);
         }
     }).catch(function() {
+        if (btns) btns.style.opacity = '1';
+        var pending = JSON.parse(localStorage.getItem('fcPendingReviews') || '[]');
+        pending.push({cardId: card.id, quality: quality, ts: Date.now()});
+        localStorage.setItem('fcPendingReviews', JSON.stringify(pending));
         reviewIndex++;
         if (reviewIndex >= reviewQueue.length) {
             document.getElementById('flashcard-3d').style.display = 'none';
@@ -302,7 +314,7 @@ function handleFile(file) {
         } else {
             importPreviewContainer.style.display = 'none';
             importBtn.disabled = true;
-            importCount.textContent = 'Nenhum card valido encontrado';
+            importCount.textContent = 'Nenhum card válido encontrado';
         }
     };
     reader.readAsText(file);

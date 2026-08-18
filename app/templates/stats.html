@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Estatisticas - DevJourney{% endblock %}
+{% block title %}Estatísticas - DevJourney{% endblock %}
 
 {% block content %}
 <div class="page">
     <div class="page-header">
-        <h1 class="page-title">Estatisticas</h1>
-        <p class="page-subtitle">Sua evolucao em numeros</p>
+        <h1 class="page-title">Estatísticas</h1>
+        <p class="page-subtitle">Sua evolução em números</p>
     </div>
 
     <div class="stats-ranking">
@@ -53,7 +53,7 @@
             <div class="stat-icon">&#128293;</div>
             <div class="stat-info">
                 <span class="stat-number">{{ current_streak }}</span>
-                <span class="stat-label">Sequencia Atual</span>
+                <span class="stat-label">Sequência Atual</span>
             </div>
         </div>
 
@@ -114,7 +114,7 @@
 
     {% if weak_subjects %}
     <div class="section">
-        <h2 class="section-title">&#9888; Materias mais fracas</h2>
+        <h2 class="section-title">&#9888; Matérias mais fracas</h2>
         <div class="weak-subjects-list">
             {% for w in weak_subjects %}
             <div class="weak-subject-item">
@@ -128,19 +128,19 @@
 
     {% if worst_subject and best_subject and worst_subject.name != best_subject.name %}
     <div class="section">
-        <h2 class="section-title">&#128161; Sugestoes</h2>
+        <h2 class="section-title">&#128161; Sugestões</h2>
         <div class="recommendation-card">
             <span class="recommendation-icon">&#128161;</span>
             <div class="recommendation-content">
-                <strong>Materia prioritaria</strong>
+                <strong>Matéria prioritária</strong>
                 <p>{{ worst_subject.name }} tem apenas {{ worst_subject.total_hours }}h estudadas. Considere dedicar mais tempo a ela.</p>
             </div>
         </div>
         <div class="recommendation-card">
             <span class="recommendation-icon">&#127942;</span>
             <div class="recommendation-content">
-                <strong>Materia destaque</strong>
-                <p>{{ best_subject.name }} com {{ best_subject.total_hours }}h e {{ best_subject.session_count }} sessoes. Continue assim!</p>
+                <strong>Matéria destaque</strong>
+                <p>{{ best_subject.name }} com {{ best_subject.total_hours }}h e {{ best_subject.session_count }} sessões. Continue assim!</p>
             </div>
         </div>
     </div>
@@ -148,7 +148,7 @@
 
     {% if subjects_detail %}
     <div class="section">
-        <h2 class="section-title">Tempo por Materia</h2>
+        <h2 class="section-title">Tempo por Matéria</h2>
         <div class="subjects-detail-grid">
             {% for s in subjects_detail %}
             <div class="subject-detail-card">
@@ -166,11 +166,11 @@
                     </div>
                     <div class="subject-detail-stat">
                         <span class="subject-detail-stat-value">{{ s.session_count }}</span>
-                        <span class="subject-detail-stat-label">Sessoes</span>
+                        <span class="subject-detail-stat-label">Sessões</span>
                     </div>
                     <div class="subject-detail-stat">
                         <span class="subject-detail-stat-value">{{ s.avg_per_session }}min</span>
-                        <span class="subject-detail-stat-label">Media/sessao</span>
+                        <span class="subject-detail-stat-label">Média/sessão</span>
                     </div>
                     <div class="subject-detail-stat">
                         <span class="subject-detail-stat-value">{{ s.last_date.strftime('%d/%m') if s.last_date else '-' }}</span>
@@ -185,7 +185,7 @@
 
     {% if phases %}
     <div class="section">
-        <h2 class="section-title">Progresso por Materia</h2>
+        <h2 class="section-title">Progresso por Matéria</h2>
         <div class="progress-list">
             {% for phase in phases %}
             <div class="progress-item">

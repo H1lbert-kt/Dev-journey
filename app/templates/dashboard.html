@@ -6,13 +6,13 @@
 <div class="page">
     <div class="page-header">
         <h1 class="page-title">
-            {% if study_mode == "programacao" %}Ola, Desenvolvedor!
-            {% elif study_mode == "vestibulares" %}Ola, Vestibulando!
-            {% else %}Ola, Concursando!
+            {% if study_mode == "programacao" %}Olá, Desenvolvedor!
+            {% elif study_mode == "vestibulares" %}Olá, Vestibulando!
+            {% else %}Olá, Concursando!
             {% endif %}
         </h1>
         <p class="page-subtitle">
-            {% if today_minutes > 0 %}Voce ja estudou {{ today_minutes }}min hoje
+            {% if today_minutes > 0 %}Você já estudou {{ today_minutes }}min hoje
             {% else %}Comece seus estudos de hoje!
             {% endif %}
         </p>
@@ -40,7 +40,7 @@
     <div class="recommendation-card">
         <span class="recommendation-icon">&#128161;</span>
         <div class="recommendation-content">
-            <strong>Sugestao para hoje</strong>
+            <strong>Sugestão para hoje</strong>
             <p>{{ recommendation.message }}</p>
         </div>
     </div>
@@ -65,7 +65,7 @@
             <div class="today-stat-card">
                 <span class="today-stat-icon">&#128218;</span>
                 <span class="today-stat-number">{{ today_sessions_count }}</span>
-                <span class="today-stat-label">Sessoes</span>
+                <span class="today-stat-label">Sessões</span>
             </div>
 
             <div class="today-stat-card">
@@ -164,7 +164,7 @@
         <div class="comparison-grid">
             <div class="comparison-card">
                 <div class="comparison-header">
-                    <span class="comparison-label">Hoje vs Media dos ultimos 7 dias</span>
+                    <span class="comparison-label">Hoje vs Média dos últimos 7 dias</span>
                 </div>
                 <div class="comparison-body">
                     <span class="comparison-value">{{ today_minutes }}min</span>
@@ -203,13 +203,20 @@
 
 <script>
 function toggleDashPlanItem(id) {
+    var item = document.getElementById('dash-plan-item-' + id);
+    var checkbox = document.getElementById('dash-checkbox-' + id);
+    var title = document.getElementById('dash-title-' + id);
+
+    if (item) item.style.opacity = '0.6';
+
     fetch('/today-plan/' + id + '/toggle', { method: 'POST' })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Server error');
+        return r.json();
+    })
     .then(function(data) {
-        if (data.error) return;
-        var item = document.getElementById('dash-plan-item-' + id);
-        var checkbox = document.getElementById('dash-checkbox-' + id);
-        var title = document.getElementById('dash-title-' + id);
+        if (data.error) throw new Error(data.error);
+        if (item) item.style.opacity = '1';
 
         if (data.completed) {
             item.classList.add('completed');
@@ -224,7 +231,9 @@ function toggleDashPlanItem(id) {
         }
 
         updatePlanCount();
-    }).catch(function() {});
+    }).catch(function() {
+        if (item) item.style.opacity = '1';
+    });
 }
 
 function updatePlanCount() {

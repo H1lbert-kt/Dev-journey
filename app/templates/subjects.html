@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Materias - DevJourney{% endblock %}
+{% block title %}Matérias - DevJourney{% endblock %}
 
 {% block content %}
 <div class="page">
     <div class="page-header">
-        <h1 class="page-title">Minhas Materias</h1>
-        <p class="page-subtitle">Gerencie suas materias de estudo</p>
+        <h1 class="page-title">Minhas Matérias</h1>
+        <p class="page-subtitle">Gerencie suas matérias de estudo</p>
     </div>
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Materias Cadastradas</h2>
-            <button class="btn btn-primary" onclick="openModal('create-subject-modal')">+ Nova Materia</button>
+            <h2 class="section-title">Matérias Cadastradas</h2>
+            <button class="btn btn-primary" onclick="openModal('create-subject-modal')">+ Nova Matéria</button>
         </div>
 
         <div class="subjects-grid">
@@ -21,7 +21,7 @@
                 <div class="subject-info">
                     <h3>{{ subject.name }}</h3>
                 </div>
-                <form action="/subjects/{{ subject.id }}/delete" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta materia?')">
+                <form action="/subjects/{{ subject.id }}/delete" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta matéria?')">
                     <button type="submit" class="delete-btn" title="Excluir">&times;</button>
                 </form>
             </div>
@@ -33,19 +33,19 @@
 <div id="create-subject-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Nova Materia</h2>
+            <h2>Nova Matéria</h2>
             <button class="modal-close" onclick="closeModal('create-subject-modal')">&times;</button>
         </div>
         <form action="/subjects/create" method="post">
             <div class="form-group">
                 <label>Nome</label>
-                <input type="text" name="name" required class="input" placeholder="Ex: Portugues">
+                <input type="text" name="name" required class="input" placeholder="Ex: Português">
             </div>
             <div class="form-group">
                 <label>Cor</label>
                 <input type="color" name="color" value="#6ba3f7" class="input-color">
             </div>
-            <button type="submit" class="btn btn-primary btn-full">Criar Materia</button>
+            <button type="submit" class="btn btn-primary btn-full">Criar Matéria</button>
         </form>
     </div>
 </div>

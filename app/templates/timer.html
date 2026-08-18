@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}Cronometro - DevJourney{% endblock %}
+{% block title %}Cronômetro - DevJourney{% endblock %}
 
 {% block content %}
 <div class="page">
     <div class="page-header">
-        <h1 class="page-title">Cronometro de Estudos</h1>
+        <h1 class="page-title">Cronômetro de Estudos</h1>
         <p class="page-subtitle">Hoje: {{ today_minutes }}min | Meta: {{ daily_goal }}min</p>
     </div>
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Meta Diaria</h2>
+            <h2 class="section-title">Meta Diária</h2>
         </div>
         <div class="goal-setting-card">
             <form action="/timer/set-goal" method="post" style="display: flex; align-items: center; gap: 12px;">
-                <label style="font-size: 14px; color: var(--fg-2);">Meta de estudo diario:</label>
+                <label style="font-size: 14px; color: var(--fg-2);">Meta de estudo diária:</label>
                 <input type="number" name="daily_goal" value="{{ daily_goal }}" min="10" max="720" class="input" style="width: 100px;">
                 <span style="font-size: 14px; color: var(--fg-2);">minutos</span>
                 <button type="submit" class="btn btn-primary">Salvar</button>
@@ -26,7 +26,7 @@
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Tempo por Materia</h2>
+            <h2 class="section-title">Tempo por Matéria</h2>
         </div>
         <div class="subject-goals-list">
             {% for subject in subjects %}
@@ -55,32 +55,32 @@
                 <select id="schedule-day" class="input" onchange="loadDaySchedule()">
                     <option value="">Selecionar dia...</option>
                     <option value="0">Segunda</option>
-                    <option value="1">Terca</option>
+                    <option value="1">Terça</option>
                     <option value="2">Quarta</option>
                     <option value="3">Quinta</option>
                     <option value="4">Sexta</option>
-                    <option value="5">Sabado</option>
+                    <option value="5">Sábado</option>
                     <option value="6">Domingo</option>
                 </select>
             </div>
 
             <div class="schedule-subjects" id="schedule-subjects" style="display:none">
                 <div class="schedule-subjects-header">
-                    <label>Materias do dia:</label>
+                    <label>Matérias do dia:</label>
                 </div>
                 <div class="schedule-subjects-list" id="schedule-subjects-list"></div>
                 <button class="btn btn-success btn-full" id="btn-start-session" onclick="startStudySession()" style="margin-top: 12px">
-                    Iniciar Sessao de Estudos
+                    Iniciar Sessão de Estudos
                 </button>
             </div>
 
             <div class="timer-subject-area" id="manual-subject-area">
-                <label>Tipo de Sessao</label>
+                <label>Tipo de Sessão</label>
                 <div class="session-type-chips" id="session-type-chips">
                     <button class="chip chip-active" data-type="estudo" onclick="setSessionType('estudo')">Estudo</button>
                     <button class="chip" data-type="teoria" onclick="setSessionType('teoria')">Teoria</button>
-                    <button class="chip" data-type="exercicios" onclick="setSessionType('exercicios')">Exercicios</button>
-                    <button class="chip" data-type="revisao" onclick="setSessionType('revisao')">Revisao</button>
+                    <button class="chip" data-type="exercicios" onclick="setSessionType('exercicios')">Exercícios</button>
+                    <button class="chip" data-type="revisao" onclick="setSessionType('revisao')">Revisão</button>
                     <button class="chip" data-type="projeto" onclick="setSessionType('projeto')">Projeto</button>
                     <button class="chip" data-type="simulado" onclick="setSessionType('simulado')">Simulado</button>
                 </div>
@@ -113,7 +113,7 @@
                 <div id="exam-selector" style="display:none;"></div>
                 {% endif %}
 
-                <label style="margin-top: 10px;">Materia</label>
+                <label style="margin-top: 10px;">Matéria</label>
                 <select id="timer-subject" class="input">
                     {% for subject in subjects %}
                     <option value="{{ subject.name }}">{{ subject.name }}</option>
@@ -126,19 +126,19 @@
                     <option value="Banco de Dados">Banco de Dados</option>
                     <option value="Redes">Redes</option>
                     <option value="Sistemas Operacionais">Sistemas Operacionais</option>
-                    <option value="Ingles">Ingles</option>
-                    <option value="Logica">Logica</option>
+                    <option value="Ingles">Inglês</option>
+                    <option value="Logica">Lógica</option>
                     {% else %}
                     <option value="Portugues">Portugues</option>
-                    <option value="Raciocinio Logico">Raciocinio Logico</option>
+                    <option value="Raciocinio Logico">Raciocínio Lógico</option>
                     <option value="Direito">Direito</option>
-                    <option value="Administracao">Administracao</option>
+                    <option value="Administracao">Administração</option>
                     <option value="Contabilidade">Contabilidade</option>
                     <option value="Economia">Economia</option>
-                    <option value="Legislacao">Legislacao</option>
-                    <option value="Informatica">Informatica</option>
+                    <option value="Legislacao">Legislação</option>
+                    <option value="Informatica">Informática</option>
                     <option value="Atualidades">Atualidades</option>
-                    <option value="Ingles">Ingles</option>
+                    <option value="Ingles">Inglês</option>
                     {% endif %}
                     {% endif %}
                     <option value="Outro">Outro</option>
@@ -173,7 +173,7 @@
     </div>
 
     <div class="session-summary" id="session-summary" style="display:none">
-        <h2 class="section-title">Resumo da Sessao</h2>
+        <h2 class="section-title">Resumo da Sessão</h2>
         <div class="session-summary-list" id="session-summary-list"></div>
         <div class="session-summary-total">
             <span>Total:</span>
@@ -182,10 +182,10 @@
     </div>
 
     <div class="section">
-        <h2 class="section-title">Historico</h2>
+        <h2 class="section-title">Histórico</h2>
         <div class="sessions-list">
             {% for session in sessions %}
-            <div class="session-item" onclick="resumeFromHistory('{{ session.subject }}', {{ session.duration_minutes }})" style="cursor: pointer" title="Clique para retomar desta sessao">
+            <div class="session-item" onclick="resumeFromHistory('{{ session.subject }}', {{ session.duration_minutes }})" style="cursor: pointer" title="Clique para retomar desta sessão">
                 <span class="session-subject">{{ session.subject }}</span>
                 <span class="session-duration">{{ "%.1f"|format(session.duration_minutes) }}min</span>
                 <span class="session-date">{{ session.date.strftime('%d/%m/%H:%M') if session.date else '-' }}</span>
@@ -266,7 +266,7 @@ function loadDaySchedule() {
             list.innerHTML = '';
 
             if (scheduleSubjects.length === 0) {
-                list.innerHTML = '<div class="schedule-empty">Nenhuma materia neste dia. <a href="/schedule">Adicionar</a></div>';
+                list.innerHTML = '<div class="schedule-empty">Nenhuma matéria neste dia. <a href="/schedule">Adicionar</a></div>';
                 document.getElementById('btn-start-session').style.display = 'none';
             } else {
                 for (var i = 0; i < scheduleSubjects.length; i++) {
@@ -348,7 +348,7 @@ function finishStudySession() {
     clearInterval(timerInterval);
     timerInterval = null;
 
-    document.getElementById('timer-phase').textContent = 'Sessao finalizada!';
+    document.getElementById('timer-phase').textContent = 'Sessão finalizada!';
     document.getElementById('btn-start').style.display = 'inline-flex';
     document.getElementById('btn-start').textContent = 'Iniciar';
     document.getElementById('btn-pause').style.display = 'none';
@@ -373,7 +373,7 @@ function showDayCompleted() {
     overlay.innerHTML = '<div class="celebration-content">' +
         '<span class="celebration-icon">&#127881;</span>' +
         '<h2>Dia Completo!</h2>' +
-        '<p>Todas as materias do dia foram estudadas</p>' +
+        '<p>Todas as matérias do dia foram estudadas</p>' +
         '<p style="margin-top: 16px"><button class="btn btn-primary" onclick="this.closest(\'.celebration\').remove()">Fechar</button></p>' +
         '</div>';
     overlay.addEventListener('click', function(e) {
@@ -477,7 +477,27 @@ function saveAndMoveNext() {
         formData.append('session_type', currentSessionType);
         if (currentProjectId) formData.append('project_id', currentProjectId);
         if (currentExamId) formData.append('exam_id', currentExamId);
-        fetch('/timer/save', { method: 'POST', body: formData }).catch(function() {});
+
+        function attemptSave(retries) {
+            fetch('/timer/save', { method: 'POST', body: formData })
+                .then(function(r) {
+                    if (!r.ok) throw new Error('Server error');
+                    return r.json();
+                })
+                .then(function(data) {
+                    if (data.error) throw new Error(data.error);
+                })
+                .catch(function() {
+                    if (retries > 0) {
+                        setTimeout(function() { attemptSave(retries - 1); }, 2000);
+                    } else {
+                        var pending = JSON.parse(localStorage.getItem('ftPendingSaves') || '[]');
+                        pending.push({subject: subjectName, duration: duration, ts: Date.now()});
+                        localStorage.setItem('ftPendingSaves', JSON.stringify(pending));
+                    }
+                });
+        }
+        attemptSave(2);
     }
 
     currentScheduleIndex++;
@@ -516,7 +536,7 @@ function stopTimer() {
     document.getElementById('btn-pause').style.display = 'none';
     document.getElementById('btn-stop').style.display = 'none';
     document.getElementById('btn-reset').style.display = 'none';
-    document.getElementById('timer-phase').textContent = saved > 0 ? 'Sessao salva!' : 'Pronto';
+    document.getElementById('timer-phase').textContent = saved > 0 ? 'Sessão salva!' : 'Pronto';
     updateDisplay();
 }
 
@@ -566,7 +586,7 @@ function ftSyncPauseDisplay() {
 function resumeFromHistory(subject, durationMinutes) {
     var seconds = Math.round(durationMinutes * 60);
     if (ftRunning || ftSeconds > 0) {
-        if (!confirm('Voce ja tem um cronometro em andamento. Deseja substituir pela sessao do historico?')) {
+        if (!confirm('Você já tem um cronômetro em andamento. Deseja substituir pela sessão do histórico?')) {
             return;
         }
         clearInterval(timerInterval);
@@ -591,7 +611,7 @@ function resumeFromHistory(subject, durationMinutes) {
     document.getElementById('btn-pause').style.display = 'none';
     document.getElementById('btn-stop').style.display = 'none';
     document.getElementById('btn-reset').style.display = 'none';
-    document.getElementById('timer-phase').textContent = 'Sessao carregada do historico';
+    document.getElementById('timer-phase').textContent = 'Sessão carregada do histórico';
 }
 
 function setPomodoro(minutes) {

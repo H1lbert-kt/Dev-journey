@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Historico de Estudos - DevJourney{% endblock %}
+{% block title %}Histórico de Estudos - DevJourney{% endblock %}
 
 {% block content %}
 <div class="page">
     <div class="page-header">
-        <h1 class="page-title">Historico de Estudos</h1>
-        <p class="page-subtitle">{{ total_sessions }} sessoes registradas</p>
+        <h1 class="page-title">Histórico de Estudos</h1>
+        <p class="page-subtitle">{{ total_sessions }} sessões registradas</p>
     </div>
 
     <div class="section">
@@ -23,7 +23,7 @@
                 </div>
 
                 <div class="filter-group">
-                    <label class="filter-label">Materia</label>
+                    <label class="filter-label">Matéria</label>
                     <select name="subject" class="input input-small" onchange="applyFilters()">
                         <option value="">Todas</option>
                         {% for sub in subjects %}
@@ -39,7 +39,7 @@
                         <option value="estudo" {% if filters.session_type == 'estudo' %}selected{% endif %}>Estudo</option>
                         <option value="teoria" {% if filters.session_type == 'teoria' %}selected{% endif %}>Teoria</option>
                         <option value="exercicios" {% if filters.session_type == 'exercicios' %}selected{% endif %}>Exercicios</option>
-                        <option value="revisao" {% if filters.session_type == 'revisao' %}selected{% endif %}>Revisao</option>
+                        <option value="revisao" {% if filters.session_type == 'revisao' %}selected{% endif %}>Revisão</option>
                         <option value="projeto" {% if filters.session_type == 'projeto' %}selected{% endif %}>Projeto</option>
                         <option value="simulado" {% if filters.session_type == 'simulado' %}selected{% endif %}>Simulado</option>
                     </select>
@@ -87,7 +87,7 @@
             <div class="stat-icon">&#128218;</div>
             <div class="stat-info">
                 <span class="stat-number">{{ total_sessions }}</span>
-                <span class="stat-label">Sessoes</span>
+                <span class="stat-label">Sessões</span>
             </div>
         </div>
 
@@ -95,14 +95,14 @@
             <div class="stat-icon">&#128200;</div>
             <div class="stat-info">
                 <span class="stat-number">{{ (total_minutes / (total_sessions if total_sessions > 0 else 1))|round(1) }}</span>
-                <span class="stat-label">Media por Sessao</span>
+                <span class="stat-label">Média por Sessão</span>
             </div>
         </div>
     </div>
 
     {% if by_subject %}
     <div class="section">
-        <h2 class="section-title">Por Materia</h2>
+        <h2 class="section-title">Por Matéria</h2>
         <div class="stats-grid">
             {% for subj, mins in by_subject.items() %}
             <div class="stat-card">
@@ -117,7 +117,7 @@
     {% endif %}
 
     <div class="section">
-        <h2 class="section-title">Sessoes</h2>
+        <h2 class="section-title">Sessões</h2>
         {% if sessions %}
         <div class="session-list">
             {% for session in sessions %}
@@ -153,8 +153,8 @@
         {% else %}
         <div class="empty-state">
             <span class="empty-state-icon">&#128269;</span>
-            <h3>Nenhuma sessao encontrada</h3>
-            <p>Nenhuma sessao encontrada com os filtros selecionados.</p>
+            <h3>Nenhuma sessão encontrada</h3>
+            <p>Nenhuma sessão encontrada com os filtros selecionados.</p>
         </div>
         {% endif %}
     </div>

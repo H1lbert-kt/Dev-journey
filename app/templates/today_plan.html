@@ -6,7 +6,7 @@
 <div class="page">
     <div class="page-header">
         <h1 class="page-title">Plano de Hoje</h1>
-        <p class="page-subtitle">{{ completed_count }} de {{ total_count }} concluida(s)</p>
+        <p class="page-subtitle">{{ completed_count }} de {{ total_count }} concluída(s)</p>
     </div>
 
     {% if total_count > 0 %}
@@ -15,7 +15,7 @@
             <div class="plan-progress-bar">
                 <div class="plan-progress-fill" style="width: {{ (completed_count / total_count * 100) if total_count > 0 else 0 }}%"></div>
             </div>
-            <span class="plan-progress-text">{{ completed_count }}/{{ total_count }} concluidas</span>
+            <span class="plan-progress-text">{{ completed_count }}/{{ total_count }} concluídas</span>
         </div>
     </div>
     {% endif %}
@@ -78,7 +78,7 @@
                             <input type="text" name="title" value="{{ item.title }}" required class="input">
                         </div>
                         <div class="form-group">
-                            <label>Materia</label>
+                            <label>Matéria</label>
                             <select name="subject_id" class="input">
                                 <option value="0">Nenhuma</option>
                                 {% for subject in subjects %}
@@ -106,7 +106,7 @@
                             <label>Tipo</label>
                             <select name="item_type" class="input">
                                 <option value="estudo" {% if item.item_type == 'estudo' %}selected{% endif %}>Estudo</option>
-                                <option value="revisao" {% if item.item_type == 'revisao' %}selected{% endif %}>Revisao</option>
+                                <option value="revisao" {% if item.item_type == 'revisao' %}selected{% endif %}>Revisão</option>
                                 <option value="simulado" {% if item.item_type == 'simulado' %}selected{% endif %}>Simulado</option>
                                 <option value="projeto" {% if item.item_type == 'projeto' %}selected{% endif %}>Projeto</option>
                                 <option value="concurso" {% if item.item_type == 'concurso' %}selected{% endif %}>Concurso</option>
@@ -137,10 +137,10 @@
         <form action="/today-plan/create" method="post">
             <div class="form-group">
                 <label>Titulo</label>
-                <input type="text" name="title" required class="input" placeholder="O que voce vai fazer hoje?">
+                <input type="text" name="title" required class="input" placeholder="O que você vai fazer hoje?">
             </div>
             <div class="form-group">
-                <label>Materia</label>
+                <label>Matéria</label>
                 <select name="subject_id" class="input">
                     <option value="0">Nenhuma</option>
                     {% for subject in subjects %}
@@ -168,7 +168,7 @@
                 <label>Tipo</label>
                 <select name="item_type" class="input">
                     <option value="estudo">Estudo</option>
-                    <option value="revisao">Revisao</option>
+                    <option value="revisao">Revisão</option>
                     <option value="simulado">Simulado</option>
                     <option value="projeto">Projeto</option>
                     <option value="concurso">Concurso</option>
@@ -181,14 +181,21 @@
 
 <script>
 function toggleItem(id) {
-    fetch('/today-plan/' + id + '/toggle', { method: 'POST' })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.error) return;
-        var item = document.getElementById('plan-item-' + id);
-        var checkbox = document.getElementById('checkbox-' + id);
-        var title = document.getElementById('title-' + id);
+    var item = document.getElementById('plan-item-' + id);
+    var checkbox = document.getElementById('checkbox-' + id);
+    var title = document.getElementById('title-' + id);
+    var wasCompleted = item && item.classList.contains('completed');
 
+    if (item) item.style.opacity = '0.6';
+
+    fetch('/today-plan/' + id + '/toggle', { method: 'POST' })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Server error');
+        return r.json();
+    })
+    .then(function(data) {
+        if (data.error) throw new Error(data.error);
+        if (item) item.style.opacity = '1';
         if (data.completed) {
             item.classList.add('completed');
             checkbox.classList.add('checked');
@@ -200,9 +207,10 @@ function toggleItem(id) {
             checkbox.innerHTML = '&#9744;';
             title.classList.remove('completed-text');
         }
-
         updateProgress();
-    }).catch(function() {});
+    }).catch(function() {
+        if (item) item.style.opacity = '1';
+    });
 }
 
 function updateProgress() {
@@ -217,14 +225,40 @@ function updateProgress() {
         fill.style.width = (total > 0 ? (completed / total * 100) : 0) + '%';
     }
     if (text) {
-        text.textContent = completed + '/' + total + ' concluidas';
+        text.textContent = completed + '/' + total + ' concluídas';
     }
     if (subtitle) {
-        subtitle.textContent = completed + ' de ' + total + ' concluida(s)';
+        subtitle.textContent = completed + ' de ' + total + ' concluída(s)';
     }
     if (progressSection && total === 0) {
         progressSection.parentElement.style.display = 'none';
     }
 }
+
+(function() {
+    var draftKey = 'todayPlanDraft';
+    var form = document.querySelector('#create-item-modal form');
+    if (!form) return;
+    var titleInput = form.querySelector('input[name="title"]');
+    if (!titleInput) return;
+
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem(draftKey)); } catch(e) { saved = null; }
+    if (saved && saved.title) {
+        titleInput.value = saved.title;
+    }
+
+    var saveTimeout = null;
+    titleInput.addEventListener('input', function() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(function() {
+            localStorage.setItem(draftKey, JSON.stringify({title: titleInput.value, ts: Date.now()}));
+        }, 500);
+    });
+
+    form.addEventListener('submit', function() {
+        localStorage.removeItem(draftKey);
+    });
+})();
 </script>
 {% endblock %}

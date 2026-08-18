@@ -21,7 +21,7 @@
                 <div class="project-header">
                     <h3>{{ project.name }}</h3>
                     <span class="status-badge status-{{ project.status }}">
-                        {% if project.status == 'not_started' %}Nao Iniciado
+                        {% if project.status == 'not_started' %}Não Iniciado
                         {% elif project.status == 'in_progress' %}Em Andamento
                         {% elif project.status == 'completed' %}Concluido
                         {% endif %}
@@ -80,7 +80,7 @@
                         <div class="form-group">
                             <label>Status</label>
                             <select name="status" class="input">
-                                <option value="not_started" {% if project.status == 'not_started' %}selected{% endif %}>Nao Iniciado</option>
+                                <option value="not_started" {% if project.status == 'not_started' %}selected{% endif %}>Não Iniciado</option>
                                 <option value="in_progress" {% if project.status == 'in_progress' %}selected{% endif %}>Em Andamento</option>
                                 <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>Concluido</option>
                             </select>
@@ -124,7 +124,7 @@
             <div class="form-group">
                 <label>Status</label>
                 <select name="status" class="input">
-                    <option value="not_started">Nao Iniciado</option>
+                    <option value="not_started">Não Iniciado</option>
                     <option value="in_progress">Em Andamento</option>
                     <option value="completed">Concluido</option>
                 </select>

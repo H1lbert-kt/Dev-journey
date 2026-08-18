@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Diario - DevJourney{% endblock %}
+{% block title %}Diário - DevJourney{% endblock %}
 
 {% block content %}
 <div class="page">
     <div class="page-header">
-        <h1 class="page-title">Diario de Desenvolvimento</h1>
+        <h1 class="page-title">Diário de Desenvolvimento</h1>
         <p class="page-subtitle">{{ entries|length }} entrada(s) registrada(s)</p>
     </div>
 
@@ -79,7 +79,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Materia (opcional)</label>
+                            <label>Matéria (opcional)</label>
                             <select name="subject_id" class="input">
                                 <option value="0">Nenhuma</option>
                                 {% for subject in subjects %}
@@ -96,8 +96,8 @@
         {% else %}
         <div class="empty-state">
             <span class="empty-state-icon">&#128221;</span>
-            <h3>Nenhuma entrada no diario</h3>
-            <p>Comece registrando o que voce aprendeu hoje.</p>
+            <h3>Nenhuma entrada no diário</h3>
+            <p>Comece registrando o que você aprendeu hoje.</p>
         </div>
         {% endif %}
     </div>
@@ -106,17 +106,17 @@
 <div id="create-entry-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Nova Entrada no Diario</h2>
+            <h2>Nova Entrada no Diário</h2>
             <button class="modal-close" onclick="closeModal('create-entry-modal')">&times;</button>
         </div>
         <form action="/journal/create" method="post">
             <div class="form-group">
                 <label>Titulo</label>
-                <input type="text" name="title" required class="input" placeholder="O que voce aprendeu hoje?">
+                <input type="text" name="title" required class="input" placeholder="O que você aprendeu hoje?">
             </div>
             <div class="form-group">
                 <label>Conteudo</label>
-                <textarea name="content" required class="input" rows="6" placeholder="Descreva o que voce estudou, aprendeu ou refletiu..."></textarea>
+                <textarea name="content" required class="input" rows="6" placeholder="Descreva o que você estudou, aprendeu ou refletiu..."></textarea>
             </div>
             <div class="form-group">
                 <label>Data</label>
@@ -132,7 +132,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Materia (opcional)</label>
+                <label>Matéria (opcional)</label>
                 <select name="subject_id" class="input">
                     <option value="0">Nenhuma</option>
                     {% for subject in subjects %}
@@ -160,5 +160,42 @@ function toggleExpand(id) {
         btn.textContent = 'Ver mais';
     }
 }
+
+(function() {
+    var draftKey = 'journalDraft';
+    var form = document.querySelector('#create-entry-modal form');
+    if (!form) return;
+
+    var titleInput = form.querySelector('input[name="title"]');
+    var contentInput = form.querySelector('textarea[name="content"]');
+    if (!titleInput || !contentInput) return;
+
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem(draftKey)); } catch(e) { saved = null; }
+    if (saved) {
+        if (saved.title) titleInput.value = saved.title;
+        if (saved.content) contentInput.value = saved.content;
+        var draftBar = document.createElement('div');
+        draftBar.style.cssText = 'padding:8px 12px;background:var(--accent-muted);border:1px solid var(--accent);border-radius:6px;margin-bottom:12px;font-size:13px;display:flex;align-items:center;justify-content:space-between;';
+        draftBar.innerHTML = '<span>Rascunho recuperado</span><button class="btn btn-small" onclick="localStorage.removeItem(\'' + draftKey + '\');this.parentElement.remove();">Descartar</button>';
+        form.parentElement.insertBefore(draftBar, form);
+    }
+
+    var saveTimeout = null;
+    function autoSaveDraft() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(function() {
+            var data = {title: titleInput.value, content: contentInput.value, ts: Date.now()};
+            localStorage.setItem(draftKey, JSON.stringify(data));
+        }, 1000);
+    }
+
+    titleInput.addEventListener('input', autoSaveDraft);
+    contentInput.addEventListener('input', autoSaveDraft);
+
+    form.addEventListener('submit', function() {
+        localStorage.removeItem(draftKey);
+    });
+})();
 </script>
 {% endblock %}

@@ -52,7 +52,7 @@
             <div class="stat-icon">&#128214;</div>
             <div class="stat-info">
                 <span class="stat-number">{{ stats.sessions_count }}</span>
-                <span class="stat-label">Sessoes</span>
+                <span class="stat-label">Sessões</span>
             </div>
         </div>
     </div>
@@ -84,8 +84,8 @@
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Materias do Concurso</h2>
-            <button class="btn btn-primary" onclick="openModal('add-subject-modal')">+ Adicionar Materia</button>
+            <h2 class="section-title">Matérias do Concurso</h2>
+            <button class="btn btn-primary" onclick="openModal('add-subject-modal')">+ Adicionar Matéria</button>
         </div>
 
         {% if exam_subjects %}
@@ -99,7 +99,7 @@
                     </div>
                     <div class="exam-subject-actions">
                         <button class="btn btn-small" onclick="openModal('edit-subject-{{ subj.id }}')">Editar</button>
-                        <form action="/exams/{{ exam.id }}/subject/{{ subj.id }}/delete" method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir esta materia?')">
+                        <form action="/exams/{{ exam.id }}/subject/{{ subj.id }}/delete" method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir esta matéria?')">
                             <button type="submit" class="btn btn-danger btn-small">Excluir</button>
                         </form>
                     </div>
@@ -115,12 +115,12 @@
             <div id="edit-subject-{{ subj.id }}" class="modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>Editar Materia</h2>
+                        <h2>Editar Matéria</h2>
                         <button class="modal-close" onclick="closeModal('edit-subject-{{ subj.id }}')">&times;</button>
                     </div>
                     <form action="/exams/{{ exam.id }}/subject/{{ subj.id }}/update" method="post">
                         <div class="form-group">
-                            <label>Nome da Materia</label>
+                            <label>Nome da Matéria</label>
                             <input type="text" name="name" value="{{ subj.name }}" required class="input">
                         </div>
                         <div class="form-group">
@@ -139,15 +139,15 @@
         </div>
         {% else %}
         <div class="empty-state-small">
-            <p>Nenhuma materia adicionada a este concurso.</p>
-            <button class="btn btn-primary" onclick="openModal('add-subject-modal')">+ Adicionar Materia</button>
+            <p>Nenhuma matéria adicionada a este concurso.</p>
+            <button class="btn btn-primary" onclick="openModal('add-subject-modal')">+ Adicionar Matéria</button>
         </div>
         {% endif %}
     </div>
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Sessoes de Estudo</h2>
+            <h2 class="section-title">Sessões de Estudo</h2>
         </div>
 
         {% if study_sessions %}
@@ -167,7 +167,7 @@
         </div>
         {% else %}
         <div class="empty-state-small">
-            <p>Nenhuma sessao de estudo registrada para este concurso.</p>
+            <p>Nenhuma sessão de estudo registrada para este concurso.</p>
         </div>
         {% endif %}
     </div>
@@ -185,19 +185,19 @@
 <div id="add-subject-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Adicionar Materia</h2>
+            <h2>Adicionar Matéria</h2>
             <button class="modal-close" onclick="closeModal('add-subject-modal')">&times;</button>
         </div>
         <form action="/exams/{{ exam.id }}/subject/create" method="post">
             <div class="form-group">
-                <label>Nome da Materia</label>
-                <input type="text" name="name" required class="input" placeholder="Ex: Portugues, Direito Administrativo">
+                <label>Nome da Matéria</label>
+                <input type="text" name="name" required class="input" placeholder="Ex: Português, Direito Administrativo">
             </div>
             <div class="form-group">
                 <label>Peso</label>
                 <input type="number" name="weight" value="1.0" class="input" min="0" step="0.1">
             </div>
-            <button type="submit" class="btn btn-primary btn-full">Adicionar Materia</button>
+            <button type="submit" class="btn btn-primary btn-full">Adicionar Matéria</button>
         </form>
     </div>
 </div>

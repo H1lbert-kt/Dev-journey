@@ -474,6 +474,13 @@
         var slider = document.getElementById('slider-' + skillId);
         if (!slider) return;
         var progress = parseInt(slider.value, 10);
+        var prevValue = slider.value;
+        var prevText = document.getElementById('progress-text-' + skillId);
+        var prevTextContent = prevText ? prevText.textContent : '';
+        var prevFill = document.getElementById('progress-bar-' + skillId);
+        var prevWidth = prevFill ? prevFill.style.width : '';
+        var prevClass = prevFill ? prevFill.className : '';
+
         var formData = new FormData();
         formData.append('progress', progress);
 
@@ -481,26 +488,29 @@
             method: 'POST',
             body: formData
         }).then(function(response) {
-            if (response.redirected || response.ok) {
-                var fill = document.getElementById('progress-bar-' + skillId);
-                var text = document.getElementById('progress-text-' + skillId);
-                if (fill) {
-                    fill.style.width = progress + '%';
-                    fill.className = 'skill-progress-fill';
-                    if (progress < 30) fill.classList.add('low');
-                    else if (progress < 60) fill.classList.add('mid');
-                    else if (progress < 90) fill.classList.add('high');
-                    else fill.classList.add('full');
-                }
-                if (text) {
-                    text.textContent = progress + '%';
-                }
-                var editEl = document.getElementById('inline-edit-' + skillId);
-                if (editEl) {
-                    editEl.classList.remove('active');
-                }
+            if (!response.ok && !response.redirected) throw new Error('Server error');
+            var fill = document.getElementById('progress-bar-' + skillId);
+            var text = document.getElementById('progress-text-' + skillId);
+            if (fill) {
+                fill.style.width = progress + '%';
+                fill.className = 'skill-progress-fill';
+                if (progress < 30) fill.classList.add('low');
+                else if (progress < 60) fill.classList.add('mid');
+                else if (progress < 90) fill.classList.add('high');
+                else fill.classList.add('full');
             }
-        }).catch(function() {});
+            if (text) {
+                text.textContent = progress + '%';
+            }
+            var editEl = document.getElementById('inline-edit-' + skillId);
+            if (editEl) {
+                editEl.classList.remove('active');
+            }
+        }).catch(function() {
+            slider.value = prevValue;
+            if (prevText) prevText.textContent = prevTextContent;
+            if (prevFill) { prevFill.style.width = prevWidth; prevFill.className = prevClass; }
+        });
     };
 
     document.querySelectorAll('.skill-progress-fill').forEach(function(fill) {

@@ -30,7 +30,7 @@
             <div class="stat-icon">&#9200;</div>
             <div class="stat-info">
                 <span class="stat-number">{% if next_days is not none %}{{ next_days }}{% else %}-{% endif %}</span>
-                <span class="stat-label">{% if next_days is not none %}Dias Proximo{% else %}Sem Prova{% endif %}</span>
+                <span class="stat-label">{% if next_days is not none %}Dias Próximo{% else %}Sem Prova{% endif %}</span>
             </div>
         </div>
 
@@ -95,7 +95,7 @@
                     </div>
                     {% endfor %}
                     {% else %}
-                    <p class="exam-no-subjects">Nenhuma materia adicionada</p>
+                    <p class="exam-no-subjects">Nenhuma matéria adicionada</p>
                     {% endif %}
                 </div>
 
@@ -162,9 +162,9 @@
                         </div>
                         <div class="form-group">
                             <label>Notas</label>
-                            <textarea name="notes" class="input" placeholder="Informacoes adicionais...">{{ exam.notes or '' }}</textarea>
+                            <textarea name="notes" class="input" placeholder="Informações adicionais...">{{ exam.notes or '' }}</textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-full">Salvar Alteracoes</button>
+                        <button type="submit" class="btn btn-primary btn-full">Salvar Alterações</button>
                     </form>
                 </div>
             </div>
@@ -226,7 +226,7 @@
             </div>
             <div class="form-group">
                 <label>Notas</label>
-                <textarea name="notes" class="input" placeholder="Informacoes adicionais..."></textarea>
+                <textarea name="notes" class="input" placeholder="Informações adicionais..."></textarea>
             </div>
             <button type="submit" class="btn btn-primary btn-full">Criar Concurso</button>
         </form>

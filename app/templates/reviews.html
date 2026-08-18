@@ -5,8 +5,8 @@
 {% block content %}
 <div class="page">
     <div class="page-header">
-        <h1 class="page-title">Revisoes Automaticas</h1>
-        <p class="page-subtitle">Baseado em repeticao espacada</p>
+        <h1 class="page-title">Revisões Automáticas</h1>
+        <p class="page-subtitle">Baseado em repetição espaçada</p>
     </div>
 
     <div class="stats-grid">
@@ -14,7 +14,7 @@
             <div class="stat-icon">&#128196;</div>
             <div class="stat-info">
                 <span class="stat-number">{{ due_cards|length }}</span>
-                <span class="stat-label">Revisao Hoje</span>
+                <span class="stat-label">Revisão Hoje</span>
             </div>
         </div>
 
@@ -31,7 +31,7 @@
 
     {% if subject_reviews %}
     <div class="section">
-        <h2 class="section-title">Revisao por Materia</h2>
+        <h2 class="section-title">Revisão por Matéria</h2>
         <div class="reviews-subject-list">
             {% for subject, count in subject_reviews.items() %}
             <div class="review-subject-item">
@@ -51,28 +51,28 @@
                 <span class="step-number">1</span>
                 <div class="step-content">
                     <h3>Estude o assunto</h3>
-                    <p>Registre suas sessoes de estudo no cronometro</p>
+                    <p>Registre suas sessões de estudo no cronômetro</p>
                 </div>
             </div>
             <div class="review-step">
                 <span class="step-number">2</span>
                 <div class="step-content">
                     <h3>Crie flashcards</h3>
-                    <p>Adicione perguntas e respostas para revisao</p>
+                    <p>Adicione perguntas e respostas para revisão</p>
                 </div>
             </div>
             <div class="review-step">
                 <span class="step-number">3</span>
                 <div class="step-content">
                     <h3>Revise nos prazos</h3>
-                    <p>O sistema sugere revisao em 1, 7 e 30 dias</p>
+                    <p>O sistema sugere revisão em 1, 7 e 30 dias</p>
                 </div>
             </div>
             <div class="review-step">
                 <span class="step-number">4</span>
                 <div class="step-content">
                     <h3>Fixe o conteudo</h3>
-                    <p>A repeticao espacada aumenta a retencao em ate 200%</p>
+                    <p>A repetição espaçada aumenta a retenção em até 200%</p>
                 </div>
             </div>
         </div>
