@@ -116,7 +116,7 @@ def _add_missing_columns(inspector):
             ("study_mode", "VARCHAR(20)", "'programacao'"),
             ("review_count", "INTEGER", "0"),
             ("streak", "INTEGER", "0"),
-            ("last_reviewed_at", "DATETIME", None),
+            ("last_reviewed_at", "TIMESTAMP", None),
         ],
         "today_plan_items": [
             ("study_mode", "VARCHAR(20)", "'programacao'"),

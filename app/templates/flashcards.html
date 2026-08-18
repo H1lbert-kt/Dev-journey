@@ -101,7 +101,8 @@
                         <div class="flashcard-mini-subject" style="background-color: {{ card.subject.color if card.subject else 'var(--accent)' }}18; color: {{ card.subject.color if card.subject else 'var(--accent)' }}">{{ card.subject.name if card.subject else 'Geral' }}</div>
                         <div class="flashcard-mini-text">{{ card.front }}</div>
                         <div class="flashcard-mini-footer">
-                            <span class="flashcard-mini-state fc-state-{{ card._state }}">{{ card._state }}</span>
+                            {% set state = card_states.get(card.id, 'new') %}
+                            <span class="flashcard-mini-state fc-state-{{ state }}">{{ state }}</span>
                             <form action="/flashcards/{{ card.id }}/delete" method="post" style="display:inline" onclick="event.stopPropagation()" onsubmit="return confirm('Tem certeza que deseja excluir este flashcard?')">
                                 <button type="submit" class="delete-btn" title="Excluir">&times;</button>
                             </form>

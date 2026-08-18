@@ -30,8 +30,7 @@ async def flashcards_page(request: Request, db: Session = Depends(get_db)):
         Flashcard.user_id == user.id, Flashcard.study_mode == user.study_mode
     ).all()
 
-    for card in flashcards:
-        card._state = get_card_state(card)
+    card_states = {card.id: get_card_state(card) for card in flashcards}
 
     return request.app.state.templates.TemplateResponse(
         request,
@@ -39,6 +38,7 @@ async def flashcards_page(request: Request, db: Session = Depends(get_db)):
         context={
             "subjects": subjects,
             "flashcards": flashcards,
+            "card_states": card_states,
             "stats": stats,
             "study_mode": user.study_mode,
         },
