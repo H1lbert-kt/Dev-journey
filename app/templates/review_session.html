@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Revisar Flashcards - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">Revisar Flashcards</h1>
+        <p class="page-subtitle">{{ total }} cards para revisar</p>
+    </div>
+
+    <div class="rs-container" id="rs-container">
+        <div class="rs-progress">
+            <div class="rs-progress-bar">
+                <div class="rs-progress-fill" id="rs-progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="rs-progress-text">
+                <span id="rs-current">1</span> de <span id="rs-total">{{ total }}</span>
+            </div>
+        </div>
+
+        <div class="rs-card-wrapper">
+            <div class="flashcard-3d" id="rs-flashcard" onclick="rsFlip()">
+                <div class="flashcard-3d-inner" id="rs-flashcard-inner">
+                    <div class="flashcard-3d-front">
+                        <div class="flashcard-3d-label" id="rs-subject"></div>
+                        <div class="flashcard-3d-text" id="rs-front"></div>
+                        <div class="flashcard-3d-hint">Clique para ver a resposta</div>
+                    </div>
+                    <div class="flashcard-3d-back">
+                        <div class="flashcard-3d-label">Resposta</div>
+                        <div class="flashcard-3d-text" id="rs-back"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rs-actions">
+            <button class="btn btn-large rs-btn-show" id="rs-btn-show" onclick="rsFlip()">Mostrar Resposta</button>
+            <div class="rs-rating" id="rs-rating" style="display:none">
+                <button class="btn btn-large rs-btn-rate rs-btn-again" onclick="rsRate(0)" title="Teclado: 1">
+                    <span class="rs-btn-key">1</span>
+                    Errei
+                </button>
+                <button class="btn btn-large rs-btn-rate rs-btn-hard" onclick="rsRate(3)" title="Teclado: 2">
+                    <span class="rs-btn-key">2</span>
+                    Difícil
+                </button>
+                <button class="btn btn-large rs-btn-rate rs-btn-good" onclick="rsRate(4)" title="Teclado: 3">
+                    <span class="rs-btn-key">3</span>
+                    Bom
+                </button>
+                <button class="btn btn-large rs-btn-rate rs-btn-easy" onclick="rsRate(5)" title="Teclado: 4">
+                    <span class="rs-btn-key">4</span>
+                    Fácil
+                </button>
+            </div>
+        </div>
+
+        <div class="rs-feedback" id="rs-feedback" style="display:none">
+            <div class="rs-feedback-text" id="rs-feedback-text"></div>
+            <div class="rs-feedback-next" id="rs-feedback-next"></div>
+        </div>
+
+        <div class="rs-keyboard-hint">
+            <span>Espaço: mostrar resposta</span>
+            <span>1-4: avaliar</span>
+        </div>
+    </div>
+
+    <div class="rs-complete" id="rs-complete" style="display:none">
+        <div class="rs-complete-icon">&#127881;</div>
+        <h2>Revisão concluída!</h2>
+        <p>Você revisou todos os {{ total }} cards.</p>
+        <div class="rs-complete-stats" id="rs-complete-stats"></div>
+        <div class="rs-complete-actions">
+            <a href="/flashcards" class="btn btn-primary">Voltar aos Flashcards</a>
+        </div>
+    </div>
+</div>
+
+<script>
+var rsCards = {{ cards | tojson }};
+var rsIndex = 0;
+var rsPending = [];
+var rsProcessing = false;
+var rsStats = {again: 0, hard: 0, good: 0, easy: 0};
+
+function rsLoadCard() {
+    if (rsIndex >= rsCards.length) {
+        rsShowComplete();
+        return;
+    }
+    var card = rsCards[rsIndex];
+    var inner = document.getElementById('rs-flashcard-inner');
+    inner.classList.remove('flipped');
+    document.getElementById('rs-front').textContent = card.front;
+    document.getElementById('rs-back').textContent = card.back;
+    document.getElementById('rs-subject').textContent = card.subject;
+    document.getElementById('rs-subject').style.color = card.subject_color;
+    document.getElementById('rs-current').textContent = rsIndex + 1;
+    var pct = ((rsIndex) / rsCards.length * 100);
+    document.getElementById('rs-progress-fill').style.width = pct + '%';
+    document.getElementById('rs-btn-show').style.display = 'inline-flex';
+    document.getElementById('rs-rating').style.display = 'none';
+    document.getElementById('rs-feedback').style.display = 'none';
+}
+
+function rsFlip() {
+    var inner = document.getElementById('rs-flashcard-inner');
+    if (inner.classList.contains('flipped')) return;
+    inner.classList.add('flipped');
+    document.getElementById('rs-btn-show').style.display = 'none';
+    document.getElementById('rs-rating').style.display = 'flex';
+}
+
+function rsRate(quality) {
+    if (rsProcessing) return;
+    var card = rsCards[rsIndex];
+    rsProcessing = true;
+
+    var ratingBtns = document.querySelectorAll('.rs-btn-rate');
+    ratingBtns.forEach(function(b) { b.style.opacity = '0.5'; b.disabled = true; });
+
+    var labels = {0: 'Errei', 3: 'Difícil', 4: 'Bom', 5: 'Fácil'};
+    var statsKeys = {0: 'again', 3: 'hard', 4: 'good', 5: 'easy'};
+    rsStats[statsKeys[quality]]++;
+
+    fetch('/flashcards/api/review', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({card_id: card.id, quality: quality})
+    }).then(function(r) {
+        if (!r.ok) throw new Error('Server error');
+        return r.json();
+    }).then(function(data) {
+        rsProcessing = false;
+        if (data.error) throw new Error(data.error);
+        rsShowFeedback(labels[quality], data.next_review, data.interval_after);
+        rsPending = rsPending.filter(function(p) { return p.card_id !== card.id; });
+    }).catch(function() {
+        rsProcessing = false;
+        rsPending.push({card_id: card.id, quality: quality, ts: Date.now()});
+        localStorage.setItem('fcPendingReviews', JSON.stringify(rsPending));
+        rsShowFeedback(labels[quality] + ' (pendente)', 'sincronizará depois', 0);
+    }).then(function() {
+        ratingBtns.forEach(function(b) { b.style.opacity = '1'; b.disabled = false; });
+        setTimeout(function() {
+            rsIndex++;
+            rsLoadCard();
+        }, 1200);
+    });
+}
+
+function rsShowFeedback(label, nextReview, interval) {
+    var fb = document.getElementById('rs-feedback');
+    var fbText = document.getElementById('rs-feedback-text');
+    var fbNext = document.getElementById('rs-feedback-next');
+    fb.style.display = 'block';
+    fbText.textContent = label;
+    if (interval > 0) {
+        var days = interval;
+        var timeStr = days === 1 ? 'amanhã' : 'em ' + days + ' dias';
+        fbNext.textContent = 'Próxima revisão: ' + timeStr;
+    } else {
+        fbNext.textContent = '';
+    }
+    document.getElementById('rs-rating').style.display = 'none';
+}
+
+function rsShowComplete() {
+    document.getElementById('rs-container').style.display = 'none';
+    var complete = document.getElementById('rs-complete');
+    complete.style.display = 'block';
+    document.getElementById('rs-progress-fill').style.width = '100%';
+
+    var total = rsStats.again + rsStats.hard + rsStats.good + rsStats.easy;
+    var statsHtml = '<div class="rs-complete-stat"><span class="rs-cs-num rs-cs-again">' + rsStats.again + '</span><span class="rs-cs-label">Errei</span></div>';
+    statsHtml += '<div class="rs-complete-stat"><span class="rs-cs-num rs-cs-hard">' + rsStats.hard + '</span><span class="rs-cs-label">Difícil</span></div>';
+    statsHtml += '<div class="rs-complete-stat"><span class="rs-cs-num rs-cs-good">' + rsStats.good + '</span><span class="rs-cs-label">Bom</span></div>';
+    statsHtml += '<div class="rs-complete-stat"><span class="rs-cs-num rs-cs-easy">' + rsStats.easy + '</span><span class="rs-cs-label">Fácil</span></div>';
+    document.getElementById('rs-complete-stats').innerHTML = statsHtml;
+
+    var pending = JSON.parse(localStorage.getItem('fcPendingReviews') || '[]');
+    if (pending.length > 0) {
+        fetch('/flashcards/api/review-batch', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({reviews: pending})
+        }).then(function() {
+            localStorage.removeItem('fcPendingReviews');
+        }).catch(function() {});
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    if (document.getElementById('rs-container').style.display === 'none') return;
+
+    if (e.code === 'Space') {
+        e.preventDefault();
+        var inner = document.getElementById('rs-flashcard-inner');
+        if (!inner.classList.contains('flipped')) {
+            rsFlip();
+        }
+        return;
+    }
+
+    var rating = document.getElementById('rs-rating');
+    if (rating.style.display !== 'none') {
+        if (e.key === '1') rsRate(0);
+        else if (e.key === '2') rsRate(3);
+        else if (e.key === '3') rsRate(4);
+        else if (e.key === '4') rsRate(5);
+    }
+});
+
+rsLoadCard();
+</script>
+{% endblock %}

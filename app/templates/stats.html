@@ -94,6 +94,42 @@
         </div>
     </div>
 
+    {% if flashcard_stats.total > 0 %}
+    <div class="section">
+        <h2 class="section-title">&#127183; Flashcards</h2>
+        <div class="stats-grid">
+            <div class="stat-card large">
+                <div class="stat-icon">&#128196;</div>
+                <div class="stat-info">
+                    <span class="stat-number">{{ flashcard_stats.total }}</span>
+                    <span class="stat-label">Total de Cards</span>
+                </div>
+            </div>
+            <div class="stat-card large">
+                <div class="stat-icon">&#128260;</div>
+                <div class="stat-info">
+                    <span class="stat-number">{{ flashcard_stats.due }}</span>
+                    <span class="stat-label">Para Revisar</span>
+                </div>
+            </div>
+            <div class="stat-card large">
+                <div class="stat-icon">&#10004;</div>
+                <div class="stat-info">
+                    <span class="stat-number">{{ flashcard_stats.accuracy }}%</span>
+                    <span class="stat-label">Taxa de Acerto</span>
+                </div>
+            </div>
+            <div class="stat-card large">
+                <div class="stat-icon">&#128293;</div>
+                <div class="stat-info">
+                    <span class="stat-number">{{ flashcard_stats.mature }}</span>
+                    <span class="stat-label">Aprendidos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     {% if active_goal %}
     <div class="section">
         <h2 class="section-title">&#127919; Objetivo: {{ active_goal.title }}</h2>

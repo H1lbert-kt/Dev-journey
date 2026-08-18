@@ -1,78 +1,123 @@
 {% extends "base.html" %}
 
-{% block title %}Revisoes - DevJourney{% endblock %}
+{% block title %}Revisões - DevJourney{% endblock %}
 
 {% block content %}
 <div class="page">
     <div class="page-header">
-        <h1 class="page-title">Revisões Automáticas</h1>
-        <p class="page-subtitle">Baseado em repetição espaçada</p>
+        <h1 class="page-title">Revisões</h1>
+        <p class="page-subtitle">Repetição espaçada para fixação de conteúdo</p>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card large">
-            <div class="stat-icon">&#128196;</div>
-            <div class="stat-info">
-                <span class="stat-number">{{ due_cards|length }}</span>
-                <span class="stat-label">Revisão Hoje</span>
+    <div class="fc-dashboard">
+        <div class="fc-hero">
+            <div class="fc-hero-info">
+                <div class="fc-hero-count">{{ stats.due }}</div>
+                <div class="fc-hero-label">cards para revisar</div>
+            </div>
+            {% if stats.due > 0 %}
+            <a href="/flashcards/review" class="btn btn-primary btn-large">Revisar agora</a>
+            {% else %}
+            <div class="fc-hero-done">Tudo em dia!</div>
+            {% endif %}
+        </div>
+
+        <div class="fc-stats-grid">
+            <div class="fc-stat-card">
+                <div class="fc-stat-number fc-stat-new">{{ stats.new_count }}</div>
+                <div class="fc-stat-label">Novos</div>
+            </div>
+            <div class="fc-stat-card">
+                <div class="fc-stat-number fc-stat-review">{{ stats.review + stats.learning }}</div>
+                <div class="fc-stat-label">Em revisão</div>
+            </div>
+            <div class="fc-stat-card">
+                <div class="fc-stat-number fc-stat-mature">{{ stats.mature }}</div>
+                <div class="fc-stat-label">Aprendidos</div>
+            </div>
+            <div class="fc-stat-card">
+                <div class="fc-stat-number fc-stat-overdue">{{ stats.overdue }}</div>
+                <div class="fc-stat-label">Atrasados</div>
             </div>
         </div>
 
-        {% for review in upcoming_reviews %}
-        <div class="stat-card large">
-            <div class="stat-icon">&#128197;</div>
-            <div class="stat-info">
-                <span class="stat-number">{{ review.count }}</span>
-                <span class="stat-label">Em {{ review.days }} dia(s)</span>
+        <div class="fc-stats-row">
+            <div class="fc-mini-stat">
+                <span class="fc-mini-label">Revisados hoje</span>
+                <span class="fc-mini-value">{{ stats.reviewed_today }}</span>
+            </div>
+            <div class="fc-mini-stat">
+                <span class="fc-mini-label">Esta semana</span>
+                <span class="fc-mini-value">{{ stats.reviewed_week }}</span>
+            </div>
+            <div class="fc-mini-stat">
+                <span class="fc-mini-label">Taxa de acerto</span>
+                <span class="fc-mini-value">{{ stats.accuracy }}%</span>
             </div>
         </div>
-        {% endfor %}
-    </div>
 
-    {% if subject_reviews %}
-    <div class="section">
-        <h2 class="section-title">Revisão por Matéria</h2>
-        <div class="reviews-subject-list">
-            {% for subject, count in subject_reviews.items() %}
-            <div class="review-subject-item">
-                <span class="review-subject-name">{{ subject }}</span>
-                <span class="review-subject-count">{{ count }} card(s)</span>
-                <a href="/flashcards" class="btn btn-small">Revisar</a>
+        {% if subject_reviews %}
+        <div class="section">
+            <h2 class="section-title">Por Matéria</h2>
+            <div class="fc-subject-list">
+                {% for name, data in subject_reviews.items() %}
+                <div class="fc-subject-item">
+                    <div class="fc-subject-color" style="background: {{ data.color }}"></div>
+                    <div class="fc-subject-info">
+                        <span class="fc-subject-name">{{ name }}</span>
+                        <span class="fc-subject-meta">{{ data.count }} card(s) para revisar</span>
+                    </div>
+                    <a href="/flashcards/review" class="btn btn-small">Revisar</a>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
+        {% endif %}
+
+        {% if upcoming_reviews %}
+        <div class="section">
+            <h2 class="section-title">Próximas Revisões</h2>
+            <div class="fc-upcoming">
+                {% for review in upcoming_reviews %}
+                <div class="fc-upcoming-item">
+                    <span class="fc-upcoming-days">Em {{ review.days }} dia(s)</span>
+                    <span class="fc-upcoming-count">{{ review.count }} cards</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 
     <div class="section">
         <h2 class="section-title">Como Funciona</h2>
-        <div class="review-explanation">
-            <div class="review-step">
-                <span class="step-number">1</span>
-                <div class="step-content">
-                    <h3>Estude o assunto</h3>
-                    <p>Registre suas sessões de estudo no cronômetro</p>
-                </div>
-            </div>
-            <div class="review-step">
-                <span class="step-number">2</span>
-                <div class="step-content">
+        <div class="fc-explanation">
+            <div class="fc-explain-item">
+                <div class="fc-explain-icon">1</div>
+                <div class="fc-explain-text">
                     <h3>Crie flashcards</h3>
-                    <p>Adicione perguntas e respostas para revisão</p>
+                    <p>Adicione perguntas e respostas na aba Flashcards</p>
                 </div>
             </div>
-            <div class="review-step">
-                <span class="step-number">3</span>
-                <div class="step-content">
-                    <h3>Revise nos prazos</h3>
-                    <p>O sistema sugere revisão em 1, 7 e 30 dias</p>
+            <div class="fc-explain-item">
+                <div class="fc-explain-icon">2</div>
+                <div class="fc-explain-text">
+                    <h3>Revise quando agendado</h3>
+                    <p>O sistema agenda revisões nos melhores momentos</p>
                 </div>
             </div>
-            <div class="review-step">
-                <span class="step-number">4</span>
-                <div class="step-content">
-                    <h3>Fixe o conteudo</h3>
-                    <p>A repetição espaçada aumenta a retenção em até 200%</p>
+            <div class="fc-explain-item">
+                <div class="fc-explain-icon">3</div>
+                <div class="fc-explain-text">
+                    <h3>Avalie sua memória</h3>
+                    <p>Responda Errei, Difícil, Bom ou Fácil</p>
+                </div>
+            </div>
+            <div class="fc-explain-item">
+                <div class="fc-explain-icon">4</div>
+                <div class="fc-explain-text">
+                    <h3>O sistema aprende</h3>
+                    <p>Quanto melhor você lembrar, maior o intervalo</p>
                 </div>
             </div>
         </div>

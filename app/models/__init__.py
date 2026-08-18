@@ -7,7 +7,7 @@ from app.models.calendar_day import CalendarDay
 from app.models.achievement import Achievement
 from app.models.study_session import StudySession
 from app.models.subject import Subject
-from app.models.flashcard import Flashcard
+from app.models.flashcard import Flashcard, FlashcardReview
 from app.models.simulado import Simulado
 from app.models.subject_goal import SubjectGoal
 from app.models.user_session import UserSession
@@ -18,4 +18,4 @@ from app.models.journal import JournalEntry
 from app.models.today_plan import TodayPlanItem
 from app.models.study_goal import StudyGoal
 
-__all__ = ["User", "Phase", "Goal", "Project", "Habit", "CalendarDay", "Achievement", "StudySession", "Subject", "Flashcard", "Simulado", "SubjectGoal", "UserSession", "WeeklySchedule", "Exam", "ExamSubject", "Skill", "JournalEntry", "TodayPlanItem", "StudyGoal"]
+__all__ = ["User", "Phase", "Goal", "Project", "Habit", "CalendarDay", "Achievement", "StudySession", "Subject", "Flashcard", "FlashcardReview", "Simulado", "SubjectGoal", "UserSession", "WeeklySchedule", "Exam", "ExamSubject", "Skill", "JournalEntry", "TodayPlanItem", "StudyGoal"]

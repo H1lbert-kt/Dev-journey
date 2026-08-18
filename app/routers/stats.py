@@ -8,6 +8,7 @@ from app.services.phase_service import PhaseService
 from app.services.goal_service import GoalService
 from app.services.project_service import ProjectService
 from app.services.calendar_service import CalendarService
+from app.services.flashcard_srs import get_flashcard_stats
 from app.models.study_session import StudySession
 from app.models.study_goal import StudyGoal
 from app.models.simulado import Simulado
@@ -139,6 +140,8 @@ async def stats(request: Request, db: Session = Depends(get_db)):
         worst_subject = min(subjects_detail, key=lambda x: x["total_minutes"])
         best_subject = max(subjects_detail, key=lambda x: x["total_minutes"])
 
+    flashcard_stats = get_flashcard_stats(db, user.id, user.study_mode)
+
     return request.app.state.templates.TemplateResponse(
         request,
         "stats.html",
@@ -166,5 +169,6 @@ async def stats(request: Request, db: Session = Depends(get_db)):
             "weak_subjects": weak_subjects,
             "worst_subject": worst_subject,
             "best_subject": best_subject,
+            "flashcard_stats": flashcard_stats,
         },
     )

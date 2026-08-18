@@ -55,7 +55,7 @@ def get_db():
 def init_database():
     """Create tables and add missing columns. Safe for multi-worker startup."""
     from app.models import User, Phase, Goal, Project, Habit, CalendarDay
-    from app.models import Achievement, StudySession, Subject, Flashcard
+    from app.models import Achievement, StudySession, Subject, Flashcard, FlashcardReview
     from app.models import Simulado, SubjectGoal, UserSession, WeeklySchedule
     from app.models import Exam, ExamSubject, Skill, JournalEntry, TodayPlanItem
 
@@ -65,7 +65,7 @@ def init_database():
     required_tables = [
         "users", "user_sessions", "phases", "goals", "projects",
         "habits", "calendar_days", "achievements", "study_sessions",
-        "subjects", "flashcards", "simulados", "subject_goals",
+        "subjects", "flashcards", "flashcard_reviews", "simulados", "subject_goals",
         "weekly_schedule", "exams", "exam_subjects", "skills",
         "journal_entries", "today_plan_items", "study_goals",
     ]
@@ -114,6 +114,9 @@ def _add_missing_columns(inspector):
         ],
         "flashcards": [
             ("study_mode", "VARCHAR(20)", "'programacao'"),
+            ("review_count", "INTEGER", "0"),
+            ("streak", "INTEGER", "0"),
+            ("last_reviewed_at", "DATETIME", None),
         ],
         "today_plan_items": [
             ("study_mode", "VARCHAR(20)", "'programacao'"),
