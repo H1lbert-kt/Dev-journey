@@ -60,7 +60,7 @@
             </div>
             <div class="chart-stats">
                 <div class="chart-stat">
-                    <span class="chart-stat-label">Media</span>
+                    <span class="chart-stat-label">Media de Pontos</span>
                     <span class="chart-stat-value" id="chart-avg">--</span>
                 </div>
                 <div class="chart-stat">
@@ -257,7 +257,7 @@ function loadChartData() {
         .then(function(r) { return r.json(); })
         .then(function(data) {
             chartData = data;
-            document.getElementById('chart-avg').textContent = data.avg_score + '%';
+            document.getElementById('chart-avg').textContent = data.avg_score + 'pts';
             document.getElementById('chart-count').textContent = data.count + ' simulados';
             var trendEl = document.getElementById('chart-trend');
             if (data.trend === 'up') {
@@ -381,11 +381,10 @@ function renderChart() {
                 },
                 y: {
                     min: 0,
-                    max: 100,
                     grid: { color: '#21262d' },
                     ticks: {
                         color: '#8b949e',
-                        callback: function(value) { return value + '%'; }
+                        callback: function(value) { return value + 'pts'; }
                     }
                 }
             }

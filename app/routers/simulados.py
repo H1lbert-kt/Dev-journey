@@ -98,24 +98,23 @@ async def chart_data(request: Request, db: Session = Depends(get_db)):
 
     for s in simulados:
         labels.append(s.name)
-        scores.append(_get_score(s))
+        scores.append(_get_points(s))
         if s.correction_method == "cespe":
-            cespe_scores.append(_get_score(s))
+            cespe_scores.append(_get_points(s))
             normal_scores.append(None)
         else:
-            normal_scores.append(_get_score(s))
+            normal_scores.append(_get_points(s))
             cespe_scores.append(None)
 
     avg_score = 0
     if simulados:
-        total_correct = sum(s.correct_answers for s in simulados)
-        total_questions = sum(s.total_questions for s in simulados)
-        avg_score = round(total_correct / total_questions * 100, 1) if total_questions > 0 else 0
+        total_points = sum(_get_points(s) for s in simulados)
+        avg_score = round(total_points / len(simulados), 1)
 
     trend = "stable"
     if len(simulados) >= 2:
-        recent = _get_score(simulados[0])
-        prev = _get_score(simulados[1])
+        recent = _get_points(simulados[0])
+        prev = _get_points(simulados[1])
         diff = round(recent - prev, 1)
         if diff > 0:
             trend = "up"
