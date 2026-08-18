@@ -13,6 +13,46 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.get("/")
+async def study_goal_page(request: Request, db: Session = Depends(get_db)):
+    user = require_auth(request, db)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    active_goal = db.query(StudyGoal).filter(
+        StudyGoal.user_id == user.id,
+        StudyGoal.study_mode == user.study_mode,
+        StudyGoal.active == True,
+    ).first()
+
+    past_goals = db.query(StudyGoal).filter(
+        StudyGoal.user_id == user.id,
+        StudyGoal.study_mode == user.study_mode,
+        StudyGoal.active == False,
+    ).order_by(StudyGoal.created_at.desc()).all()
+
+    goal_days_until = None
+    if active_goal and active_goal.target_date:
+        goal_days_until = (active_goal.target_date - date.today()).days
+
+    exams = db.query(Exam).filter(
+        Exam.user_id == user.id,
+        Exam.study_mode == user.study_mode,
+    ).all()
+
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "study_goal.html",
+        context={
+            "active_goal": active_goal,
+            "past_goals": past_goals,
+            "goal_days_until": goal_days_until,
+            "exams": exams,
+            "study_mode": user.study_mode,
+        },
+    )
+
+
 @router.get("/api/active")
 async def get_active_goal(request: Request, db: Session = Depends(get_db)):
     user = require_auth(request, db)
@@ -40,7 +80,6 @@ async def get_active_goal(request: Request, db: Session = Depends(get_db)):
         "title": goal.title,
         "target_date": goal.target_date.isoformat() if goal.target_date else None,
         "days_until": days_until,
-        "active": True,
     }
 
     if goal.goal_type == "concurso" and goal.exam_id:

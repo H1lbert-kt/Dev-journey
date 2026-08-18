@@ -67,7 +67,7 @@ def init_database():
         "habits", "calendar_days", "achievements", "study_sessions",
         "subjects", "flashcards", "simulados", "subject_goals",
         "weekly_schedule", "exams", "exam_subjects", "skills",
-        "journal_entries", "today_plan_items",
+        "journal_entries", "today_plan_items", "study_goals",
     ]
 
     missing_tables = [t for t in required_tables if t not in existing_tables]
@@ -104,6 +104,7 @@ def _add_missing_columns(inspector):
         "users": [
             ("timer_state_seconds", "INTEGER", "0"),
             ("timer_state_subject", "VARCHAR(100)", "''"),
+            ("daily_goal_minutes", "INTEGER", "360"),
         ],
         "study_sessions": [
             ("session_type", "VARCHAR(20)", "'estudo'"),

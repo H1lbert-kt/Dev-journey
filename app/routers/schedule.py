@@ -20,7 +20,7 @@ async def schedule_page(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    subjects = db.query(Subject).filter(Subject.user_id == user.id).all()
+    subjects = db.query(Subject).filter(Subject.user_id == user.id, Subject.study_mode == user.study_mode).all()
 
     schedule = {}
     for day_idx in range(7):
@@ -89,7 +89,7 @@ async def add_to_schedule(
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first()
+    subject = db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id, Subject.study_mode == user.study_mode).first()
     if not subject:
         return RedirectResponse(url="/schedule", status_code=303)
 

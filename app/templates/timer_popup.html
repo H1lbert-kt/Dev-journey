@@ -129,7 +129,8 @@
         if (channel) {
             channel.postMessage({type: 'command', action: cmd});
         } else {
-            var state = JSON.parse(localStorage.getItem('ftState') || '{}');
+            var state = {};
+            try { state = JSON.parse(localStorage.getItem('ftState') || '{}'); } catch(e) { state = {}; }
             state.command = cmd;
             localStorage.setItem('ftPopupCommand', JSON.stringify(state));
         }
@@ -171,7 +172,8 @@
     }
 
     function syncFromLocalStorage() {
-        var state = JSON.parse(localStorage.getItem('ftState') || '{}');
+        var state = {};
+        try { state = JSON.parse(localStorage.getItem('ftState') || '{}'); } catch(e) { state = {}; }
         if (state.seconds !== undefined) {
             popupSeconds = state.seconds || 0;
             popupRunning = state.running || false;

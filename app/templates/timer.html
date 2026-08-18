@@ -188,7 +188,7 @@
             <div class="session-item" onclick="resumeFromHistory('{{ session.subject }}', {{ session.duration_minutes }})" style="cursor: pointer" title="Clique para retomar desta sessao">
                 <span class="session-subject">{{ session.subject }}</span>
                 <span class="session-duration">{{ "%.1f"|format(session.duration_minutes) }}min</span>
-                <span class="session-date">{{ session.date.strftime('%d/%m/%H:%M') }}</span>
+                <span class="session-date">{{ session.date.strftime('%d/%m/%H:%M') if session.date else '-' }}</span>
             </div>
             {% endfor %}
         </div>
@@ -440,7 +440,7 @@ function startTimer() {
                 if (sessionMode) {
                     saveAndMoveNext();
                 }
-                if (Notification.permission === 'granted') {
+                if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification('Pomodoro finalizado! Hora de descansar.');
                 }
             }

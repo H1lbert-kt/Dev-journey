@@ -100,7 +100,7 @@
                 <div class="simulado-info">
                     <h3>{{ simulado.name }}</h3>
                     <div class="simulado-meta">
-                        <span class="simulado-date">{{ simulado.created_at.strftime('%d/%m/%Y') }}</span>
+                        <span class="simulado-date">{{ simulado.created_at.strftime('%d/%m/%Y') if simulado.created_at else '-' }}</span>
                         {% if simulado.correction_method == "cespe" %}
                         <span class="simulado-method-badge">CESPE</span>
                         {% endif %}

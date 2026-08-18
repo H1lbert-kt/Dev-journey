@@ -383,7 +383,8 @@
     }
     updateLogo(currentStudyMode);
 
-    var ftState = JSON.parse(localStorage.getItem('ftState') || 'null');
+    var ftState = null;
+    try { ftState = JSON.parse(localStorage.getItem('ftState') || 'null'); } catch(e) { ftState = null; }
     var ftSeconds = ftState ? ftState.seconds : 0;
     var ftRunning = false;
     var ftInterval = null;

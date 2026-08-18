@@ -13,9 +13,12 @@ function closeModal(modalId) {
 }
 
 function openDayModal(date, notes) {
-    document.getElementById('modal-date').value = date;
-    document.getElementById('modal-date-not-studied').value = date;
-    document.getElementById('modal-notes').value = notes || '';
+    var d1 = document.getElementById('modal-date');
+    var d2 = document.getElementById('modal-date-not-studied');
+    var d3 = document.getElementById('modal-notes');
+    if (d1) d1.value = date;
+    if (d2) d2.value = date;
+    if (d3) d3.value = notes || '';
     openModal('day-modal');
 }
 
