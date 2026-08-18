@@ -45,16 +45,45 @@
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Registrar Simulado</h2>
+            <h2 class="section-title">Evolucao de Desempenho</h2>
             <button class="btn btn-primary" onclick="openModal('create-simulado-modal')">+ Novo Simulado</button>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-filters">
+                <button class="chart-filter active" data-filter="all" onclick="filterChart('all', this)">Todos</button>
+                <button class="chart-filter" data-filter="normal" onclick="filterChart('normal', this)">Normal</button>
+                <button class="chart-filter" data-filter="cespe" onclick="filterChart('cespe', this)">CESPE</button>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="performanceChart"></canvas>
+            </div>
+            <div class="chart-stats">
+                <div class="chart-stat">
+                    <span class="chart-stat-label">Media</span>
+                    <span class="chart-stat-value" id="chart-avg">--</span>
+                </div>
+                <div class="chart-stat">
+                    <span class="chart-stat-label">Tendencia</span>
+                    <span class="chart-stat-value" id="chart-trend">--</span>
+                </div>
+                <div class="chart-stat">
+                    <span class="chart-stat-label">Total</span>
+                    <span class="chart-stat-value" id="chart-count">0</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="section">
-        <h2 class="section-title">Historico</h2>
-        <div class="simulados-list">
+        <div class="section-header">
+            <h2 class="section-title">Historico</h2>
+            <p class="section-subtitle">Arraste para reordenar</p>
+        </div>
+        <div class="simulados-list" id="simulados-list">
             {% for simulado in simulados %}
-            <div class="simulado-item">
+            <div class="simulado-item" data-id="{{ simulado.id }}">
+                <div class="drag-handle" title="Arrastar para reordenar">&#9776;</div>
                 <div class="simulado-info">
                     <h3>{{ simulado.name }}</h3>
                     <div class="simulado-meta">
@@ -178,10 +207,191 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
 <script>
 var simInterval = null;
 var simSeconds = 0;
 var simRunning = false;
+var performanceChart = null;
+var chartData = {labels: [], scores: [], normal_scores: [], cespe_scores: []};
+var currentFilter = 'all';
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadChartData();
+    initSortable();
+});
+
+function initSortable() {
+    var list = document.getElementById('simulados-list');
+    if (list) {
+        new Sortable(list, {
+            handle: '.drag-handle',
+            animation: 200,
+            ghostClass: 'simulado-item-ghost',
+            dragClass: 'simulado-item-drag',
+            onEnd: function(evt) {
+                saveOrder();
+            }
+        });
+    }
+}
+
+function saveOrder() {
+    var list = document.getElementById('simulados-list');
+    var items = list.querySelectorAll('.simulado-item');
+    var order = [];
+    items.forEach(function(item) {
+        order.push(parseInt(item.dataset.id));
+    });
+
+    fetch('/simulados/reorder', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({order: order})
+    });
+}
+
+function loadChartData() {
+    fetch('/simulados/chart-data')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            chartData = data;
+            document.getElementById('chart-avg').textContent = data.avg_score + '%';
+            document.getElementById('chart-count').textContent = data.count + ' simulados';
+            var trendEl = document.getElementById('chart-trend');
+            if (data.trend === 'up') {
+                trendEl.textContent = '↑ Melhorando';
+                trendEl.className = 'chart-stat-value trend-up';
+            } else if (data.trend === 'down') {
+                trendEl.textContent = '↓ Piorando';
+                trendEl.className = 'chart-stat-value trend-down';
+            } else {
+                trendEl.textContent = '→ Estavel';
+                trendEl.className = 'chart-stat-value';
+            }
+            renderChart();
+        });
+}
+
+function filterChart(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.chart-filter').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    renderChart();
+}
+
+function renderChart() {
+    var ctx = document.getElementById('performanceChart').getContext('2d');
+    if (performanceChart) {
+        performanceChart.destroy();
+    }
+
+    var labels = chartData.labels.slice().reverse();
+    var datasets = [];
+
+    if (currentFilter === 'all' || currentFilter === 'normal') {
+        var normalData = chartData.normal_scores.slice().reverse();
+        if (normalData.some(function(v) { return v !== null; })) {
+            datasets.push({
+                label: 'Normal',
+                data: normalData,
+                borderColor: '#58a6ff',
+                backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                borderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.3,
+                spanGaps: false
+            });
+        }
+    }
+
+    if (currentFilter === 'all' || currentFilter === 'cespe') {
+        var cespeData = chartData.cespe_scores.slice().reverse();
+        if (cespeData.some(function(v) { return v !== null; })) {
+            datasets.push({
+                label: 'CESPE',
+                data: cespeData,
+                borderColor: '#f97583',
+                backgroundColor: 'rgba(249, 117, 131, 0.1)',
+                borderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.3,
+                spanGaps: false
+            });
+        }
+    }
+
+    if (datasets.length === 0) {
+        var allData = chartData.scores.slice().reverse();
+        datasets.push({
+            label: 'Nota (%)',
+            data: allData,
+            borderColor: '#58a6ff',
+            backgroundColor: 'rgba(88, 166, 255, 0.1)',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            tension: 0.3
+        });
+    }
+
+    performanceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: datasets.length > 1,
+                    labels: {
+                        color: '#8b949e',
+                        font: { size: 12 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#161b22',
+                    titleColor: '#f0f6fc',
+                    bodyColor: '#8b949e',
+                    borderColor: '#30363d',
+                    borderWidth: 1,
+                    callbacks: {
+                        afterLabel: function(ctx) {
+                            var idx = ctx.dataIndex;
+                            var reversedIdx = chartData.labels.length - 1 - idx;
+                            return 'Data: ' + (reversedIdx < chartData.labels.length ? '' : '');
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: '#21262d' },
+                    ticks: {
+                        color: '#8b949e',
+                        maxRotation: 45,
+                        font: { size: 11 }
+                    }
+                },
+                y: {
+                    min: 0,
+                    max: 100,
+                    grid: { color: '#21262d' },
+                    ticks: {
+                        color: '#8b949e',
+                        callback: function(value) { return value + '%'; }
+                    }
+                }
+            }
+        }
+    });
+}
 
 function simStartTimer() {
     if (simRunning) return;

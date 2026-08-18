@@ -91,6 +91,7 @@ def _add_missing_columns(inspector):
             ("null_answers", "INTEGER", "0"),
             ("correction_method", "VARCHAR(20)", "'normal'"),
             ("final_score", "FLOAT", None),
+            ("display_order", "INTEGER", "0"),
         ],
         "subjects": [
             ("color", "VARCHAR(7)", "'#58a6ff'"),
