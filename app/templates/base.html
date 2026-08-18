@@ -25,7 +25,47 @@
         <div class="sidebar-header">
             <h1 class="logo" id="site-logo">DevJourney</h1>
         </div>
+        {% set mode = request.state.study_mode|default("programacao") %}
         <ul class="nav-links">
+            {% if mode == "concursos" %}
+            <li class="nav-section-title">Concursos</li>
+            <li>
+                <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
+                    <span class="nav-icon">&#128202;</span>
+                    Home
+                </a>
+            </li>
+            <li>
+                <a href="/timer" class="nav-link {% if '/timer' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#9200;</span>
+                    Cronometro
+                </a>
+            </li>
+            <li>
+                <a href="/subjects" class="nav-link {% if '/subjects' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128218;</span>
+                    Materias
+                </a>
+            </li>
+            <li>
+                <a href="/simulados" class="nav-link {% if '/simulados' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128220;</span>
+                    Simulados
+                </a>
+            </li>
+            <li>
+                <a href="/flashcards" class="nav-link {% if '/flashcards' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127183;</span>
+                    Flashcards
+                </a>
+            </li>
+            <li>
+                <a href="/help" class="nav-link {% if '/help' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#10067;</span>
+                    Ajuda
+                </a>
+            </li>
+            {% else %}
             <li class="nav-section-title">Principal</li>
             <li>
                 <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
@@ -155,16 +195,17 @@
                     Ajuda
                 </a>
             </li>
+            {% endif %}
         </ul>
         <div class="sidebar-footer">
             <div class="mode-switch">
                 <form action="/switch-mode" method="post" id="mode-form">
                     <input type="hidden" name="mode" id="mode-input" value="">
                 </form>
-                <button type="button" class="mode-switch-btn" onclick="switchMode('programacao')" id="mode-prog">
+                <button type="button" class="mode-switch-btn {% if mode == 'programacao' %}active{% endif %}" onclick="switchMode('programacao')" id="mode-prog">
                     &#128187; <span>Programacao</span>
                 </button>
-                <button type="button" class="mode-switch-btn" onclick="switchMode('concursos')" id="mode-conc">
+                <button type="button" class="mode-switch-btn {% if mode == 'concursos' %}active{% endif %}" onclick="switchMode('concursos')" id="mode-conc">
                     &#128218; <span>Concursos</span>
                 </button>
             </div>
@@ -183,6 +224,38 @@
 
     <nav class="bottom-nav" id="bottom-nav">
         <ul class="bottom-nav-list">
+            {% if mode == "concursos" %}
+            <li class="bottom-nav-item">
+                <a href="/" class="bottom-nav-link {% if request.url.path == '/' %}active{% endif %}">
+                    <span class="nav-icon">&#128202;</span>
+                    Home
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/timer" class="bottom-nav-link {% if '/timer' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#9200;</span>
+                    Estudo
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/simulados" class="bottom-nav-link {% if '/simulados' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#128220;</span>
+                    Simul.
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/flashcards" class="bottom-nav-link {% if '/flashcards' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#127183;</span>
+                    Cards
+                </a>
+            </li>
+            <li class="bottom-nav-item">
+                <a href="/help" class="bottom-nav-link {% if '/help' in request.url.path %}active{% endif %}">
+                    <span class="nav-icon">&#10067;</span>
+                    Ajuda
+                </a>
+            </li>
+            {% else %}
             <li class="bottom-nav-item">
                 <a href="/" class="bottom-nav-link {% if request.url.path == '/' %}active{% endif %}">
                     <span class="nav-icon">&#128202;</span>
@@ -213,6 +286,7 @@
                     Stats
                 </a>
             </li>
+            {% endif %}
         </ul>
     </nav>
 
@@ -517,23 +591,6 @@
         document.getElementById('mode-input').value = mode;
         document.getElementById('mode-form').submit();
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        fetch('/mode').then(function(r) { return r.json(); }).then(function(data) {
-            var mode = data.mode || 'programacao';
-            var progBtn = document.getElementById('mode-prog');
-            var concBtn = document.getElementById('mode-conc');
-            if (mode === 'programacao') {
-                progBtn.classList.add('active');
-                concBtn.classList.remove('active');
-            } else {
-                concBtn.classList.add('active');
-                progBtn.classList.remove('active');
-            }
-        }).catch(function() {
-            document.getElementById('mode-prog').classList.add('active');
-        });
-    });
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {

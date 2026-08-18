@@ -247,13 +247,18 @@ function saveOrder() {
 }
 
 function loadChartData() {
+    var avgEl = document.getElementById('chart-avg');
+    var trendEl = document.getElementById('chart-trend');
+    var countEl = document.getElementById('chart-count');
+    var chartEl = document.getElementById('performanceChart');
+    if (!avgEl || !chartEl) return;
+
     fetch('/simulados/chart-data')
         .then(function(r) { return r.json(); })
         .then(function(data) {
             chartData = data;
-            document.getElementById('chart-avg').textContent = data.avg_score + 'pts';
-            document.getElementById('chart-count').textContent = data.count;
-            var trendEl = document.getElementById('chart-trend');
+            avgEl.textContent = data.avg_score + 'pts';
+            countEl.textContent = data.count;
             if (data.trend === 'up') {
                 trendEl.textContent = '↑ Melhorando';
                 trendEl.className = 'chart-stat-value trend-up';
@@ -267,8 +272,9 @@ function loadChartData() {
             renderChart();
         })
         .catch(function() {
-            document.getElementById('chart-avg').textContent = '--';
-            document.getElementById('chart-trend').textContent = 'Erro ao carregar';
+            avgEl.textContent = '--';
+            trendEl.textContent = 'Erro ao carregar';
+            if (countEl) countEl.textContent = '--';
         });
 }
 
@@ -280,7 +286,9 @@ function filterChart(filter, btn) {
 }
 
 function renderChart() {
-    var ctx = document.getElementById('performanceChart').getContext('2d');
+    var canvas = document.getElementById('performanceChart');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
     if (performanceChart) performanceChart.destroy();
 
     var labels = chartData.labels.slice().reverse();

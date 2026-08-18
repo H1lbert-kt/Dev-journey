@@ -28,7 +28,7 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
     simulados = db.query(Simulado).filter(
         Simulado.user_id == user.id
     ).order_by(
-        Simulado.display_order.desc(),
+        Simulado.display_order.asc(),
         Simulado.created_at.desc()
     ).all()
 
@@ -75,7 +75,6 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
             "best_score": best_score,
             "worst_score": worst_score if simulados else 0,
             "last_simulado": last_simulado,
-            "study_mode": user.study_mode,
         },
     )
 
@@ -89,7 +88,7 @@ async def chart_data(request: Request, db: Session = Depends(get_db)):
     simulados = db.query(Simulado).filter(
         Simulado.user_id == user.id
     ).order_by(
-        Simulado.display_order.desc(),
+        Simulado.display_order.asc(),
         Simulado.created_at.desc()
     ).all()
 
@@ -176,12 +175,16 @@ async def create_simulado(
     correct_answers: int = Form(...),
     wrong_answers: int = Form(0),
     correction_method: str = Form("normal"),
-    time_minutes: float = Form(...),
+    time_minutes: float = Form(0),
+    time_minutes_manual: float = Form(0),
     db: Session = Depends(get_db),
 ):
     user = require_auth(request, db)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
+
+    if time_minutes <= 0 and time_minutes_manual > 0:
+        time_minutes = time_minutes_manual
 
     if total_questions <= 0:
         return RedirectResponse(url="/simulados", status_code=303)
@@ -193,8 +196,9 @@ async def create_simulado(
         return RedirectResponse(url="/simulados", status_code=303)
     if correction_method not in ("normal", "cespe"):
         correction_method = "normal"
-    if len(name.strip()) > 200:
-        name = name.strip()[:200]
+    name = name.strip()
+    if len(name) > 200:
+        name = name[:200]
 
     null_answers = max(0, total_questions - correct_answers - wrong_answers)
 
