@@ -153,7 +153,7 @@ def get_due_cards(db: Session, user_id: int, study_mode: str) -> list:
     overdue = [c for c in due if c.review_count > 0]
     new_cards = [c for c in due if c.review_count == 0]
 
-    overdue.sort(key=lambda c: c.next_review)
+    overdue.sort(key=lambda c: c.next_review or datetime.min)
     new_cards.sort(key=lambda c: c.created_at)
 
     return overdue + new_cards
@@ -203,7 +203,7 @@ def get_flashcard_stats(db: Session, user_id: int, study_mode: str) -> dict:
         elif state == "mature":
             mature += 1
 
-        if card.next_review <= now:
+        if card.next_review and card.next_review <= now:
             due += 1
             if card.review_count > 0:
                 overdue += 1
@@ -242,7 +242,7 @@ def get_flashcard_stats(db: Session, user_id: int, study_mode: str) -> dict:
         if sname not in by_subject:
             by_subject[sname] = {"total": 0, "due": 0, "new": 0, "color": card.subject.color if card.subject else "#58a6ff"}
         by_subject[sname]["total"] += 1
-        if card.next_review <= now:
+        if card.next_review and card.next_review <= now:
             by_subject[sname]["due"] += 1
         if card.review_count == 0:
             by_subject[sname]["new"] += 1
