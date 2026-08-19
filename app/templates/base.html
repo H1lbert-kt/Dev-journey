@@ -395,6 +395,7 @@
     var ftPauseSeconds = 0;
     var ftPauseInterval = null;
     var ftChannel = null;
+    var ftStartTime = 0;
 
     if (typeof BroadcastChannel !== 'undefined') {
         ftChannel = new BroadcastChannel('devjourney-timer');
@@ -425,7 +426,8 @@
         localStorage.setItem('ftState', JSON.stringify({
             seconds: ftSeconds,
             subject: ftSubject,
-            running: ftRunning
+            running: ftRunning,
+            startTime: ftStartTime
         }));
         ftBroadcast();
     }
@@ -442,10 +444,16 @@
         if (ftSyncDisplay) ftSyncDisplay();
     }
 
+    function ftCalcSeconds() {
+        if (!ftRunning || ftStartTime <= 0) return ftSeconds;
+        return Math.floor((Date.now() - ftStartTime) / 1000);
+    }
+
     function ftStart(subject) {
         ftSubject = subject || defaultSubject;
         ftRunning = true;
         ftSeconds = 0;
+        ftStartTime = Date.now();
         ftSaveState();
         ftClearStateOnServer();
         document.getElementById('ft-subject').textContent = ftSubject;
@@ -453,7 +461,7 @@
         document.getElementById('ft-pause').innerHTML = '||';
         clearInterval(ftInterval);
         ftInterval = setInterval(function() {
-            ftSeconds++;
+            ftSeconds = ftCalcSeconds();
             ftSaveState();
             ftUpdateDisplay();
         }, 1000);
@@ -463,11 +471,12 @@
 
     function ftResume() {
         ftRunning = true;
+        ftStartTime = Date.now() - (ftSeconds * 1000);
         ftSaveState();
         ftClearStateOnServer();
         clearInterval(ftInterval);
         ftInterval = setInterval(function() {
-            ftSeconds++;
+            ftSeconds = ftCalcSeconds();
             ftSaveState();
             ftUpdateDisplay();
         }, 1000);
@@ -478,6 +487,7 @@
 
     function ftPause() {
         ftRunning = false;
+        ftSeconds = ftCalcSeconds();
         clearInterval(ftInterval);
         ftSaveState();
         ftSaveStateToServer();
@@ -489,8 +499,10 @@
 
     function ftStop() {
         clearInterval(ftInterval);
+        ftSeconds = ftCalcSeconds();
         var saved = ftSeconds;
         ftRunning = false;
+        ftStartTime = 0;
         ftStopKeepalive();
         ftStopPauseTimer();
         document.getElementById('floating-timer').style.display = 'none';
@@ -539,6 +551,7 @@
     function ftReset() {
         clearInterval(ftInterval);
         ftSeconds = 0;
+        ftStartTime = 0;
         ftRunning = false;
         localStorage.removeItem('ftState');
         ftClearStateOnServer();
@@ -641,7 +654,8 @@
                         localStorage.setItem('ftState', JSON.stringify({
                             seconds: ftSeconds,
                             subject: ftSubject,
-                            running: ftRunning
+                            running: ftRunning,
+                            startTime: ftStartTime
                         }));
                     }
                 });
@@ -692,25 +706,38 @@
         }
     }
 
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible' && ftRunning) {
+            ftSeconds = ftCalcSeconds();
+            ftUpdateDisplay();
+            ftSaveState();
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         ftRetryPendingSaves();
         var ft = document.getElementById('floating-timer');
         if (!ft) return;
 
         if (ftState && ftState.seconds > 0) {
+            ftSeconds = ftState.seconds;
+            ftSubject = ftState.subject || defaultSubject;
+            ftStartTime = ftState.startTime || 0;
             ft.style.display = 'block';
             document.getElementById('ft-subject').textContent = ftSubject;
-            ftUpdateDisplay();
-            if (ftState.running) {
+            if (ftState.running && ftStartTime > 0) {
                 ftRunning = true;
+                ftSeconds = ftCalcSeconds();
+                ftUpdateDisplay();
                 document.getElementById('ft-pause').innerHTML = '||';
                 ftInterval = setInterval(function() {
-                    ftSeconds++;
+                    ftSeconds = ftCalcSeconds();
                     ftSaveState();
                     ftUpdateDisplay();
                 }, 1000);
                 ftStartKeepalive();
             } else {
+                ftUpdateDisplay();
                 ftStartPauseTimer();
             }
         } else {
@@ -718,6 +745,7 @@
                 if (data && data.seconds > 0) {
                     ftSeconds = data.seconds;
                     ftSubject = data.subject || defaultSubject;
+                    ftStartTime = 0;
                     ftSaveState();
                     ft.style.display = 'block';
                     document.getElementById('ft-subject').textContent = ftSubject;
@@ -736,6 +764,7 @@
 
     window.addEventListener('beforeunload', function() {
         if (ftRunning) {
+            ftSeconds = ftCalcSeconds();
             ftSaveState();
         }
     });
