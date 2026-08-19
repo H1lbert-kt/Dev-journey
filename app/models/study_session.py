@@ -19,5 +19,5 @@ class StudySession(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="study_sessions")
-    exam = relationship("Exam")
-    project = relationship("Project")
+    exam = relationship("Exam", back_populates="study_sessions")
+    project = relationship("Project", back_populates="study_sessions")

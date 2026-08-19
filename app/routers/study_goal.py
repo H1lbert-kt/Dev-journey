@@ -83,7 +83,7 @@ async def get_active_goal(request: Request, db: Session = Depends(get_db)):
     }
 
     if goal.goal_type == "concurso" and goal.exam_id:
-        exam = db.query(Exam).filter(Exam.id == goal.exam_id).first()
+        exam = db.query(Exam).filter(Exam.id == goal.exam_id, Exam.user_id == user.id).first()
         if exam:
             data["exam_name"] = exam.name
             data["exam_organization"] = exam.organization
@@ -163,6 +163,7 @@ async def deactivate_goal(goal_id: int, request: Request, db: Session = Depends(
     goal = db.query(StudyGoal).filter(
         StudyGoal.id == goal_id,
         StudyGoal.user_id == user.id,
+        StudyGoal.study_mode == user.study_mode,
     ).first()
     if goal:
         goal.active = False
@@ -183,6 +184,7 @@ async def delete_goal(goal_id: int, request: Request, db: Session = Depends(get_
     goal = db.query(StudyGoal).filter(
         StudyGoal.id == goal_id,
         StudyGoal.user_id == user.id,
+        StudyGoal.study_mode == user.study_mode,
     ).first()
     if goal:
         db.delete(goal)

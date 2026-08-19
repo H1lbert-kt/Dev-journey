@@ -11,7 +11,10 @@ from argon2.exceptions import VerifyMismatchError, VerificationError, InvalidHas
 
 logger = logging.getLogger(__name__)
 
-SECRET_KEY = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    SECRET_KEY = secrets.token_hex(32)
+    logger.warning("SECRET_KEY not set - using random key. Sessions will be lost on restart. Set SECRET_KEY env var for persistence.")
 SESSION_EXPIRY_HOURS = 24
 
 _ph = PasswordHasher(
@@ -129,6 +132,7 @@ def sanitize_input(value: str) -> str:
     if not value:
         return value
     value = value.strip()
+    value = value.replace("&", "&amp;")
     value = value.replace("<", "&lt;").replace(">", "&gt;")
     value = value.replace('"', "&quot;").replace("'", "&#x27;")
     return value

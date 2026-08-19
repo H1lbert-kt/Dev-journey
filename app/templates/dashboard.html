@@ -67,7 +67,7 @@
         <h2 class="section-title">Hoje</h2>
         <div class="today-progress-bar-wrap">
             <div class="today-progress-bar">
-                <div class="today-progress-fill" style="width: {{ (today_minutes / daily_goal * 100) if daily_goal > 0 else 0 }}%"></div>
+                <div class="today-progress-fill" style="width: {{ (today_minutes / (daily_goal or 360) * 100) if (daily_goal or 360) > 0 else 0 }}%"></div>
             </div>
             <span class="today-progress-text">{{ today_minutes }}min / {{ daily_goal }}min</span>
         </div>

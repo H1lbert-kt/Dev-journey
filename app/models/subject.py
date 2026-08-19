@@ -17,3 +17,6 @@ class Subject(Base):
     user = relationship("User", back_populates="subjects")
     flashcards = relationship("Flashcard", back_populates="subject", cascade="all, delete-orphan")
     goals = relationship("SubjectGoal", back_populates="subject", cascade="all, delete-orphan")
+    journal_entries = relationship("JournalEntry", back_populates="subject")
+    today_plan_items = relationship("TodayPlanItem", back_populates="subject")
+    weekly_schedules = relationship("WeeklySchedule", back_populates="subject")

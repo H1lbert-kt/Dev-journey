@@ -11,7 +11,7 @@
 
     <div class="simulado-result-card">
         <div class="simulado-result-score">
-            <span class="simulado-result-number">{{ "%.0f"|format(simulado.score) }}%</span>
+            <span class="simulado-result-number">{{ "%.0f"|format(simulado.score or 0) }}%</span>
             <span class="simulado-result-detail">{{ simulado.correct_answers }}/{{ simulado.total_questions }} questões</span>
         </div>
 
@@ -47,7 +47,7 @@
         </div>
     </div>
 
-    {% if simulado.score < 70 %}
+    {% if simulado.score is not none and simulado.score < 70 %}
     <div class="simulado-attention">
         <span class="simulado-attention-icon">&#9888;</span>
         <div class="simulado-attention-content">

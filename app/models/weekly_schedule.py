@@ -15,7 +15,7 @@ class WeeklySchedule(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="weekly_schedule")
-    subject = relationship("Subject")
+    subject = relationship("Subject", back_populates="weekly_schedules")
 
     __table_args__ = (
         UniqueConstraint("user_id", "subject_id", "day_of_week", name="uq_user_subject_day"),

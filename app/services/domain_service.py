@@ -193,4 +193,4 @@ class DomainService:
             else:
                 parts.append(f"há {days_since} dias")
 
-        return "Baseado no seu desempenho recente."
+        return " ".join(parts) if parts else "Baseado no seu desempenho recente."

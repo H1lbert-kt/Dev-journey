@@ -228,7 +228,7 @@ async def save_timer_state(
     if not user:
         return JSONResponse(content={"error": "unauthorized"}, status_code=401)
 
-    user.timer_state_seconds = max(0, seconds)
+    user.timer_state_seconds = max(0, min(seconds, 86400))
     user.timer_state_subject = subject[:100] if subject else ""
     try:
         db.commit()

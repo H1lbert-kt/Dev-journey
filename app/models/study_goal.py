@@ -21,4 +21,4 @@ class StudyGoal(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="study_goals")
-    exam = relationship("Exam", foreign_keys=[exam_id])
+    exam = relationship("Exam", back_populates="study_goals", foreign_keys=[exam_id])

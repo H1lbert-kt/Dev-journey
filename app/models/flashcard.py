@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float, Boolean
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float, Boolean, func
 from sqlalchemy.orm import relationship
 from app.database.connection import Base
 from datetime import datetime
@@ -19,8 +19,8 @@ class Flashcard(Base):
     review_count = Column(Integer, nullable=False, default=0)
     streak = Column(Integer, nullable=False, default=0)
     last_reviewed_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, onupdate=datetime.now)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now())
 
     subject = relationship("Subject", back_populates="flashcards")
     user = relationship("User", back_populates="flashcards")

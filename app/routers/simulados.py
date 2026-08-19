@@ -333,10 +333,16 @@ async def simulado_result(simulado_id: int, request: Request, db: Session = Depe
 
     comparison = None
     if len(all_simulados) >= 2:
-        prev = all_simulados[1] if all_simulados[0].id == simulado.id else all_simulados[0]
-        if prev and prev.score is not None and simulado.score is not None:
-            diff = round(simulado.score - prev.score, 1)
-            comparison = {"previous_score": prev.score, "diff": diff}
+        sim_index = None
+        for idx, s in enumerate(all_simulados):
+            if s.id == simulado.id:
+                sim_index = idx
+                break
+        if sim_index is not None and sim_index + 1 < len(all_simulados):
+            prev = all_simulados[sim_index + 1]
+            if prev and prev.score is not None and simulado.score is not None:
+                diff = round(simulado.score - prev.score, 1)
+                comparison = {"previous_score": prev.score, "diff": diff}
 
     return request.app.state.templates.TemplateResponse(
         request,

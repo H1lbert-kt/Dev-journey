@@ -21,3 +21,5 @@ class Project(Base):
     updated_at = Column(DateTime, onupdate=func.now())
 
     user = relationship("User", back_populates="projects")
+    study_sessions = relationship("StudySession", back_populates="project")
+    journal_entries = relationship("JournalEntry", back_populates="project")

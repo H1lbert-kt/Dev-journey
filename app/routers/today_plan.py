@@ -113,7 +113,7 @@ async def create_item(
     item = TodayPlanItem(
         title=title.strip(),
         subject_id=subject_id if subject_id else None,
-        estimated_minutes=estimated_minutes if estimated_minutes else None,
+        estimated_minutes=estimated_minutes,
         time_optional=time_optional.strip() if time_optional.strip() else None,
         priority=priority,
         item_type=item_type,
@@ -182,7 +182,7 @@ async def update_item(
 
     item.title = title.strip()
     item.subject_id = subject_id if subject_id else None
-    item.estimated_minutes = estimated_minutes if estimated_minutes else None
+    item.estimated_minutes = estimated_minutes
     item.time_optional = time_optional.strip() if time_optional.strip() else None
     item.priority = priority
     item.item_type = item_type

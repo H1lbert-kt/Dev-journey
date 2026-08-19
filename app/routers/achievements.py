@@ -118,7 +118,7 @@ def _get_streak(user_id, db):
     streak = 0
     check_date = today
 
-    while True:
+    while streak < 1000:
         day = db.query(CalendarDay).filter(
             CalendarDay.user_id == user_id,
             CalendarDay.date == check_date,

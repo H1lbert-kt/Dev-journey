@@ -182,6 +182,7 @@ async def api_review_batch(request: Request, db: Session = Depends(get_db)):
             result = process_review(db, card, quality, user.id)
             results.append({"card_id": card_id, "success": True})
         except Exception:
+            db.rollback()
             results.append({"card_id": card_id, "success": False})
 
     return JSONResponse({"processed": len(results), "results": results})

@@ -47,7 +47,7 @@
     <div class="timer-section">
         <div class="timer-card">
             <div class="timer-progress-bar">
-                <div class="timer-progress-fill" style="width: {{ (today_minutes / daily_goal * 100) if daily_goal > 0 else 0 }}%"></div>
+                <div class="timer-progress-fill" style="width: {{ (today_minutes / (daily_goal or 360) * 100) if (daily_goal or 360) > 0 else 0 }}%"></div>
             </div>
 
             <div class="schedule-selector" id="schedule-selector">
@@ -682,7 +682,7 @@ if ('Notification' in window && Notification.permission === 'default') {
 (function() {
     var sel = document.getElementById('timer-subject');
     for (var i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].value === '{{ auto_subject }}') {
+        if (sel.options[i].value === {{ auto_subject|tojson }}) {
             sel.selectedIndex = i;
             break;
         }

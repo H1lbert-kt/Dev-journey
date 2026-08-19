@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float, Date
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float, Date, func
 from sqlalchemy.orm import relationship
 from app.database.connection import Base
 from datetime import datetime
@@ -19,11 +19,13 @@ class Exam(Base):
     notes = Column(Text, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     study_mode = Column(String(20), nullable=False, default="programacao")
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, onupdate=datetime.now)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="exams")
     subjects = relationship("ExamSubject", back_populates="exam", cascade="all, delete-orphan")
+    study_sessions = relationship("StudySession", back_populates="exam")
+    study_goals = relationship("StudyGoal", back_populates="exam")
 
 
 class ExamSubject(Base):
@@ -34,7 +36,7 @@ class ExamSubject(Base):
     name = Column(String(200), nullable=False)
     weight = Column(Float, nullable=False, default=1.0)
     progress = Column(Float, nullable=False, default=0.0)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, onupdate=datetime.now)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now())
 
     exam = relationship("Exam", back_populates="subjects")
