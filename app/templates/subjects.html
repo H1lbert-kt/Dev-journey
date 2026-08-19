@@ -11,22 +11,32 @@
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Matérias Cadastradas</h2>
-            <button class="btn btn-primary" onclick="openModal('create-subject-modal')">+ Nova Matéria</button>
+            <h2 class="section-title">Matérias</h2>
+            <button class="btn btn-primary" onclick="openModal('create-subject-modal')">+ Nova</button>
         </div>
 
-        <div class="subjects-grid">
-            {% for subject in subjects %}
-            <div class="subject-card" style="border-left: 4px solid {{ subject.color }}">
-                <div class="subject-info">
-                    <h3>{{ subject.name }}</h3>
-                </div>
-                <form action="/subjects/{{ subject.id }}/delete" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta matéria?')">
+        {% if subjects_domain %}
+        <div class="subjects-health-list">
+            {% for sd in subjects_domain %}
+            <div class="subject-health-item">
+                <span class="subject-health-dot" style="background: {{ sd.subject.color }}"></span>
+                <span class="subject-health-name">{{ sd.subject.name }}</span>
+                <span class="subject-health-domain">{{ sd.domain }}%</span>
+                <span class="subject-health-status health-{{ sd.health }}">{{ sd.health_label }}</span>
+                <form action="/subjects/{{ sd.subject.id }}/delete" method="post" onsubmit="return confirm('Excluir {{ sd.subject.name }}?')" style="margin-left: auto;">
                     <button type="submit" class="delete-btn" title="Excluir">&times;</button>
                 </form>
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-state-icon">&#128218;</span>
+            <h3>Nenhuma matéria</h3>
+            <p>Crie sua primeira matéria para começar a acompanhar</p>
+            <button class="btn btn-primary" onclick="openModal('create-subject-modal')">Criar matéria</button>
+        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -49,4 +59,18 @@
         </form>
     </div>
 </div>
+
+<style>
+.subjects-health-list { display: flex; flex-direction: column; gap: 6px; }
+.subject-health-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--bg-raised); border-radius: 8px; }
+.subject-health-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.subject-health-name { flex: 1; font-size: 14px; color: var(--fg-1); }
+.subject-health-domain { font-size: 13px; font-weight: 600; color: var(--fg-2); }
+.subject-health-status { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+.health-ok { background: #3fb95018; color: #3fb950; }
+.health-attention { background: #d2992218; color: #d29922; }
+.health-critical { background: #f8514918; color: #f85149; }
+.delete-btn { background: none; border: none; color: var(--fg-3); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 4px; }
+.delete-btn:hover { color: #f85149; background: #f8514918; }
+</style>
 {% endblock %}

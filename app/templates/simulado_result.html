@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Resultado - DevJourney{% endblock %}
+
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1 class="page-title">{{ simulado.name }}</h1>
+        <p class="page-subtitle">Resultado do simulado</p>
+    </div>
+
+    <div class="simulado-result-card">
+        <div class="simulado-result-score">
+            <span class="simulado-result-number">{{ "%.0f"|format(simulado.score) }}%</span>
+            <span class="simulado-result-detail">{{ simulado.correct_answers }}/{{ simulado.total_questions }} questões</span>
+        </div>
+
+        {% if comparison %}
+        <div class="simulado-comparison">
+            {% if comparison.diff > 0 %}
+            <span class="simulado-diff up">&#9650; +{{ comparison.diff }}% em relação ao anterior</span>
+            {% elif comparison.diff < 0 %}
+            <span class="simulado-diff down">&#9660; {{ comparison.diff }}% em relação ao anterior</span>
+            {% else %}
+            <span class="simulado-diff">Igual ao anterior</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="simulado-result-details">
+            <div class="simulado-detail-item">
+                <span class="simulado-detail-label">Método</span>
+                <span class="simulado-detail-value">{{ simulado.correction_method|upper }}</span>
+            </div>
+            {% if simulado.wrong_answers > 0 %}
+            <div class="simulado-detail-item">
+                <span class="simulado-detail-label">Erros</span>
+                <span class="simulado-detail-value">{{ simulado.wrong_answers }}</span>
+            </div>
+            {% endif %}
+            {% if simulado.time_minutes > 0 %}
+            <div class="simulado-detail-item">
+                <span class="simulado-detail-label">Tempo</span>
+                <span class="simulado-detail-value">{{ simulado.time_minutes }}min</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if simulado.score < 70 %}
+    <div class="simulado-attention">
+        <span class="simulado-attention-icon">&#9888;</span>
+        <div class="simulado-attention-content">
+            <strong>Ponto de atenção</strong>
+            <p>Seu desempenho ficou abaixo de 70%. Considere revisar o conteúdo.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="simulado-actions">
+        <a href="/simulados" class="btn btn-primary btn-full">Ver todos os simulados</a>
+        <a href="/today-plan" class="btn btn-full">Ir para o plano</a>
+    </div>
+</div>
+
+<style>
+.simulado-result-card {
+    background: var(--bg-raised);
+    border-radius: 12px;
+    padding: 32px 24px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+.simulado-result-score { margin-bottom: 16px; }
+.simulado-result-number { font-size: 48px; font-weight: 700; color: var(--fg-0); display: block; }
+.simulado-result-detail { font-size: 14px; color: var(--fg-3); }
+.simulado-comparison { margin-bottom: 16px; }
+.simulado-diff { font-size: 14px; font-weight: 500; }
+.simulado-diff.up { color: #3fb950; }
+.simulado-diff.down { color: #f85149; }
+.simulado-result-details { display: flex; justify-content: center; gap: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+.simulado-detail-item { text-align: center; }
+.simulado-detail-label { display: block; font-size: 11px; color: var(--fg-3); text-transform: uppercase; }
+.simulado-detail-value { display: block; font-size: 16px; font-weight: 600; color: var(--fg-1); margin-top: 2px; }
+
+.simulado-attention {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #d2992218;
+    border: 1px solid #d2992240;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+.simulado-attention-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.simulado-attention-content strong { display: block; color: #d29922; font-size: 14px; }
+.simulado-attention-content p { color: var(--fg-2); font-size: 13px; margin: 4px 0 0; }
+
+.simulado-actions { display: flex; flex-direction: column; gap: 8px; }
+</style>
+{% endblock %}

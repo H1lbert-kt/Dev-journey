@@ -5,6 +5,7 @@ from datetime import date
 from app.database.connection import get_db
 from app.models.today_plan import TodayPlanItem
 from app.models.subject import Subject
+from app.models.weekly_schedule import WeeklySchedule
 from app.routers.auth import require_auth
 
 router = APIRouter()
@@ -39,6 +40,54 @@ async def today_plan_page(request: Request, db: Session = Depends(get_db)):
             "study_mode": user.study_mode,
         },
     )
+
+
+@router.post("/generate-from-schedule")
+async def generate_from_schedule(request: Request, db: Session = Depends(get_db)):
+    user = require_auth(request, db)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    today = date.today()
+    day_of_week = today.weekday()
+
+    existing = db.query(TodayPlanItem).filter(
+        TodayPlanItem.user_id == user.id,
+        TodayPlanItem.study_mode == user.study_mode,
+        TodayPlanItem.date == today,
+    ).count()
+    if existing > 0:
+        return RedirectResponse(url="/today-plan", status_code=303)
+
+    schedule_entries = db.query(WeeklySchedule).filter(
+        WeeklySchedule.user_id == user.id,
+        WeeklySchedule.day_of_week == day_of_week,
+    ).order_by(WeeklySchedule.order).all()
+
+    created = 0
+    for entry in schedule_entries:
+        subject = db.query(Subject).filter(Subject.id == entry.subject_id).first()
+        if subject:
+            item = TodayPlanItem(
+                title=subject.name,
+                subject_id=subject.id,
+                estimated_minutes=45,
+                priority="media",
+                item_type="estudo",
+                date=today,
+                user_id=user.id,
+                study_mode=user.study_mode,
+            )
+            db.add(item)
+            created += 1
+
+    if created > 0:
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+
+    return RedirectResponse(url="/today-plan", status_code=303)
 
 
 @router.post("/create")

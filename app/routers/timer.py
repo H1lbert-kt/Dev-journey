@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Request, Depends, Form
+from fastapi import APIRouter, Request, Depends, Form, Query
 from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from datetime import datetime, date
+from typing import Optional
 from app.database.connection import get_db
 from app.models.study_session import StudySession
 from app.models.subject import Subject
@@ -10,13 +11,21 @@ from app.models.calendar_day import CalendarDay
 from app.models.weekly_schedule import WeeklySchedule
 from app.models.exam import Exam
 from app.models.project import Project
+from app.models.today_plan import TodayPlanItem
 from app.routers.auth import require_auth
 
 router = APIRouter()
 
 
 @router.get("/")
-async def timer_page(request: Request, db: Session = Depends(get_db)):
+async def timer_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    subject: Optional[str] = Query(None),
+    duration: Optional[int] = Query(None),
+    auto_start: Optional[int] = Query(None),
+    plan_item: Optional[int] = Query(None),
+):
     user = require_auth(request, db)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
@@ -55,6 +64,10 @@ async def timer_page(request: Request, db: Session = Depends(get_db)):
             "today_minutes": round(today_minutes, 1),
             "daily_goal": user.daily_goal_minutes,
             "subject_minutes": subject_minutes,
+            "auto_subject": subject,
+            "auto_duration": duration,
+            "auto_start": auto_start == 1 if auto_start else False,
+            "plan_item_id": plan_item,
         },
     )
 

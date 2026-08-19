@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.database.connection import get_db
 from app.models.subject import Subject
 from app.models.weekly_schedule import WeeklySchedule
+from app.services.domain_service import DomainService
 from app.routers.auth import require_auth
 import logging
 
@@ -19,10 +20,13 @@ async def subjects_page(request: Request, db: Session = Depends(get_db)):
 
     subjects = db.query(Subject).filter(Subject.user_id == user.id, Subject.study_mode == user.study_mode).all()
 
+    domain_service = DomainService(db, user.id, user.study_mode)
+    subjects_domain = domain_service.get_all_subjects_domain()
+
     return request.app.state.templates.TemplateResponse(
         request,
         "subjects.html",
-        context={"subjects": subjects, "study_mode": user.study_mode},
+        context={"subjects": subjects, "subjects_domain": subjects_domain, "study_mode": user.study_mode},
     )
 
 

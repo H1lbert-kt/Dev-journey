@@ -122,11 +122,20 @@
         <div class="empty-state">
             <span class="empty-state-icon">&#128197;</span>
             <h3>Nenhuma atividade planejada para hoje</h3>
-            <p>Planeje seu dia!</p>
+            <p>Planeje seu dia ou gere automaticamente da agenda semanal</p>
+            <div class="empty-state-actions">
+                <form action="/today-plan/generate-from-schedule" method="post" style="display:inline">
+                    <button type="submit" class="btn btn-primary">Gerar da agenda</button>
+                </form>
+            </div>
         </div>
         {% endif %}
     </div>
 </div>
+
+<style>
+.empty-state-actions { display: flex; gap: 8px; margin-top: 12px; }
+</style>
 
 <div id="create-item-modal" class="modal">
     <div class="modal-content">
@@ -136,8 +145,8 @@
         </div>
         <form action="/today-plan/create" method="post">
             <div class="form-group">
-                <label>Titulo</label>
-                <input type="text" name="title" required class="input" placeholder="O que você vai fazer hoje?">
+                <label>O que você vai fazer?</label>
+                <input type="text" name="title" required class="input" placeholder="Ex: Estudar Probabilidade">
             </div>
             <div class="form-group">
                 <label>Matéria</label>
@@ -149,32 +158,13 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Tempo Estimado (minutos)</label>
+                <label>Duração (minutos)</label>
                 <input type="number" name="estimated_minutes" value="30" min="1" class="input">
             </div>
-            <div class="form-group">
-                <label>Horario (opcional)</label>
-                <input type="time" name="time_optional" class="input">
-            </div>
-            <div class="form-group">
-                <label>Prioridade</label>
-                <select name="priority" class="input">
-                    <option value="baixa">Baixa</option>
-                    <option value="media" selected>Media</option>
-                    <option value="alta">Alta</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Tipo</label>
-                <select name="item_type" class="input">
-                    <option value="estudo">Estudo</option>
-                    <option value="revisao">Revisão</option>
-                    <option value="simulado">Simulado</option>
-                    <option value="projeto">Projeto</option>
-                    <option value="concurso">Concurso</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary btn-full">Criar Atividade</button>
+            <input type="hidden" name="priority" value="media">
+            <input type="hidden" name="item_type" value="estudo">
+            <input type="hidden" name="time_optional" value="">
+            <button type="submit" class="btn btn-primary btn-full">Adicionar</button>
         </form>
     </div>
 </div>

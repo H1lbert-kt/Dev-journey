@@ -309,7 +309,42 @@ async def create_simulado(
         db.commit()
     except Exception:
         db.rollback()
-    return RedirectResponse(url="/simulados", status_code=303)
+    return RedirectResponse(url=f"/simulados/result/{simulado.id}", status_code=303)
+
+
+@router.get("/result/{simulado_id}")
+async def simulado_result(simulado_id: int, request: Request, db: Session = Depends(get_db)):
+    user = require_auth(request, db)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    simulado = db.query(Simulado).filter(
+        Simulado.id == simulado_id,
+        Simulado.user_id == user.id,
+    ).first()
+    if not simulado:
+        return RedirectResponse(url="/simulados", status_code=303)
+
+    all_simulados = db.query(Simulado).filter(
+        Simulado.user_id == user.id,
+        Simulado.study_mode == user.study_mode,
+    ).order_by(Simulado.created_at.desc()).all()
+
+    comparison = None
+    if len(all_simulados) >= 2:
+        prev = all_simulados[1] if all_simulados[0].id == simulado.id else all_simulados[0]
+        if prev and prev.score is not None and simulado.score is not None:
+            diff = round(simulado.score - prev.score, 1)
+            comparison = {"previous_score": prev.score, "diff": diff}
+
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "simulado_result.html",
+        context={
+            "simulado": simulado,
+            "comparison": comparison,
+        },
+    )
 
 
 @router.post("/{simulado_id}/delete")

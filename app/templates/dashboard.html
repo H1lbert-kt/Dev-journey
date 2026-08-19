@@ -18,89 +18,80 @@
         </p>
     </div>
 
-    {% if active_goal %}
-    <div class="goal-banner">
-        <div class="goal-banner-header">
-            <span class="goal-banner-icon">&#127919;</span>
-            <div class="goal-banner-info">
-                <h3>Seu objetivo</h3>
-                <p class="goal-banner-title">{{ active_goal.title }}</p>
+    {% if next_action %}
+    <div class="next-action-card" onclick="startNextAction()">
+        <div class="next-action-header">
+            <span class="next-action-label">Próxima ação</span>
+        </div>
+        <div class="next-action-body">
+            <div class="next-action-subject">
+                <span class="next-action-dot" style="background: {{ next_action.subject_color }}"></span>
+                <span class="next-action-subject-name">{{ next_action.subject }}</span>
+                <span class="next-action-activity">{{ next_action.activity }}</span>
             </div>
-            {% if goal_days_until is not none %}
-            <div class="goal-banner-countdown">
-                <span class="goal-countdown-number">{{ goal_days_until }}</span>
-                <span class="goal-countdown-label">dias</span>
-            </div>
-            {% endif %}
+            <div class="next-action-duration">{{ next_action.duration }} minutos</div>
+            <div class="next-action-reason">{{ next_action.reason }}</div>
+        </div>
+        <div class="next-action-footer">
+            <button class="btn btn-primary btn-full" id="btn-start-action">Começar</button>
         </div>
     </div>
+
+    <form id="start-action-form" action="/timer" method="get" style="display:none">
+        <input type="hidden" name="subject" id="action-subject" value="{{ next_action.subject }}">
+        <input type="hidden" name="duration" id="action-duration" value="{{ next_action.duration }}">
+        <input type="hidden" name="auto_start" value="1">
+    </form>
     {% endif %}
 
-    {% if recommendation %}
-    <div class="recommendation-card">
-        <span class="recommendation-icon">&#128161;</span>
-        <div class="recommendation-content">
-            <strong>Sugestão para hoje</strong>
-            <p>{{ recommendation.message }}</p>
-        </div>
+    <div class="quick-actions">
+        <a href="/timer" class="quick-action-btn">
+            <span class="quick-action-icon">&#9654;</span>
+            <span>Começar estudo</span>
+        </a>
+        <a href="/today-plan" class="quick-action-btn">
+            <span class="quick-action-icon">+</span>
+            <span>Nova tarefa</span>
+        </a>
+        <a href="/simulados" class="quick-action-btn">
+            <span class="quick-action-icon">&#128220;</span>
+            <span>Simulado</span>
+        </a>
+        <a href="/flashcards/review" class="quick-action-btn">
+            <span class="quick-action-icon">&#127183;</span>
+            <span>Flashcards</span>
+        </a>
     </div>
-    {% endif %}
 
     <div class="section">
-        <h2 class="section-title">Resumo do Dia</h2>
-        <div class="today-summary-grid">
-            <div class="today-card">
-                <div class="today-info">
-                    <h2>Tempo Estudado</h2>
-                    <span class="today-time">{{ today_minutes }}min</span>
-                </div>
-                <div class="today-progress">
-                    <span class="today-goal">Meta diaria: {{ daily_goal }}min</span>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: {{ (today_minutes / daily_goal * 100) if daily_goal > 0 else 0 }}%"></div>
-                    </div>
-                </div>
+        <h2 class="section-title">Hoje</h2>
+        <div class="today-progress-bar-wrap">
+            <div class="today-progress-bar">
+                <div class="today-progress-fill" style="width: {{ (today_minutes / daily_goal * 100) if daily_goal > 0 else 0 }}%"></div>
             </div>
-
-            <div class="today-stat-card">
-                <span class="today-stat-icon">&#128218;</span>
-                <span class="today-stat-number">{{ today_sessions_count }}</span>
-                <span class="today-stat-label">Sessões</span>
+            <span class="today-progress-text">{{ today_minutes }}min / {{ daily_goal }}min</span>
+        </div>
+        <div class="today-stats-row">
+            <div class="today-mini-stat">
+                <span class="today-mini-number">{{ today_sessions_count }}</span>
+                <span class="today-mini-label">sessões</span>
             </div>
-
-            <div class="today-stat-card">
-                <span class="today-stat-icon">&#9989;</span>
-                <span class="today-stat-number">{{ completed_plan_items }}/{{ total_plan_items }}</span>
-                <span class="today-stat-label">Plano</span>
+            <div class="today-mini-stat">
+                <span class="today-mini-number">{{ completed_plan_items }}/{{ total_plan_items }}</span>
+                <span class="today-mini-label">plano</span>
             </div>
-
-            <div class="today-stat-card">
-                <span class="today-stat-icon">&#128293;</span>
-                <span class="today-stat-number">{{ current_streak }}</span>
-                <span class="today-stat-label">Streak</span>
+            <div class="today-mini-stat">
+                <span class="today-mini-number">{{ current_streak }}</span>
+                <span class="today-mini-label">streak</span>
             </div>
         </div>
     </div>
-
-    {% if weak_subjects and study_mode == "concursos" %}
-    <div class="section">
-        <h2 class="section-title">&#9888; Atencao</h2>
-        <div class="weak-subjects-list">
-            {% for w in weak_subjects %}
-            <div class="weak-subject-item">
-                <span class="weak-subject-name">{{ w.name }}</span>
-                <span class="weak-subject-minutes">{{ w.minutes }}min esta semana</span>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
 
     <div class="section">
         <div class="section-header">
             <h2 class="section-title">Plano de Hoje</h2>
             {% if total_plan_items > 0 %}
-            <a href="/today-plan" class="btn btn-small">Gerenciar</a>
+            <a href="/today-plan" class="btn btn-small">Ver tudo</a>
             {% endif %}
         </div>
 
@@ -108,35 +99,105 @@
         <div class="plan-list">
             {% for item in today_plan_items %}
             <div class="plan-item {% if item.completed %}completed{% endif %}" id="dash-plan-item-{{ item.id }}">
-                <button class="plan-checkbox {% if item.completed %}checked{% endif %}" onclick="toggleDashPlanItem({{ item.id }})" id="dash-checkbox-{{ item.id }}">
+                <button class="plan-checkbox {% if item.completed %}checked{% endif %}" onclick="toggleDashPlanItem({{ item.id }})" id="dash-checkbox-{{ item.id }}" aria-label="Concluir tarefa">
                     {% if item.completed %}&#10004;{% else %}&#9744;{% endif %}
                 </button>
                 <div class="plan-item-content">
                     <span class="plan-item-title {% if item.completed %}completed-text{% endif %}" id="dash-title-{{ item.id }}">{{ item.title }}</span>
                     <div class="plan-item-meta">
                         {% if item.estimated_minutes %}
-                        <span class="plan-meta-item">&#9203; {{ item.estimated_minutes }}min</span>
+                        <span class="plan-meta-item">{{ item.estimated_minutes }}min</span>
                         {% endif %}
                         {% if item.subject %}
                         <span class="plan-badge plan-badge-subject" style="background-color: {{ item.subject.color or 'var(--accent)' }}18; color: {{ item.subject.color or 'var(--accent)' }}">{{ item.subject.name }}</span>
                         {% endif %}
-                        <span class="plan-badge plan-badge-priority priority-{{ item.priority }}">{{ item.priority }}</span>
                     </div>
                 </div>
+                {% if not item.completed and item.subject %}
+                <button class="btn btn-small btn-start-task" onclick="startTask({{ item.id }}, '{{ item.subject.name|e }}', {{ item.estimated_minutes or 30 }}, '{{ item.subject.color or '#58a6ff' }}')" aria-label="Iniciar tarefa">▶</button>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
         {% else %}
         <div class="empty-state">
             <span class="empty-state-icon">&#128203;</span>
-            <h3>Nenhum item no plano de hoje</h3>
-            <p>Crie seu plano em <a href="/today-plan">Plano de Hoje</a></p>
+            <h3>Plano vazio</h3>
+            <p>Adicione tarefas para organizar seus estudos</p>
+            <div class="empty-state-actions">
+                <form action="/today-plan/generate-from-schedule" method="post" style="display:inline">
+                    <button type="submit" class="btn btn-primary">Gerar da agenda</button>
+                </form>
+                <a href="/today-plan" class="btn">Criar manualmente</a>
+            </div>
         </div>
         {% endif %}
     </div>
 
-    {% if study_mode == "programacao" %}
-    {% if phases %}
+    <div class="section">
+        <button class="section-toggle" onclick="toggleSection('weekly-report')" id="toggle-weekly-report">
+            <h2 class="section-title">Esta semana</h2>
+            <span class="section-toggle-icon" id="icon-weekly-report">&#9660;</span>
+        </button>
+        <div class="section-collapsible" id="weekly-report" style="display:none">
+            <div class="weekly-report">
+                <div class="weekly-report-main">
+                    <span class="weekly-report-hours">{{ weekly_report.week_hours }}h</span>
+                    {% if weekly_report.week_pct > 0 %}
+                    <span class="weekly-report-change up">&#9650; {{ weekly_report.week_pct }}% vs semana anterior</span>
+                    {% elif weekly_report.week_pct < 0 %}
+                    <span class="weekly-report-change down">&#9660; {{ (weekly_report.week_pct * -1)|round(0) }}% vs semana anterior</span>
+                    {% else %}
+                    <span class="weekly-report-change">igual à semana anterior</span>
+                    {% endif %}
+                </div>
+                <div class="weekly-report-detail">
+                    <span>{{ weekly_report.sessions_count }} sessões concluídas</span>
+                </div>
+                {% if weekly_report.best_subject %}
+                <div class="weekly-report-highlight good">
+                    &#128200; {{ weekly_report.best_subject }} — mais estudada
+                </div>
+                {% endif %}
+                {% for att in weekly_report.attention_subjects %}
+                <div class="weekly-report-highlight attention">
+                    &#9888; {{ att.name }} — {{ att.reason }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% if subjects_domain %}
+    <div class="section">
+        <h2 class="section-title">Matérias</h2>
+        <div class="subjects-health-list">
+            {% for sd in subjects_domain %}
+            <div class="subject-health-item">
+                <span class="subject-health-dot" style="background: {{ sd.subject.color }}"></span>
+                <span class="subject-health-name">{{ sd.subject.name }}</span>
+                <span class="subject-health-domain">{{ sd.domain }}%</span>
+                <span class="subject-health-status health-{{ sd.health }}">{{ sd.health_label }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if active_goal %}
+    <div class="section">
+        <div class="goal-card">
+            <div class="goal-card-header">
+                <span>&#127919; {{ active_goal.title }}</span>
+                {% if goal_days_until is not none %}
+                <span class="goal-card-countdown">{{ goal_days_until }} dias</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if study_mode == "programacao" and phases %}
     <div class="section">
         <h2 class="section-title">Roadmap</h2>
         <div class="phases-grid">
@@ -149,59 +210,140 @@
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: {{ phase.progress }}%"></div>
                 </div>
-                <a href="/roadmap" class="phase-link">Abrir</a>
             </div>
             {% endfor %}
         </div>
     </div>
     {% endif %}
-    {% endif %}
-
-    <div class="section">
-        <div class="section-header">
-            <h2 class="section-title">Comparacoes</h2>
-        </div>
-        <div class="comparison-grid">
-            <div class="comparison-card">
-                <div class="comparison-header">
-                    <span class="comparison-label">Hoje vs Média dos últimos 7 dias</span>
-                </div>
-                <div class="comparison-body">
-                    <span class="comparison-value">{{ today_minutes }}min</span>
-                    <span class="comparison-vs">vs</span>
-                    <span class="comparison-value">{{ avg_daily }}min</span>
-                    {% if today_minutes > avg_daily %}
-                    <span class="comparison-arrow up">&#9650; {{ ((today_minutes - avg_daily) / (avg_daily if avg_daily > 0 else 1) * 100)|round(0) }}%</span>
-                    {% elif today_minutes < avg_daily %}
-                    <span class="comparison-arrow down">&#9660; {{ ((avg_daily - today_minutes) / (avg_daily if avg_daily > 0 else 1) * 100)|round(0) }}%</span>
-                    {% else %}
-                    <span class="comparison-arrow">-</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="comparison-card">
-                <div class="comparison-header">
-                    <span class="comparison-label">Esta semana vs Semana anterior</span>
-                </div>
-                <div class="comparison-body">
-                    <span class="comparison-value">{{ week_minutes }}min</span>
-                    <span class="comparison-vs">vs</span>
-                    <span class="comparison-value">{{ last_week_minutes }}min</span>
-                    {% if week_pct > 0 %}
-                    <span class="comparison-arrow up">&#9650; {{ week_pct }}%</span>
-                    {% elif week_pct < 0 %}
-                    <span class="comparison-arrow down">&#9660; {{ (week_pct * -1)|round(0) }}%</span>
-                    {% else %}
-                    <span class="comparison-arrow">-</span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
+<style>
+.next-action-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.next-action-card:hover { border-color: var(--accent-hover); }
+.next-action-header { margin-bottom: 12px; }
+.next-action-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); font-weight: 600; }
+.next-action-body { margin-bottom: 16px; }
+.next-action-subject { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.next-action-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.next-action-subject-name { font-size: 18px; font-weight: 600; color: var(--fg-0); }
+.next-action-activity { font-size: 13px; color: var(--fg-3); }
+.next-action-duration { font-size: 28px; font-weight: 700; color: var(--fg-0); margin: 4px 0; }
+.next-action-reason { font-size: 13px; color: var(--fg-2); line-height: 1.4; }
+.next-action-footer { margin-top: 8px; }
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+}
+.quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--fg-1);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.15s;
+    text-align: center;
+}
+.quick-action-btn:hover { border-color: var(--accent); color: var(--fg-0); }
+.quick-action-icon { font-size: 20px; }
+
+.today-progress-bar-wrap { margin-bottom: 12px; }
+.today-progress-bar { height: 6px; background: var(--bg-overlay); border-radius: 3px; overflow: hidden; }
+.today-progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
+.today-progress-text { font-size: 12px; color: var(--fg-3); margin-top: 4px; display: block; }
+
+.today-stats-row { display: flex; gap: 16px; }
+.today-mini-stat { display: flex; flex-direction: column; align-items: center; }
+.today-mini-number { font-size: 20px; font-weight: 700; color: var(--fg-0); }
+.today-mini-label { font-size: 11px; color: var(--fg-3); }
+
+.btn-start-task {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #0c0e12;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+.btn-start-task:hover { opacity: 0.85; }
+
+.section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+.section-toggle .section-title { margin: 0; }
+.section-toggle-icon { font-size: 12px; color: var(--fg-3); transition: transform 0.2s; }
+
+.weekly-report { padding: 12px 0; }
+.weekly-report-main { margin-bottom: 8px; }
+.weekly-report-hours { font-size: 24px; font-weight: 700; color: var(--fg-0); }
+.weekly-report-change { font-size: 13px; margin-left: 8px; }
+.weekly-report-change.up { color: #3fb950; }
+.weekly-report-change.down { color: #f85149; }
+.weekly-report-detail { font-size: 13px; color: var(--fg-2); margin-bottom: 8px; }
+.weekly-report-highlight { font-size: 13px; padding: 6px 10px; border-radius: 6px; margin-top: 4px; }
+.weekly-report-highlight.good { background: #3fb95018; color: #3fb950; }
+.weekly-report-highlight.attention { background: #d2992218; color: #d29922; }
+
+.subjects-health-list { display: flex; flex-direction: column; gap: 6px; }
+.subject-health-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg-raised); border-radius: 8px; }
+.subject-health-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.subject-health-name { flex: 1; font-size: 14px; color: var(--fg-1); }
+.subject-health-domain { font-size: 13px; font-weight: 600; color: var(--fg-2); }
+.subject-health-status { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+.health-ok { background: #3fb95018; color: #3fb950; }
+.health-attention { background: #d2992218; color: #d29922; }
+.health-critical { background: #f8514918; color: #f85149; }
+
+.goal-card { background: var(--bg-raised); border-radius: 10px; padding: 14px 16px; }
+.goal-card-header { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--fg-1); }
+.goal-card-countdown { font-weight: 700; color: var(--accent); }
+
+@media (max-width: 640px) {
+    .quick-actions { grid-template-columns: repeat(2, 1fr); }
+    .next-action-duration { font-size: 22px; }
+}
+.empty-state-actions { display: flex; gap: 8px; margin-top: 12px; }
+.empty-state-actions .btn { font-size: 13px; }
+</style>
+
 <script>
+function startNextAction() {
+    var form = document.getElementById('start-action-form');
+    if (form) form.submit();
+}
+
+function startTask(itemId, subjectName, duration, color) {
+    var url = '/timer?subject=' + encodeURIComponent(subjectName) + '&duration=' + duration + '&auto_start=1&plan_item=' + itemId;
+    window.location.href = url;
+}
+
 function toggleDashPlanItem(id) {
     var item = document.getElementById('dash-plan-item-' + id);
     var checkbox = document.getElementById('dash-checkbox-' + id);
@@ -223,6 +365,8 @@ function toggleDashPlanItem(id) {
             checkbox.classList.add('checked');
             checkbox.innerHTML = '&#10004;';
             title.classList.add('completed-text');
+            var btn = item.querySelector('.btn-start-task');
+            if (btn) btn.style.display = 'none';
         } else {
             item.classList.remove('completed');
             checkbox.classList.remove('checked');
@@ -239,9 +383,21 @@ function toggleDashPlanItem(id) {
 function updatePlanCount() {
     var total = document.querySelectorAll('.plan-list .plan-item').length;
     var completed = document.querySelectorAll('.plan-list .plan-item.completed').length;
-    var countEl = document.querySelectorAll('.today-stat-number');
+    var countEl = document.querySelectorAll('.today-mini-number');
     if (countEl.length > 1) {
         countEl[1].textContent = completed + '/' + total;
+    }
+}
+
+function toggleSection(id) {
+    var el = document.getElementById(id);
+    var icon = document.getElementById('icon-' + id);
+    if (el.style.display === 'none') {
+        el.style.display = 'block';
+        if (icon) icon.innerHTML = '&#9650;';
+    } else {
+        el.style.display = 'none';
+        if (icon) icon.innerHTML = '&#9660;';
     }
 }
 </script>

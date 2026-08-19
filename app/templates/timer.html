@@ -238,6 +238,7 @@ var sessionResults = [];
 var currentSessionType = 'estudo';
 var currentProjectId = null;
 var currentExamId = null;
+var linkedPlanItemId = {{ plan_item_id|default('null', true) }};
 
 function setSessionType(type) {
     currentSessionType = type;
@@ -459,16 +460,22 @@ function pauseTimer() {
 }
 
 function saveAndMoveNext() {
-    if (!sessionMode) return;
+    if (!sessionMode && !linkedPlanItemId) return;
 
-    var subjectName = scheduleSubjects[currentScheduleIndex].name;
-    var duration = ftSeconds;
+    var subjectName, duration;
 
-    sessionResults.push({
-        name: subjectName,
-        color: scheduleSubjects[currentScheduleIndex].color,
-        seconds: duration
-    });
+    if (sessionMode) {
+        subjectName = scheduleSubjects[currentScheduleIndex].name;
+        duration = ftSeconds;
+        sessionResults.push({
+            name: subjectName,
+            color: scheduleSubjects[currentScheduleIndex].color,
+            seconds: duration
+        });
+    } else {
+        subjectName = document.getElementById('timer-subject').value;
+        duration = ftSeconds;
+    }
 
     if (duration > 0) {
         var formData = new FormData();
@@ -500,6 +507,13 @@ function saveAndMoveNext() {
         attemptSave(2);
     }
 
+    if (linkedPlanItemId && !sessionMode) {
+        fetch('/today-plan/' + linkedPlanItemId + '/toggle', { method: 'POST' })
+            .then(function(r) { return r.json(); })
+            .catch(function() {});
+        linkedPlanItemId = null;
+    }
+
     currentScheduleIndex++;
 
     if (currentScheduleIndex >= scheduleSubjects.length) {
@@ -523,7 +537,7 @@ function stopTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
 
-    if (sessionMode) {
+    if (sessionMode || linkedPlanItemId) {
         saveAndMoveNext();
         return;
     }
@@ -663,5 +677,23 @@ document.addEventListener('DOMContentLoaded', function() {
 if ('Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
 }
+
+{% if auto_subject %}
+(function() {
+    var sel = document.getElementById('timer-subject');
+    for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === '{{ auto_subject }}') {
+            sel.selectedIndex = i;
+            break;
+        }
+    }
+    {% if auto_duration %}
+    setPomodoro({{ auto_duration }});
+    {% endif %}
+    {% if auto_start %}
+    startTimer();
+    {% endif %}
+})();
+{% endif %}
 </script>
 {% endblock %}
