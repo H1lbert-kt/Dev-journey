@@ -23,8 +23,11 @@ class PhaseRepository:
 
     def create(self, phase: Phase) -> Phase:
         self.db.add(phase)
-        self.db.commit()
-        self.db.refresh(phase)
+        try:
+            self.db.commit()
+            self.db.refresh(phase)
+        except Exception:
+            self.db.rollback()
         return phase
 
     def update(self, phase: Phase, data: dict) -> Phase:
@@ -32,14 +35,20 @@ class PhaseRepository:
         for key, value in data.items():
             if value is not None and key in allowed_fields:
                 setattr(phase, key, value)
-        self.db.commit()
-        self.db.refresh(phase)
+        try:
+            self.db.commit()
+            self.db.refresh(phase)
+        except Exception:
+            self.db.rollback()
         return phase
 
     def delete(self, phase_id: int) -> bool:
         phase = self.get_by_id(phase_id)
         if phase:
             self.db.delete(phase)
-            self.db.commit()
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
             return True
         return False

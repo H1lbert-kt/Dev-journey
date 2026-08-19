@@ -26,8 +26,11 @@ class ProjectRepository:
 
     def create(self, project: Project) -> Project:
         self.db.add(project)
-        self.db.commit()
-        self.db.refresh(project)
+        try:
+            self.db.commit()
+            self.db.refresh(project)
+        except Exception:
+            self.db.rollback()
         return project
 
     def update(self, project: Project, data: dict) -> Project:
@@ -35,14 +38,20 @@ class ProjectRepository:
         for key, value in data.items():
             if value is not None and key in allowed_fields:
                 setattr(project, key, value)
-        self.db.commit()
-        self.db.refresh(project)
+        try:
+            self.db.commit()
+            self.db.refresh(project)
+        except Exception:
+            self.db.rollback()
         return project
 
     def delete(self, project_id: int) -> bool:
         project = self.get_by_id(project_id)
         if project:
             self.db.delete(project)
-            self.db.commit()
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
             return True
         return False

@@ -31,6 +31,9 @@ async def calendar_page(
     if month is None:
         month = today.month
 
+    if not (1 <= month <= 12):
+        return RedirectResponse(url="/calendar", status_code=303)
+
     days = calendar_service.get_days_by_month(year, month)
     days_dict = {d.date: d for d in days}
 

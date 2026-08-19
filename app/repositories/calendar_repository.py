@@ -29,8 +29,11 @@ class CalendarRepository:
 
     def create(self, calendar_day: CalendarDay) -> CalendarDay:
         self.db.add(calendar_day)
-        self.db.commit()
-        self.db.refresh(calendar_day)
+        try:
+            self.db.commit()
+            self.db.refresh(calendar_day)
+        except Exception:
+            self.db.rollback()
         return calendar_day
 
     def update(self, calendar_day: CalendarDay, data: dict) -> CalendarDay:
@@ -38,14 +41,20 @@ class CalendarRepository:
         for key, value in data.items():
             if value is not None and key in allowed_fields:
                 setattr(calendar_day, key, value)
-        self.db.commit()
-        self.db.refresh(calendar_day)
+        try:
+            self.db.commit()
+            self.db.refresh(calendar_day)
+        except Exception:
+            self.db.rollback()
         return calendar_day
 
     def delete(self, day_id: int) -> bool:
         calendar_day = self.db.query(CalendarDay).filter(CalendarDay.id == day_id, CalendarDay.user_id == self.user_id).first()
         if calendar_day:
             self.db.delete(calendar_day)
-            self.db.commit()
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
             return True
         return False

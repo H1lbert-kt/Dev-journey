@@ -124,7 +124,7 @@ class StudyModeMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         study_mode = request.cookies.get("study_mode", "programacao")
-        request.state.study_mode = study_mode if study_mode in ("programacao", "concursos") else "programacao"
+        request.state.study_mode = study_mode if study_mode in ("programacao", "concursos", "vestibulares") else "programacao"
         response = await call_next(request)
         return response
 

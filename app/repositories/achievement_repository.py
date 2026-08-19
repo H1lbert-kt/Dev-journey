@@ -19,8 +19,11 @@ class AchievementRepository:
 
     def create(self, achievement: Achievement) -> Achievement:
         self.db.add(achievement)
-        self.db.commit()
-        self.db.refresh(achievement)
+        try:
+            self.db.commit()
+            self.db.refresh(achievement)
+        except Exception:
+            self.db.rollback()
         return achievement
 
     def update(self, achievement: Achievement, data: dict) -> Achievement:
@@ -28,14 +31,20 @@ class AchievementRepository:
         for key, value in data.items():
             if value is not None and key in allowed_fields:
                 setattr(achievement, key, value)
-        self.db.commit()
-        self.db.refresh(achievement)
+        try:
+            self.db.commit()
+            self.db.refresh(achievement)
+        except Exception:
+            self.db.rollback()
         return achievement
 
     def delete(self, achievement_id: int) -> bool:
         achievement = self.get_by_id(achievement_id)
         if achievement:
             self.db.delete(achievement)
-            self.db.commit()
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
             return True
         return False

@@ -321,6 +321,7 @@ async def simulado_result(simulado_id: int, request: Request, db: Session = Depe
     simulado = db.query(Simulado).filter(
         Simulado.id == simulado_id,
         Simulado.user_id == user.id,
+        Simulado.study_mode == user.study_mode,
     ).first()
     if not simulado:
         return RedirectResponse(url="/simulados", status_code=303)

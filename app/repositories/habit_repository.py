@@ -17,8 +17,11 @@ class HabitRepository:
 
     def create(self, habit: Habit) -> Habit:
         self.db.add(habit)
-        self.db.commit()
-        self.db.refresh(habit)
+        try:
+            self.db.commit()
+            self.db.refresh(habit)
+        except Exception:
+            self.db.rollback()
         return habit
 
     def update(self, habit: Habit, data: dict) -> Habit:
@@ -26,14 +29,20 @@ class HabitRepository:
         for key, value in data.items():
             if value is not None and key in allowed_fields:
                 setattr(habit, key, value)
-        self.db.commit()
-        self.db.refresh(habit)
+        try:
+            self.db.commit()
+            self.db.refresh(habit)
+        except Exception:
+            self.db.rollback()
         return habit
 
     def delete(self, habit_id: int) -> bool:
         habit = self.get_by_id(habit_id)
         if habit:
             self.db.delete(habit)
-            self.db.commit()
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
             return True
         return False

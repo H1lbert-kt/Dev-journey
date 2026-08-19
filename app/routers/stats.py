@@ -119,14 +119,14 @@ async def stats(request: Request, db: Session = Depends(get_db)):
             Simulado.user_id == user.id,
             Simulado.study_mode == user.study_mode,
             Simulado.exam_id == active_goal.exam_id,
-        ).order_by(Simulado.date.asc()).all()
+        ).order_by(Simulado.created_at.asc()).all()
 
         for sim in goal_simulados:
-            goal_chart_labels.append(sim.date.strftime('%d/%m'))
-            if sim.scoring == 'cespe':
-                score = max(0, sim.correct - sim.wrong) / max(1, sim.total) * 100
+            goal_chart_labels.append(sim.created_at.strftime('%d/%m') if sim.created_at else '')
+            if sim.correction_method == 'cespe':
+                score = max(0, sim.correct_answers - sim.wrong_answers) / max(1, sim.total_questions) * 100
             else:
-                score = sim.correct / max(1, sim.total) * 100
+                score = sim.correct_answers / max(1, sim.total_questions) * 100
             goal_chart_data.append(round(score, 1))
 
     weak_subjects = []

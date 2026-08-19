@@ -27,8 +27,11 @@ class GoalRepository:
 
     def create(self, goal: Goal) -> Goal:
         self.db.add(goal)
-        self.db.commit()
-        self.db.refresh(goal)
+        try:
+            self.db.commit()
+            self.db.refresh(goal)
+        except Exception:
+            self.db.rollback()
         return goal
 
     def update(self, goal: Goal, data: dict) -> Goal:
@@ -36,14 +39,20 @@ class GoalRepository:
         for key, value in data.items():
             if value is not None and key in allowed_fields:
                 setattr(goal, key, value)
-        self.db.commit()
-        self.db.refresh(goal)
+        try:
+            self.db.commit()
+            self.db.refresh(goal)
+        except Exception:
+            self.db.rollback()
         return goal
 
     def delete(self, goal_id: int) -> bool:
         goal = self.get_by_id(goal_id)
         if goal:
             self.db.delete(goal)
-            self.db.commit()
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
             return True
         return False
