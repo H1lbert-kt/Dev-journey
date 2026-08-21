@@ -415,7 +415,7 @@
 
     function ftBroadcast() {
         if (ftChannel) {
-            ftChannel.postMessage({type: 'state', seconds: ftSeconds, running: ftRunning, subject: ftSubject});
+            ftChannel.postMessage({type: 'state', seconds: ftSeconds, running: ftRunning, subject: ftSubject, startTime: ftStartTime});
         }
     }
 

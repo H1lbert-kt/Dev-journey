@@ -105,8 +105,35 @@
     var popupSeconds = 0;
     var popupRunning = false;
     var popupSubject = '';
-    var popupInterval = null;
+    var popupStartTime = 0;
+    var popupAnimFrame = null;
     var channel = null;
+
+    function popupCalcSeconds() {
+        if (!popupRunning || popupStartTime <= 0) return popupSeconds;
+        return Math.floor((Date.now() - popupStartTime) / 1000);
+    }
+
+    function popupStartLoop() {
+        popupStopLoop();
+        function tick() {
+            if (!popupRunning) return;
+            var newSec = popupCalcSeconds();
+            if (newSec !== popupSeconds) {
+                popupSeconds = newSec;
+                updatePopupDisplay();
+            }
+            popupAnimFrame = requestAnimationFrame(tick);
+        }
+        popupAnimFrame = requestAnimationFrame(tick);
+    }
+
+    function popupStopLoop() {
+        if (popupAnimFrame) {
+            cancelAnimationFrame(popupAnimFrame);
+            popupAnimFrame = null;
+        }
+    }
 
     if (typeof BroadcastChannel !== 'undefined') {
         channel = new BroadcastChannel('devjourney-timer');
@@ -115,11 +142,20 @@
                 popupSeconds = e.data.seconds || 0;
                 popupRunning = e.data.running || false;
                 popupSubject = e.data.subject || '';
+                popupStartTime = e.data.startTime || 0;
+                if (popupRunning && popupStartTime > 0) {
+                    popupSeconds = popupCalcSeconds();
+                    popupStartLoop();
+                } else {
+                    popupStopLoop();
+                }
                 updatePopupDisplay();
             } else if (e.data.type === 'stop') {
                 popupSeconds = 0;
                 popupRunning = false;
                 popupSubject = '';
+                popupStartTime = 0;
+                popupStopLoop();
                 updatePopupDisplay();
             }
         };
@@ -178,6 +214,13 @@
             popupSeconds = state.seconds || 0;
             popupRunning = state.running || false;
             popupSubject = state.subject || '';
+            popupStartTime = state.startTime || 0;
+            if (popupRunning && popupStartTime > 0) {
+                popupSeconds = popupCalcSeconds();
+                popupStartLoop();
+            } else {
+                popupStopLoop();
+            }
             updatePopupDisplay();
         }
     }
@@ -188,7 +231,7 @@
         }
     });
 
-    setInterval(syncFromLocalStorage, 1000);
+    setInterval(syncFromLocalStorage, 2000);
     syncFromLocalStorage();
     </script>
 </body>
