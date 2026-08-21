@@ -426,8 +426,6 @@ function startTimer() {
     }
 
     timerInterval = setInterval(function() {
-        updateDisplay();
-
         if (pomodoroMinutes > 0 || pomodoroSeconds > 0) {
             if (pomodoroSeconds <= 0) {
                 pomodoroMinutes--;
