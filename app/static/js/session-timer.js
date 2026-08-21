@@ -1,9 +1,12 @@
 (function() {
     'use strict';
 
-    var startTime = Date.now();
+    var pageStartTime = Date.now();
     var el = null;
     var hidden = false;
+    var studyMode = false;
+    var studySeconds = 0;
+    var studyRunning = false;
 
     function create() {
         el = document.createElement('div');
@@ -43,7 +46,11 @@
 
     function tick() {
         if (!hidden && el) {
-            el.textContent = fmt(Date.now() - startTime);
+            if (studyMode) {
+                el.textContent = fmt(studySeconds * 1000);
+            } else {
+                el.textContent = fmt(Date.now() - pageStartTime);
+            }
         }
     }
 
@@ -54,11 +61,74 @@
         } else {
             hidden = false;
             if (el) el.style.opacity = '0.4';
+            tick();
         }
     }
 
-    create();
-    document.addEventListener('visibilitychange', onVisibility);
-    tick();
-    setInterval(tick, 1000);
+    function onStorage(e) {
+        if (e.key === 'ftState') {
+            try {
+                var state = JSON.parse(e.newValue || 'null');
+                if (state && state.seconds > 0) {
+                    studyMode = true;
+                    studyRunning = !!state.running;
+                    if (state.running && state.startTime > 0) {
+                        studySeconds = Math.floor((Date.now() - state.startTime) / 1000);
+                    } else {
+                        studySeconds = state.seconds;
+                    }
+                } else {
+                    studyMode = false;
+                    studySeconds = 0;
+                }
+            } catch(err) {
+                studyMode = false;
+                studySeconds = 0;
+            }
+        }
+    }
+
+    function onBroadcast(e) {
+        if (e.data && e.data.type === 'state') {
+            studyMode = true;
+            studyRunning = e.data.running || false;
+            if (e.data.running && e.data.startTime > 0) {
+                studySeconds = Math.floor((Date.now() - e.data.startTime) / 1000);
+            } else {
+                studySeconds = e.data.seconds || 0;
+            }
+        } else if (e.data && e.data.type === 'stop') {
+            studyMode = false;
+            studySeconds = 0;
+        }
+    }
+
+    function init() {
+        try {
+            var state = JSON.parse(localStorage.getItem('ftState') || 'null');
+            if (state && state.seconds > 0) {
+                studyMode = true;
+                studyRunning = !!state.running;
+                if (state.running && state.startTime > 0) {
+                    studySeconds = Math.floor((Date.now() - state.startTime) / 1000);
+                } else {
+                    studySeconds = state.seconds;
+                }
+            }
+        } catch(e) {}
+
+        create();
+        document.addEventListener('visibilitychange', onVisibility);
+        window.addEventListener('storage', onStorage);
+
+        if (typeof BroadcastChannel !== 'undefined') {
+            var channel = new BroadcastChannel('devjourney-timer');
+            channel.onmessage = onBroadcast;
+        }
+
+        tick();
+        setInterval(tick, 1000);
+    }
+
+    init();
 })();

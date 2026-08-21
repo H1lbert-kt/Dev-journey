@@ -394,7 +394,8 @@
 <script>
 var timerInterval = null;
 var pomodoroMinutes = 0;
-var pomodoroSeconds = 0;
+var pomodoroEndTime = 0;
+var pomodoroRemainingMs = 0;
 
 var scheduleSubjects = [];
 var currentScheduleIndex = 0;
@@ -597,24 +598,23 @@ function startTimer() {
         ftStart(subjectName);
     }
 
+    if (pomodoroMinutes > 0 && pomodoroRemainingMs > 0 && pomodoroEndTime <= 0) {
+        pomodoroEndTime = Date.now() + pomodoroRemainingMs;
+        pomodoroRemainingMs = 0;
+    }
+
     clearInterval(timerInterval);
     timerInterval = setInterval(function() {
-        if (pomodoroMinutes > 0 || pomodoroSeconds > 0) {
-            if (pomodoroSeconds <= 0) {
-                pomodoroMinutes--;
-                pomodoroSeconds = 59;
-            } else {
-                pomodoroSeconds--;
+        if (pomodoroEndTime > 0 && Date.now() >= pomodoroEndTime) {
+            pomodoroEndTime = 0;
+            pomodoroRemainingMs = 0;
+            pauseTimer();
+            document.getElementById('timer-phase').textContent = 'Pomodoro finalizado!';
+            if (sessionMode) {
+                saveAndMoveNext();
             }
-            if (pomodoroMinutes <= 0 && pomodoroSeconds <= 0) {
-                pauseTimer();
-                document.getElementById('timer-phase').textContent = 'Pomodoro finalizado!';
-                if (sessionMode) {
-                    saveAndMoveNext();
-                }
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification('Pomodoro finalizado! Hora de descansar.');
-                }
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Pomodoro finalizado! Hora de descansar.');
             }
         }
     }, 1000);
@@ -623,6 +623,10 @@ function startTimer() {
 function pauseTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
+    if (pomodoroEndTime > 0) {
+        pomodoroRemainingMs = Math.max(0, pomodoroEndTime - Date.now());
+        pomodoroEndTime = 0;
+    }
     if (ftRunning) {
         ftPause();
     }
@@ -729,7 +733,8 @@ function stopTimer() {
 
     var saved = ftStop();
     pomodoroMinutes = 0;
-    pomodoroSeconds = 0;
+    pomodoroEndTime = 0;
+    pomodoroRemainingMs = 0;
     document.getElementById('btn-start').style.display = 'inline-flex';
     document.getElementById('btn-start').textContent = 'Iniciar';
     document.getElementById('btn-pause').style.display = 'none';
@@ -743,7 +748,8 @@ function resetTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
     pomodoroMinutes = 0;
-    pomodoroSeconds = 0;
+    pomodoroEndTime = 0;
+    pomodoroRemainingMs = 0;
     sessionMode = false;
     sessionResults = [];
     resumedSessionId = null;
@@ -794,7 +800,8 @@ function resumeFromHistory(sessionId, subject, durationMinutes) {
     clearInterval(timerInterval);
     timerInterval = null;
     pomodoroMinutes = 0;
-    pomodoroSeconds = 0;
+    pomodoroEndTime = 0;
+    pomodoroRemainingMs = 0;
     sessionMode = false;
 
     var subjectSelect = document.getElementById('timer-subject');
@@ -822,10 +829,16 @@ function resumeFromHistory(sessionId, subject, durationMinutes) {
 
 function setPomodoro(minutes) {
     pomodoroMinutes = minutes;
-    pomodoroSeconds = 0;
+    pomodoroEndTime = 0;
     if (minutes > 0) {
+        pomodoroRemainingMs = minutes * 60000;
+        if (ftRunning) {
+            pomodoroEndTime = Date.now() + pomodoroRemainingMs;
+            pomodoroRemainingMs = 0;
+        }
         document.getElementById('timer-phase').textContent = 'Pomodoro: ' + minutes + 'min';
     } else {
+        pomodoroRemainingMs = 0;
         document.getElementById('timer-phase').textContent = ftRunning ? 'Estudando...' : 'Modo livre';
     }
 }

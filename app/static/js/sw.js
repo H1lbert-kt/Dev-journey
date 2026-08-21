@@ -1,4 +1,4 @@
-const CACHE_NAME = 'devjourney-v2';
+const CACHE_NAME = 'devjourney-v3';
 const STATIC_ASSETS = [
     '/static/css/style.css',
     '/static/js/main.js',
@@ -24,14 +24,19 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
-    if (event.request.url.includes('/api/') || event.request.url.includes('/timer/save') || event.request.url.includes('/timer/ping')) return;
+    const url = event.request.url;
+    if (url.includes('/api/') || url.includes('/timer/save') || url.includes('/timer/ping')) return;
+
+    if (event.request.mode === 'navigate' || event.request.headers.get('accept') === 'text/html') {
+        return;
+    }
 
     event.respondWith(
         fetch(event.request)
             .then(response => {
-                if (response.ok && event.request.url.startsWith(self.location.origin)) {
+                if (response.ok && url.startsWith(self.location.origin)) {
                     const clone = response.clone();
-                    event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)));
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
                 }
                 return response;
             })

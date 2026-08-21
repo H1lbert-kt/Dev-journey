@@ -389,7 +389,6 @@
     var ftRunning = false;
     var ftInterval = null;
     var ftSubject = ftState ? ftState.subject : defaultSubject;
-    var ftSyncDisplay = null;
     var ftKeepaliveInterval = null;
     var ftStopCallback = null;
     var ftPauseSeconds = 0;
@@ -637,33 +636,6 @@
         }
     }
 
-    function ftSaveSession(totalSeconds) {
-        var formData = new FormData();
-        formData.append('subject', ftSubject);
-        formData.append('duration', totalSeconds);
-
-        function attemptSave(retries) {
-            fetch('/timer/save', { method: 'POST', body: formData })
-                .then(function(r) {
-                    if (!r.ok) throw new Error('Server error');
-                    return r.json();
-                })
-                .then(function(data) {
-                    if (data.error) throw new Error(data.error);
-                })
-                .catch(function() {
-                    if (retries > 0) {
-                        setTimeout(function() { attemptSave(retries - 1); }, 2000);
-                    } else {
-                        var pending = JSON.parse(localStorage.getItem('ftPendingSaves') || '[]');
-                        pending.push({subject: ftSubject, duration: totalSeconds, ts: Date.now()});
-                        localStorage.setItem('ftPendingSaves', JSON.stringify(pending));
-                    }
-                });
-        }
-        attemptSave(2);
-    }
-
     function ftSaveStateToServer() {
         var formData = new FormData();
         formData.append('seconds', ftSeconds);
@@ -733,7 +705,7 @@
     function ftStartKeepalive() {
         ftStopKeepalive();
         ftKeepaliveInterval = setInterval(function() {
-            fetch('/timer/ping').catch(function() {});
+            ftSaveStateToServer();
         }, 60000);
     }
 
@@ -808,6 +780,12 @@
         if (ftRunning) {
             ftSeconds = ftCalcSeconds();
             ftSaveState();
+            if (navigator.sendBeacon) {
+                var fd = new FormData();
+                fd.append('seconds', ftSeconds);
+                fd.append('subject', ftSubject);
+                navigator.sendBeacon('/timer/save-state', fd);
+            }
         }
         ftStopTimerLoop();
         ftStopPauseTimer();
