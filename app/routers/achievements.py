@@ -153,6 +153,7 @@ async def achievements(request: Request, db: Session = Depends(get_db)):
         "achievements.html",
         context={
             "achievements": achievements,
+            "study_mode": user.study_mode,
         },
     )
 

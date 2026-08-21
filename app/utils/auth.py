@@ -3,6 +3,7 @@ import hmac
 import secrets
 import os
 import logging
+import html
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -131,8 +132,4 @@ def delete_session(token: str, db):
 def sanitize_input(value: str) -> str:
     if not value:
         return value
-    value = value.strip()
-    value = value.replace("&", "&amp;")
-    value = value.replace("<", "&lt;").replace(">", "&gt;")
-    value = value.replace('"', "&quot;").replace("'", "&#x27;")
-    return value
+    return html.escape(value.strip())

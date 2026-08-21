@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Depends, Form
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy.orm import Session
 from datetime import date
 import logging
@@ -57,9 +57,8 @@ async def study_goal_page(request: Request, db: Session = Depends(get_db)):
 async def get_active_goal(request: Request, db: Session = Depends(get_db)):
     user = require_auth(request, db)
     if not user:
-        return RedirectResponse(url="/login", status_code=303)
+        return JSONResponse({"error": "Não autenticado"}, status_code=401)
 
-    from fastapi.responses import JSONResponse
     goal = db.query(StudyGoal).filter(
         StudyGoal.user_id == user.id,
         StudyGoal.study_mode == user.study_mode,

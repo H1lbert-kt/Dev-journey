@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from app.database.connection import get_db
-from app.models.flashcard import Flashcard, FlashcardReview
+from app.models.flashcard import Flashcard
 from app.routers.auth import require_auth
 from app.services.flashcard_srs import get_due_cards, get_flashcard_stats, get_card_state
 
@@ -46,5 +46,6 @@ async def reviews_page(request: Request, db: Session = Depends(get_db)):
             "due_cards": due_cards,
             "upcoming_reviews": upcoming_reviews,
             "subject_reviews": subject_reviews,
+            "study_mode": user.study_mode,
         },
     )

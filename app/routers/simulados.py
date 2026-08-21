@@ -277,6 +277,13 @@ async def create_simulado(
     if len(name) > 200:
         name = name[:200]
 
+    validated_exam_id = None
+    if exam_id > 0:
+        from app.models.exam import Exam
+        exam_ownership = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id).first()
+        if exam_ownership:
+            validated_exam_id = exam_id
+
     null_answers = max(0, total_questions - correct_answers - wrong_answers)
 
     if correction_method == "cespe":
@@ -302,7 +309,7 @@ async def create_simulado(
         display_order=next_order,
         user_id=user.id,
         study_mode=user.study_mode,
-        exam_id=exam_id if exam_id > 0 else None,
+        exam_id=validated_exam_id,
     )
     db.add(simulado)
     try:
@@ -350,6 +357,7 @@ async def simulado_result(simulado_id: int, request: Request, db: Session = Depe
         context={
             "simulado": simulado,
             "comparison": comparison,
+            "study_mode": user.study_mode,
         },
     )
 

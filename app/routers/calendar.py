@@ -96,6 +96,7 @@ async def calendar_page(
             "prev_month": prev_month,
             "next_year": next_year,
             "next_month": next_month,
+            "study_mode": user.study_mode,
         },
     )
 

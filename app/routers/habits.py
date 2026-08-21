@@ -27,6 +27,7 @@ async def habits(request: Request, db: Session = Depends(get_db)):
             "habits": habits,
             "today": today,
             "all_completed": all_completed,
+            "study_mode": user.study_mode,
         },
     )
 

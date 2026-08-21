@@ -13,6 +13,7 @@ engine_kwargs = {
     "pool_pre_ping": True,
     "pool_size": 10,
     "max_overflow": 20,
+    "pool_recycle": 300,
 }
 
 if not IS_POSTGRESQL:
@@ -93,6 +94,7 @@ def _add_missing_columns(inspector):
             ("final_score", "FLOAT", None),
             ("display_order", "INTEGER", "0"),
             ("study_mode", "VARCHAR(20)", "'programacao'"),
+            ("exam_id", "INTEGER", None),
         ],
         "subjects": [
             ("color", "VARCHAR(7)", "'#58a6ff'"),
@@ -138,9 +140,6 @@ def _add_missing_columns(inspector):
         ],
         "subject_goals": [
             ("study_mode", "VARCHAR(20)", "'programacao'"),
-        ],
-        "simulados": [
-            ("exam_id", "INTEGER", None),
         ],
     }
 

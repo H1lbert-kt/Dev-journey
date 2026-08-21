@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float, Date, func
 from sqlalchemy.orm import relationship
 from app.database.connection import Base
-from datetime import datetime
 
 
 class Exam(Base):
@@ -20,7 +19,7 @@ class Exam(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     study_mode = Column(String(20), nullable=False, default="programacao")
     created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     user = relationship("User", back_populates="exams")
     subjects = relationship("ExamSubject", back_populates="exam", cascade="all, delete-orphan")
@@ -37,6 +36,6 @@ class ExamSubject(Base):
     weight = Column(Float, nullable=False, default=1.0)
     progress = Column(Float, nullable=False, default=0.0)
     created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     exam = relationship("Exam", back_populates="subjects")

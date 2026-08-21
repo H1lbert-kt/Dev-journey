@@ -95,7 +95,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
@@ -177,26 +176,26 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             recent = [t for t in self._login_attempts[client_ip] if t > now - 900]
             self._login_attempts[client_ip] = recent
             if len(recent) > self.login_limit:
-                return Response(content="Too many login attempts. Try again later.", status_code=429)
+                return Response(content="Too many login attempts. Try again later.", status_code=429, headers={"Retry-After": "900"})
 
         if path == "/register" and request.method == "POST":
             self._register_attempts[client_ip].append(now)
             recent = [t for t in self._register_attempts[client_ip] if t > now - 3600]
             self._register_attempts[client_ip] = recent
             if len(recent) > self.register_limit:
-                return Response(content="Too many registration attempts. Try again later.", status_code=429)
+                return Response(content="Too many registration attempts. Try again later.", status_code=429, headers={"Retry-After": "3600"})
 
         self._requests[client_ip].append(now)
         recent = [t for t in self._requests[client_ip] if t > now - 60]
         self._requests[client_ip] = recent
         if len(recent) > self.general_limit:
-            return Response(content="Too many requests. Slow down.", status_code=429)
+            return Response(content="Too many requests. Slow down.", status_code=429, headers={"Retry-After": "60"})
 
         return await call_next(request)
 
 
-app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(StudyModeMiddleware)
 
 app.include_router(auth.router, tags=["Auth"])

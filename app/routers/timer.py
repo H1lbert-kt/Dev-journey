@@ -90,14 +90,28 @@ async def save_session(
         return JSONResponse(content={"error": "Materia obrigatoria"}, status_code=400)
     if duration < 0:
         return JSONResponse(content={"error": "Duracao invalida"}, status_code=400)
+    if session_type not in ("estudo", "teoria", "exercicios", "revisao", "projeto", "simulado"):
+        session_type = "estudo"
+
+    validated_exam_id = None
+    if exam_id:
+        from app.models.exam import Exam
+        if db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id).first():
+            validated_exam_id = exam_id
+
+    validated_project_id = None
+    if project_id:
+        from app.models.project import Project
+        if db.query(Project).filter(Project.id == project_id, Project.user_id == user.id).first():
+            validated_project_id = project_id
 
     session = StudySession(
         subject=subject.strip(),
         duration_minutes=round(duration / 60, 2),
         user_id=user.id,
         session_type=session_type,
-        exam_id=exam_id,
-        project_id=project_id,
+        exam_id=validated_exam_id,
+        project_id=validated_project_id,
         study_mode=user.study_mode,
     )
     db.add(session)

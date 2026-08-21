@@ -181,9 +181,9 @@ class TestSecurityHeaders:
         resp = client.get("/login")
         assert resp.headers.get("X-Frame-Options") == "DENY"
 
-    def test_x_xss_protection(self, client):
+    def test_x_xss_protection_removed(self, client):
         resp = client.get("/login")
-        assert resp.headers.get("X-XSS-Protection") == "1; mode=block"
+        assert resp.headers.get("X-XSS-Protection") is None
 
     def test_referrer_policy(self, client):
         resp = client.get("/login")

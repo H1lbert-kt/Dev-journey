@@ -57,12 +57,24 @@ async def create_entry(
     except ValueError:
         parsed_date = date.today()
 
+    validated_project_id = None
+    if project_id:
+        from app.models.project import Project
+        if db.query(Project).filter(Project.id == project_id, Project.user_id == user.id).first():
+            validated_project_id = project_id
+
+    validated_subject_id = None
+    if subject_id:
+        from app.models.subject import Subject
+        if db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first():
+            validated_subject_id = subject_id
+
     entry = JournalEntry(
         title=title.strip(),
         content=content.strip(),
         date=parsed_date,
-        project_id=project_id if project_id else None,
-        subject_id=subject_id if subject_id else None,
+        project_id=validated_project_id,
+        subject_id=validated_subject_id,
         user_id=user.id,
         study_mode=user.study_mode,
     )
@@ -103,8 +115,21 @@ async def update_entry(
     entry.title = title.strip()
     entry.content = content.strip()
     entry.date = parsed_date
-    entry.project_id = project_id if project_id else None
-    entry.subject_id = subject_id if subject_id else None
+
+    validated_project_id = None
+    if project_id:
+        from app.models.project import Project
+        if db.query(Project).filter(Project.id == project_id, Project.user_id == user.id).first():
+            validated_project_id = project_id
+
+    validated_subject_id = None
+    if subject_id:
+        from app.models.subject import Subject
+        if db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first():
+            validated_subject_id = subject_id
+
+    entry.project_id = validated_project_id
+    entry.subject_id = validated_subject_id
     try:
         db.commit()
     except Exception:

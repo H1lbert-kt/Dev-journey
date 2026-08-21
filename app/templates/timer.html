@@ -519,7 +519,7 @@ function saveAndMoveNext() {
     if (currentScheduleIndex >= scheduleSubjects.length) {
         ftSeconds = 0;
         ftRunning = false;
-        clearInterval(ftInterval);
+        ftStopTimerLoop();
         localStorage.removeItem('ftState');
         document.getElementById('floating-timer').style.display = 'none';
         ftStopKeepalive();

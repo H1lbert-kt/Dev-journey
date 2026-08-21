@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Request, Depends, Form, UploadFile, File
 from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime
 from app.database.connection import get_db
-from app.models.flashcard import Flashcard, FlashcardReview
+from app.models.flashcard import Flashcard
 from app.models.subject import Subject
 from app.routers.auth import require_auth
 from app.services.flashcard_srs import (

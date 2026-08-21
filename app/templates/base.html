@@ -388,6 +388,7 @@
     var ftSeconds = ftState ? ftState.seconds : 0;
     var ftRunning = false;
     var ftInterval = null;
+    var ftAnimFrame = null;
     var ftSubject = ftState ? ftState.subject : defaultSubject;
     var ftSyncDisplay = null;
     var ftKeepaliveInterval = null;
@@ -449,6 +450,29 @@
         return Math.floor((Date.now() - ftStartTime) / 1000);
     }
 
+    function ftStartTimerLoop() {
+        ftStopTimerLoop();
+        function tick() {
+            if (!ftRunning) return;
+            var now = Date.now();
+            var newSeconds = Math.floor((now - ftStartTime) / 1000);
+            if (newSeconds !== ftSeconds) {
+                ftSeconds = newSeconds;
+                ftUpdateDisplay();
+                ftSaveState();
+            }
+            ftAnimFrame = requestAnimationFrame(tick);
+        }
+        ftAnimFrame = requestAnimationFrame(tick);
+    }
+
+    function ftStopTimerLoop() {
+        if (ftAnimFrame) {
+            cancelAnimationFrame(ftAnimFrame);
+            ftAnimFrame = null;
+        }
+    }
+
     function ftStart(subject) {
         ftSubject = subject || defaultSubject;
         ftRunning = true;
@@ -459,12 +483,8 @@
         document.getElementById('ft-subject').textContent = ftSubject;
         document.getElementById('floating-timer').style.display = 'block';
         document.getElementById('ft-pause').innerHTML = '||';
-        clearInterval(ftInterval);
-        ftInterval = setInterval(function() {
-            ftSeconds = ftCalcSeconds();
-            ftSaveState();
-            ftUpdateDisplay();
-        }, 1000);
+        ftStopTimerLoop();
+        ftStartTimerLoop();
         ftStopPauseTimer();
         ftStartKeepalive();
     }
@@ -474,12 +494,8 @@
         ftStartTime = Date.now() - (ftSeconds * 1000);
         ftSaveState();
         ftClearStateOnServer();
-        clearInterval(ftInterval);
-        ftInterval = setInterval(function() {
-            ftSeconds = ftCalcSeconds();
-            ftSaveState();
-            ftUpdateDisplay();
-        }, 1000);
+        ftStopTimerLoop();
+        ftStartTimerLoop();
         document.getElementById('ft-pause').innerHTML = '||';
         ftStopPauseTimer();
         ftStartKeepalive();
@@ -488,7 +504,7 @@
     function ftPause() {
         ftRunning = false;
         ftSeconds = ftCalcSeconds();
-        clearInterval(ftInterval);
+        ftStopTimerLoop();
         ftSaveState();
         ftSaveStateToServer();
         document.getElementById('ft-pause').innerHTML = '&#9654;';
@@ -498,7 +514,7 @@
     }
 
     function ftStop() {
-        clearInterval(ftInterval);
+        ftStopTimerLoop();
         ftSeconds = ftCalcSeconds();
         var saved = ftSeconds;
         ftRunning = false;
@@ -549,7 +565,7 @@
     }
 
     function ftReset() {
-        clearInterval(ftInterval);
+        ftStopTimerLoop();
         ftSeconds = 0;
         ftStartTime = 0;
         ftRunning = false;
@@ -730,11 +746,7 @@
                 ftSeconds = ftCalcSeconds();
                 ftUpdateDisplay();
                 document.getElementById('ft-pause').innerHTML = '||';
-                ftInterval = setInterval(function() {
-                    ftSeconds = ftCalcSeconds();
-                    ftSaveState();
-                    ftUpdateDisplay();
-                }, 1000);
+                ftStartTimerLoop();
                 ftStartKeepalive();
             } else {
                 ftUpdateDisplay();

@@ -7,6 +7,7 @@ import logging
 from app.database.connection import get_db
 from app.models.user import User
 from app.utils.auth import hash_password, verify_password, create_session, get_session, delete_session, sanitize_input
+from app.config.settings import IS_RENDER
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,7 @@ async def login(
 
     token = create_session(user.id, db)
     response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie("session_token", token, httponly=True, secure=True, max_age=86400, samesite="lax")
+    response.set_cookie("session_token", token, httponly=True, secure=IS_RENDER, max_age=86400, samesite="lax")
     response.set_cookie("study_mode", user.study_mode, httponly=True, max_age=86400, samesite="lax")
     return response
 
@@ -149,7 +150,7 @@ async def register(
 
     token = create_session(user.id, db)
     response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie("session_token", token, httponly=True, secure=True, max_age=86400, samesite="lax")
+    response.set_cookie("session_token", token, httponly=True, secure=IS_RENDER, max_age=86400, samesite="lax")
     response.set_cookie("study_mode", study_mode, httponly=True, max_age=86400, samesite="lax")
     return response
 
