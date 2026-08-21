@@ -365,5 +365,9 @@ _TEST_SECRET = "8ef6d3df4bf51f175bc41a1c96e24e9a"
 async def _test_sentry_telegram(token: str = ""):
     if token != _TEST_SECRET:
         return JSONResponse(status_code=404, content={"error": "not found"})
+
+    from app.notifications.telegram import _send_telegram, IS_ENABLED
+    telegram_result = _send_telegram("DevJourney: teste de integracao Telegram")
+
     raise RuntimeError("Sentry+Telegram test: controlled exception for integration verification")
 # ============================================================

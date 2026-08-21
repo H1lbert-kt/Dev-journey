@@ -6,12 +6,18 @@ import threading
 import time
 import urllib.request
 import urllib.parse
+import urllib.error
 
 logger = logging.getLogger(__name__)
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 IS_ENABLED = bool(TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID)
+
+if not IS_ENABLED:
+    logger.warning("Telegram notifications DISABLED: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set")
+else:
+    logger.info("Telegram notifications ENABLED (chat_id ends with ...%s)", TELEGRAM_CHAT_ID[-4:] if len(TELEGRAM_CHAT_ID) > 4 else "****")
 
 _fingerprints: dict[str, float] = {}
 _fingerprints_lock = threading.Lock()
@@ -62,6 +68,7 @@ def _sanitize_value(text: str) -> str:
 
 def _send_telegram(text: str) -> bool:
     if not IS_ENABLED:
+        logger.warning("Telegram send skipped: IS_ENABLED=False")
         return False
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -72,10 +79,23 @@ def _send_telegram(text: str) -> bool:
             "disable_web_page_preview": True,
         }).encode()
         req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
-        urllib.request.urlopen(req, timeout=5)
+        resp = urllib.request.urlopen(req, timeout=10)
+        resp_body = resp.read().decode()
+        logger.info("Telegram message sent OK (status=%s)", resp.status)
         return True
+    except urllib.error.HTTPError as e:
+        error_body = ""
+        try:
+            error_body = e.read().decode()[:300]
+        except Exception:
+            pass
+        logger.warning("Telegram API HTTP %s: %s", e.code, error_body)
+        return False
+    except urllib.error.URLError as e:
+        logger.warning("Telegram API connection error: %s", e.reason)
+        return False
     except Exception as e:
-        logger.debug("Telegram notification failed (non-critical): %s", e)
+        logger.warning("Telegram notification failed: %s: %s", type(e).__name__, e)
         return False
 
 
