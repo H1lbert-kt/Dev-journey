@@ -106,7 +106,7 @@
     var popupRunning = false;
     var popupSubject = '';
     var popupStartTime = 0;
-    var popupAnimFrame = null;
+    var popupInterval = null;
     var channel = null;
 
     function popupCalcSeconds() {
@@ -123,15 +123,15 @@
                 popupSeconds = newSec;
                 updatePopupDisplay();
             }
-            popupAnimFrame = requestAnimationFrame(tick);
         }
-        popupAnimFrame = requestAnimationFrame(tick);
+        tick();
+        popupInterval = setInterval(tick, 1000);
     }
 
     function popupStopLoop() {
-        if (popupAnimFrame) {
-            cancelAnimationFrame(popupAnimFrame);
-            popupAnimFrame = null;
+        if (popupInterval) {
+            clearInterval(popupInterval);
+            popupInterval = null;
         }
     }
 

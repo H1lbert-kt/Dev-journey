@@ -186,7 +186,7 @@
         <div class="sessions-list" id="sessions-list">
             {% for session in sessions %}
             <div class="session-item" id="session-{{ session.id }}" data-id="{{ session.id }}" data-subject="{{ session.subject }}" data-duration="{{ session.duration_minutes }}" data-type="{{ session.session_type or 'estudo' }}">
-                <div class="session-info" onclick="resumeFromHistory('{{ session.subject }}', {{ session.duration_minutes }})" style="cursor: pointer" title="Clique para retomar desta sessão">
+                <div class="session-info" onclick="resumeFromHistory({{ session.id }}, '{{ session.subject }}', {{ session.duration_minutes }})" style="cursor: pointer" title="Clique para retomar esta sessão">
                     <span class="session-subject">{{ session.subject }}</span>
                     <span class="session-type-badge">{{ session.session_type or 'estudo' }}</span>
                     <span class="session-duration">{{ "%.1f"|format(session.duration_minutes) }}min</span>
@@ -404,6 +404,7 @@ var sessionResults = [];
 var currentSessionType = 'estudo';
 var currentProjectId = null;
 var currentExamId = null;
+var resumedSessionId = null;
 var linkedPlanItemId = {{ plan_item_id|default('null', true) }};
 
 function setSessionType(type) {
@@ -472,6 +473,7 @@ function startStudySession() {
     sessionMode = true;
     currentScheduleIndex = 0;
     sessionResults = [];
+    resumedSessionId = null;
     document.getElementById('session-summary').style.display = 'none';
     document.getElementById('schedule-selector').style.display = 'none';
     document.getElementById('btn-start-session').style.display = 'none';
@@ -591,6 +593,7 @@ function startTimer() {
     if (ftSeconds > 0 && !ftRunning) {
         ftResume();
     } else {
+        resumedSessionId = null;
         ftStart(subjectName);
     }
 
@@ -743,6 +746,7 @@ function resetTimer() {
     pomodoroSeconds = 0;
     sessionMode = false;
     sessionResults = [];
+    resumedSessionId = null;
     ftReset();
     updateDisplay();
     document.getElementById('btn-start').style.display = 'inline-flex';
@@ -779,7 +783,7 @@ function ftSyncPauseDisplay() {
     }
 }
 
-function resumeFromHistory(subject, durationMinutes) {
+function resumeFromHistory(sessionId, subject, durationMinutes) {
     if (ftRunning) {
         if (!confirm('Você já tem um cronômetro em andamento. Deseja substituir pela sessão do histórico?')) {
             return;
@@ -789,6 +793,9 @@ function resumeFromHistory(subject, durationMinutes) {
 
     clearInterval(timerInterval);
     timerInterval = null;
+    pomodoroMinutes = 0;
+    pomodoroSeconds = 0;
+    sessionMode = false;
 
     var subjectSelect = document.getElementById('timer-subject');
     for (var i = 0; i < subjectSelect.options.length; i++) {
@@ -797,6 +804,7 @@ function resumeFromHistory(subject, durationMinutes) {
             break;
         }
     }
+    resumedSessionId = sessionId;
     ftSeconds = Math.round(durationMinutes * 60);
     ftSubject = subject;
     ftStartTime = 0;
@@ -809,7 +817,7 @@ function resumeFromHistory(subject, durationMinutes) {
     document.getElementById('btn-pause').style.display = 'none';
     document.getElementById('btn-stop').style.display = 'none';
     document.getElementById('btn-reset').style.display = 'none';
-    document.getElementById('timer-phase').textContent = 'Sessão carregada do histórico';
+    document.getElementById('timer-phase').textContent = 'Sessão carregada do histórico (será atualizada ao finalizar)';
 }
 
 function setPomodoro(minutes) {
@@ -875,7 +883,7 @@ function submitEdit(e) {
                     el.querySelector('.session-duration').textContent = data.session.duration_minutes.toFixed(1) + 'min';
                     el.querySelector('.session-type-badge').textContent = data.session.session_type;
                     var info = el.querySelector('.session-info');
-                    info.setAttribute('onclick', "resumeFromHistory('" + data.session.subject.replace(/'/g, "\\'") + "', " + data.session.duration_minutes + ")");
+                    info.setAttribute('onclick', "resumeFromHistory(" + data.session.id + ", '" + data.session.subject.replace(/'/g, "\\'") + "', " + data.session.duration_minutes + ")");
                 }
                 closeEditModal();
             } else {

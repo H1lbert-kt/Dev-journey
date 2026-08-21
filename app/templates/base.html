@@ -388,7 +388,6 @@
     var ftSeconds = ftState ? ftState.seconds : 0;
     var ftRunning = false;
     var ftInterval = null;
-    var ftAnimFrame = null;
     var ftSubject = ftState ? ftState.subject : defaultSubject;
     var ftSyncDisplay = null;
     var ftKeepaliveInterval = null;
@@ -397,6 +396,7 @@
     var ftPauseInterval = null;
     var ftChannel = null;
     var ftStartTime = 0;
+    var resumedSessionId = null;
 
     if (typeof BroadcastChannel !== 'undefined') {
         ftChannel = new BroadcastChannel('devjourney-timer');
@@ -428,7 +428,8 @@
             seconds: ftSeconds,
             subject: ftSubject,
             running: ftRunning,
-            startTime: ftStartTime
+            startTime: ftStartTime,
+            sessionId: (typeof resumedSessionId !== 'undefined') ? resumedSessionId : null
         }));
         ftBroadcast();
     }
@@ -453,27 +454,21 @@
     function ftStartTimerLoop() {
         ftStopTimerLoop();
         function tick() {
-            if (!ftRunning) return;
-            var now = Date.now();
-            var newSeconds = Math.floor((now - ftStartTime) / 1000);
-            if (document.hidden) {
-                ftSeconds = newSeconds;
-                ftAnimFrame = requestAnimationFrame(tick);
-                return;
-            }
+            if (!ftRunning || ftStartTime <= 0) return;
+            var newSeconds = Math.floor((Date.now() - ftStartTime) / 1000);
             if (newSeconds !== ftSeconds) {
                 ftSeconds = newSeconds;
                 ftUpdateDisplay();
             }
-            ftAnimFrame = requestAnimationFrame(tick);
         }
-        ftAnimFrame = requestAnimationFrame(tick);
+        tick();
+        ftInterval = setInterval(tick, 1000);
     }
 
     function ftStopTimerLoop() {
-        if (ftAnimFrame) {
-            cancelAnimationFrame(ftAnimFrame);
-            ftAnimFrame = null;
+        if (ftInterval) {
+            clearInterval(ftInterval);
+            ftInterval = null;
         }
     }
 
@@ -548,6 +543,8 @@
             var formData = new FormData();
             formData.append('subject', ftSubject);
             formData.append('duration', saved);
+            var resumeId = (typeof resumedSessionId !== 'undefined') ? resumedSessionId : null;
+            if (resumeId) formData.append('session_id', resumeId);
 
             function attemptSave(retries) {
                 fetch('/timer/save', { method: 'POST', body: formData })
@@ -560,13 +557,14 @@
                         ftSeconds = 0;
                         localStorage.removeItem('ftState');
                         ftClearStateOnServer();
+                        if (typeof resumedSessionId !== 'undefined') resumedSessionId = null;
                     })
                     .catch(function() {
                         if (retries > 0) {
                             setTimeout(function() { attemptSave(retries - 1); }, 2000);
                         } else {
                             var pending = JSON.parse(localStorage.getItem('ftPendingSaves') || '[]');
-                            pending.push({subject: ftSubject, duration: saved, ts: Date.now()});
+                            pending.push({subject: ftSubject, duration: saved, ts: Date.now(), sessionId: resumeId});
                             localStorage.setItem('ftPendingSaves', JSON.stringify(pending));
                             ftSeconds = 0;
                             localStorage.removeItem('ftState');
@@ -711,6 +709,7 @@
         var formData = new FormData();
         formData.append('subject', item.subject);
         formData.append('duration', item.duration);
+        if (item.sessionId) formData.append('session_id', item.sessionId);
         fetch('/timer/save', { method: 'POST', body: formData })
             .then(function(r) {
                 if (!r.ok) throw new Error();
@@ -761,6 +760,9 @@
             ftSeconds = ftState.seconds;
             ftSubject = ftState.subject || defaultSubject;
             ftStartTime = ftState.running && ftState.startTime ? ftState.startTime : 0;
+            if (ftState.sessionId && typeof resumedSessionId !== 'undefined') {
+                resumedSessionId = ftState.sessionId;
+            }
             ft.style.display = 'block';
             document.getElementById('ft-subject').textContent = ftSubject;
             if (ftState.running && ftStartTime > 0 && !ftRunning) {

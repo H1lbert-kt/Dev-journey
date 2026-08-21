@@ -80,6 +80,7 @@ async def save_session(
     session_type: str = Form("estudo"),
     exam_id: int = Form(None),
     project_id: int = Form(None),
+    session_id: Optional[int] = Form(None),
     db: Session = Depends(get_db),
 ):
     user = require_auth(request, db)
@@ -103,16 +104,35 @@ async def save_session(
         if db.query(Project).filter(Project.id == project_id, Project.user_id == user.id).first():
             validated_project_id = project_id
 
-    session = StudySession(
-        subject=subject.strip(),
-        duration_minutes=round(duration / 60, 2),
-        user_id=user.id,
-        session_type=session_type,
-        exam_id=validated_exam_id,
-        project_id=validated_project_id,
-        study_mode=user.study_mode,
-    )
-    db.add(session)
+    existing_session = None
+    if session_id:
+        existing_session = db.query(StudySession).filter(
+            StudySession.id == session_id,
+            StudySession.user_id == user.id,
+            StudySession.study_mode == user.study_mode,
+        ).first()
+
+    updated = False
+    if existing_session:
+        existing_session.subject = subject.strip()
+        existing_session.duration_minutes = round(duration / 60, 2)
+        existing_session.session_type = session_type
+        if validated_exam_id:
+            existing_session.exam_id = validated_exam_id
+        if validated_project_id:
+            existing_session.project_id = validated_project_id
+        updated = True
+    else:
+        session = StudySession(
+            subject=subject.strip(),
+            duration_minutes=round(duration / 60, 2),
+            user_id=user.id,
+            session_type=session_type,
+            exam_id=validated_exam_id,
+            project_id=validated_project_id,
+            study_mode=user.study_mode,
+        )
+        db.add(session)
 
     today = date.today()
     day_of_week = today.weekday()
@@ -167,7 +187,7 @@ async def save_session(
         db.rollback()
         return JSONResponse(content={"error": "Erro ao salvar"}, status_code=500)
 
-    return JSONResponse(content={"success": True, "day_completed": day_completed})
+    return JSONResponse(content={"success": True, "day_completed": day_completed, "updated": updated})
 
 
 @router.delete("/delete/{session_id}")

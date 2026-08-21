@@ -3,7 +3,6 @@
 
     var startTime = Date.now();
     var el = null;
-    var rafId = null;
     var hidden = false;
 
     function create() {
@@ -46,7 +45,6 @@
         if (!hidden && el) {
             el.textContent = fmt(Date.now() - startTime);
         }
-        rafId = requestAnimationFrame(tick);
     }
 
     function onVisibility() {
@@ -62,4 +60,5 @@
     create();
     document.addEventListener('visibilitychange', onVisibility);
     tick();
+    setInterval(tick, 1000);
 })();
