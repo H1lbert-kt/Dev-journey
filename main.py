@@ -357,17 +357,19 @@ if __name__ == "__main__":
 
 
 # ============================================================
-# TEMPORARY TEST ROUTE — REMOVE AFTER SENTRY/TELEGRAM VERIFICATION
+# TEMPORARY TEST ROUTE — REMOVE AFTER MONITORING VERIFICATION
 # ============================================================
 _TEST_SECRET = "8ef6d3df4bf51f175bc41a1c96e24e9a"
+
+@app.get("/_test-monitoring")
+async def _test_monitoring(token: str = ""):
+    if token != _TEST_SECRET:
+        return JSONResponse(status_code=404, content={"error": "not found"})
+    raise RuntimeError("Teste do monitoring controller: erro proposital para verificar integracao Telegram + approval")
 
 @app.get("/_test-sentry-telegram")
 async def _test_sentry_telegram(token: str = ""):
     if token != _TEST_SECRET:
         return JSONResponse(status_code=404, content={"error": "not found"})
-
-    from app.notifications.telegram import _send_telegram, IS_ENABLED
-    telegram_result = _send_telegram("DevJourney: teste de integracao Telegram")
-
     raise RuntimeError("Sentry+Telegram test: controlled exception for integration verification")
 # ============================================================
