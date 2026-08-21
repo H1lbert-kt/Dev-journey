@@ -130,7 +130,7 @@ async def save_session(
         scheduled_subject_ids = [e.subject_id for e in schedule_entries]
         scheduled_subject_names = []
         for sid in scheduled_subject_ids:
-            subj = db.query(Subject).filter(Subject.id == sid).first()
+            subj = db.query(Subject).filter(Subject.id == sid, Subject.user_id == user.id).first()
             if subj:
                 scheduled_subject_names.append(subj.name)
 
@@ -205,12 +205,12 @@ async def check_day_completed(request: Request, db: Session = Depends(get_db)):
     ).all()
 
     if not schedule_entries:
-        return JSONResponse(content={"day_completed": False, "has_schedule": False})
+        return JSONResponse(content={"day_completed": True, "has_schedule": False})
 
     scheduled_subject_ids = [e.subject_id for e in schedule_entries]
     scheduled_subject_names = []
     for sid in scheduled_subject_ids:
-        subj = db.query(Subject).filter(Subject.id == sid).first()
+        subj = db.query(Subject).filter(Subject.id == sid, Subject.user_id == user.id).first()
         if subj:
             scheduled_subject_names.append(subj.name)
 

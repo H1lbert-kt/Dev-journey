@@ -1,7 +1,7 @@
 import os
-import sys
 import logging
 import secrets
+import urllib.parse
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 from pathlib import Path
@@ -49,7 +49,8 @@ def resolve_database_url() -> str:
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
         if url.startswith("postgresql://"):
-            logger.info(f"PostgreSQL connected: {url.split('@')[-1]}")
+            parsed = urllib.parse.urlparse(url)
+            logger.info(f"PostgreSQL connected: {parsed.hostname}:{parsed.port}/{parsed.path.lstrip('/')}")
             return url
         logger.warning(f"Unrecognized DATABASE_URL scheme: {url[:30]}...")
         return url
@@ -60,7 +61,7 @@ def resolve_database_url() -> str:
             "Render requires a PostgreSQL database. "
             "Configure DATABASE_URL in your Render dashboard or render.yaml."
         )
-        sys.exit(1)
+        raise RuntimeError("DATABASE_URL is required on Render")
 
     logger.warning("DATABASE_URL not set - using SQLite (data will be lost on deploy!)")
     return f"sqlite:///{BASE_DIR}/devjourney.db"

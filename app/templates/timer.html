@@ -517,10 +517,15 @@ function saveAndMoveNext() {
     if (currentScheduleIndex >= scheduleSubjects.length) {
         ftSeconds = 0;
         ftRunning = false;
+        ftStartTime = 0;
         ftStopTimerLoop();
-        localStorage.removeItem('ftState');
-        document.getElementById('floating-timer').style.display = 'none';
+        ftStopPauseTimer();
         ftStopKeepalive();
+        localStorage.removeItem('ftState');
+        ftClearStateOnServer();
+        ftBroadcast();
+        document.getElementById('floating-timer').style.display = 'none';
+        document.title = 'DevJourney';
         finishStudySession();
     } else {
         ftSeconds = 0;
@@ -676,8 +681,15 @@ if ('Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
 }
 
+window.addEventListener('beforeunload', function() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+});
+
 {% if auto_subject %}
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     var sel = document.getElementById('timer-subject');
     for (var i = 0; i < sel.options.length; i++) {
         if (sel.options[i].value === {{ auto_subject|tojson }}) {
@@ -691,7 +703,7 @@ if ('Notification' in window && Notification.permission === 'default') {
     {% if auto_start %}
     startTimer();
     {% endif %}
-})();
+});
 {% endif %}
 </script>
 {% endblock %}

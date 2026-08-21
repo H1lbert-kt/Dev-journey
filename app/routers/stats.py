@@ -158,7 +158,6 @@ async def stats(request: Request, db: Session = Depends(get_db)):
             "week_minutes": round(week_minutes, 1),
             "month_minutes": round(month_minutes, 1),
             "daily_avg": round(daily_avg, 1),
-            "subject_stats": subject_stats,
             "subjects_detail": subjects_detail,
             "total_study_time": round(total_study_time, 1),
             "study_mode": user.study_mode,

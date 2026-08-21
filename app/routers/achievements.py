@@ -112,18 +112,19 @@ def check_auto_achievements(user_id, db, study_mode=None):
     return newly_unlocked
 
 
-def _get_streak(user_id, db):
+def _get_streak(user_id, db, study_mode=None):
     """Calculate current streak of consecutive study days."""
     today = datetime.now().date()
     streak = 0
     check_date = today
 
     while streak < 1000:
-        day = db.query(CalendarDay).filter(
+        query = db.query(CalendarDay).filter(
             CalendarDay.user_id == user_id,
             CalendarDay.date == check_date,
             CalendarDay.studied == True
-        ).first()
+        )
+        day = query.first()
 
         if day:
             streak += 1

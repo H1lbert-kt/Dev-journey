@@ -256,7 +256,11 @@ async def exam_detail(exam_id: int, request: Request, db: Session = Depends(get_
         StudySession.study_mode == user.study_mode,
     ).order_by(StudySession.date.desc()).all()
 
-    simulados = db.query(Simulado).filter(Simulado.user_id == user.id, Simulado.study_mode == user.study_mode).order_by(Simulado.created_at.desc()).all()
+    simulados = db.query(Simulado).filter(
+        Simulado.user_id == user.id,
+        Simulado.study_mode == user.study_mode,
+        Simulado.exam_id == exam.id,
+    ).order_by(Simulado.created_at.desc()).all()
 
     return request.app.state.templates.TemplateResponse(
         request,

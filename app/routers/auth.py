@@ -117,7 +117,7 @@ async def register(
             context={"error": "As senhas nao coincidem"},
         )
 
-    if study_mode not in ["programacao", "concursos"]:
+    if study_mode not in ["programacao", "concursos", "vestibulares"]:
         study_mode = "programacao"
 
     existing = db.query(User).filter(

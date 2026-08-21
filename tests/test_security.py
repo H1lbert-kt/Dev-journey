@@ -1,4 +1,5 @@
 import pytest
+from fastapi.testclient import TestClient
 
 
 class TestAuthentication:
@@ -228,14 +229,25 @@ class TestCookieSecurity:
         assert "max-age" in session_cookie.lower()
 
 
+def _reset_rate_limits():
+    """Reset the rate limit state on all middleware instances."""
+    from main import _rate_limit_instances
+    for inst in _rate_limit_instances:
+        inst._requests.clear()
+        inst._login_attempts.clear()
+        inst._register_attempts.clear()
+
+
 class TestRateLimiting:
-    def test_login_rate_limit(self, client, user_a):
+    def test_login_rate_limit(self, client):
+        _reset_rate_limits()
         for i in range(12):
             client.post("/login", data={"username": "user_a", "password": "wrong"}, follow_redirects=False)
         resp = client.post("/login", data={"username": "user_a", "password": "wrong"}, follow_redirects=False)
         assert resp.status_code == 429
 
     def test_register_rate_limit(self, client):
+        _reset_rate_limits()
         for i in range(6):
             client.post("/register", data={
                 "username": f"rate{i}",
@@ -306,6 +318,7 @@ class TestHealthEndpoint:
         data = resp.json()
         assert data["status"] == "healthy"
         assert "version" in data
+        assert "db_connected" in data
 
 
 class TestLogout:

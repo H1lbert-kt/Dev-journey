@@ -12,6 +12,6 @@ class Goal(Base):
     completed = Column(Boolean, nullable=False, default=False)
     phase_id = Column(Integer, ForeignKey("phases.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, onupdate=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     phase = relationship("Phase", back_populates="goals")

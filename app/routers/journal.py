@@ -59,13 +59,11 @@ async def create_entry(
 
     validated_project_id = None
     if project_id:
-        from app.models.project import Project
         if db.query(Project).filter(Project.id == project_id, Project.user_id == user.id).first():
             validated_project_id = project_id
 
     validated_subject_id = None
     if subject_id:
-        from app.models.subject import Subject
         if db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first():
             validated_subject_id = subject_id
 
@@ -118,13 +116,11 @@ async def update_entry(
 
     validated_project_id = None
     if project_id:
-        from app.models.project import Project
         if db.query(Project).filter(Project.id == project_id, Project.user_id == user.id).first():
             validated_project_id = project_id
 
     validated_subject_id = None
     if subject_id:
-        from app.models.subject import Subject
         if db.query(Subject).filter(Subject.id == subject_id, Subject.user_id == user.id).first():
             validated_subject_id = subject_id
 

@@ -15,7 +15,7 @@ class Phase(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     study_mode = Column(String(20), nullable=False, default="programacao")
     created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, onupdate=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     user = relationship("User", back_populates="phases")
     goals = relationship("Goal", back_populates="phase", cascade="all, delete-orphan")

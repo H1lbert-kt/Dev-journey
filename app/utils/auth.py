@@ -1,10 +1,9 @@
 import hashlib
 import hmac
 import secrets
-import os
 import logging
 import html
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from argon2 import PasswordHasher
@@ -12,10 +11,8 @@ from argon2.exceptions import VerifyMismatchError, VerificationError, InvalidHas
 
 logger = logging.getLogger(__name__)
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
-if not SECRET_KEY:
-    SECRET_KEY = secrets.token_hex(32)
-    logger.warning("SECRET_KEY not set - using random key. Sessions will be lost on restart. Set SECRET_KEY env var for persistence.")
+from app.config.settings import get_settings
+_settings = get_settings()
 SESSION_EXPIRY_HOURS = 24
 
 _ph = PasswordHasher(
@@ -80,7 +77,7 @@ def create_session(user_id: int, db) -> str:
     from app.models.user_session import UserSession
 
     token = secrets.token_urlsafe(32)
-    expires_at = datetime.now() + timedelta(hours=SESSION_EXPIRY_HOURS)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=SESSION_EXPIRY_HOURS)
 
     session = UserSession(
         token=token,
@@ -106,7 +103,7 @@ def get_session(token: Optional[str], db) -> Optional[dict]:
     if not session:
         return None
 
-    if datetime.now() > session.expires_at:
+    if datetime.now(timezone.utc) > session.expires_at.replace(tzinfo=timezone.utc):
         db.delete(session)
         try:
             db.commit()

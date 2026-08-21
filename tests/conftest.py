@@ -12,6 +12,21 @@ def setup_db():
     Base.metadata.drop_all(bind=engine)
 
 
+@pytest.fixture(autouse=True)
+def _clean_rate_limits():
+    """Reset rate limit state before each test to prevent bleed."""
+    from main import _rate_limit_instances
+    for inst in _rate_limit_instances:
+        inst._requests.clear()
+        inst._login_attempts.clear()
+        inst._register_attempts.clear()
+    yield
+    for inst in _rate_limit_instances:
+        inst._requests.clear()
+        inst._login_attempts.clear()
+        inst._register_attempts.clear()
+
+
 @pytest.fixture
 def db():
     session = SessionLocal()
@@ -22,7 +37,16 @@ def db():
 @pytest.fixture
 def client():
     from main import app
-    return TestClient(app, raise_server_exceptions=False)
+    c = TestClient(app, raise_server_exceptions=False)
+    return c
+
+
+@pytest.fixture
+def rate_limit_client():
+    """Client for testing rate limiting - uses fresh app to get clean state."""
+    from main import app
+    c = TestClient(app, raise_server_exceptions=False)
+    return c
 
 
 @pytest.fixture

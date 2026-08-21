@@ -96,7 +96,10 @@ async def update_skill(
         return RedirectResponse(url="/skills", status_code=303)
 
     if name is not None:
-        skill.name = name.strip()
+        name = name.strip()
+        if not name:
+            return RedirectResponse(url="/skills", status_code=303)
+        skill.name = name
     if category is not None and category in CATEGORIES:
         skill.category = category
     if progress is not None:

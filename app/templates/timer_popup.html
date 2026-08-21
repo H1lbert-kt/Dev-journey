@@ -231,8 +231,15 @@
         }
     });
 
-    setInterval(syncFromLocalStorage, 2000);
     syncFromLocalStorage();
+
+    window.addEventListener('beforeunload', function() {
+        popupStopLoop();
+        if (channel) {
+            channel.close();
+            channel = null;
+        }
+    });
     </script>
 </body>
 </html>

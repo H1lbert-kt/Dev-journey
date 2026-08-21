@@ -454,6 +454,10 @@
         ftStopTimerLoop();
         function tick() {
             if (!ftRunning) return;
+            if (document.hidden) {
+                ftAnimFrame = requestAnimationFrame(tick);
+                return;
+            }
             var now = Date.now();
             var newSeconds = Math.floor((now - ftStartTime) / 1000);
             if (newSeconds !== ftSeconds) {
@@ -685,7 +689,9 @@
             .catch(function() {});
     }
 
+    var ftPendingRetryTimer = null;
     function ftRetryPendingSaves() {
+        if (ftPendingRetryTimer) return;
         var pending = JSON.parse(localStorage.getItem('ftPendingSaves') || '[]');
         if (pending.length === 0) return;
         var item = pending[0];
@@ -701,10 +707,14 @@
                 if (data.error) throw new Error();
                 pending.shift();
                 localStorage.setItem('ftPendingSaves', JSON.stringify(pending));
-                if (pending.length > 0) setTimeout(ftRetryPendingSaves, 3000);
+                ftPendingRetryTimer = null;
+                if (pending.length > 0) ftRetryPendingSaves();
             })
             .catch(function() {
-                setTimeout(ftRetryPendingSaves, 10000);
+                ftPendingRetryTimer = setTimeout(function() {
+                    ftPendingRetryTimer = null;
+                    ftRetryPendingSaves();
+                }, 10000);
             });
     }
 
@@ -741,19 +751,20 @@
             ftStartTime = ftState.startTime || 0;
             ft.style.display = 'block';
             document.getElementById('ft-subject').textContent = ftSubject;
-            if (ftState.running && ftStartTime > 0) {
+            if (ftState.running && ftStartTime > 0 && !ftRunning) {
                 ftRunning = true;
                 ftSeconds = ftCalcSeconds();
                 ftUpdateDisplay();
                 document.getElementById('ft-pause').innerHTML = '||';
                 ftStartTimerLoop();
                 ftStartKeepalive();
-            } else {
+            } else if (!ftRunning) {
                 ftUpdateDisplay();
                 ftStartPauseTimer();
             }
-        } else {
+        } else if (!ftRunning) {
             fetch('/timer/get-state').then(function(r) { return r.json(); }).then(function(data) {
+                if (ftRunning) return;
                 if (data && data.seconds > 0) {
                     ftSeconds = data.seconds;
                     ftSubject = data.subject || defaultSubject;
@@ -769,7 +780,7 @@
                     ft.style.display = 'none';
                 }
             }).catch(function() {
-                ft.style.display = 'none';
+                if (!ftRunning) ft.style.display = 'none';
             });
         }
     });
@@ -778,6 +789,13 @@
         if (ftRunning) {
             ftSeconds = ftCalcSeconds();
             ftSaveState();
+        }
+        ftStopTimerLoop();
+        ftStopPauseTimer();
+        ftStopKeepalive();
+        if (ftChannel) {
+            ftChannel.close();
+            ftChannel = null;
         }
     });
 

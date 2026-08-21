@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, Form, UploadFile, File
 from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.database.connection import get_db
 from app.models.flashcard import Flashcard
 from app.models.subject import Subject
@@ -224,7 +224,7 @@ async def create_flashcard(
         subject_id=subject_id,
         user_id=user.id,
         study_mode=user.study_mode,
-        next_review=datetime.now(),
+        next_review=datetime.now() + timedelta(days=1),
     )
     db.add(flashcard)
     try:
@@ -283,7 +283,7 @@ async def import_flashcards(
                     subject_id=subject_id,
                     user_id=user.id,
                     study_mode=user.study_mode,
-                    next_review=datetime.now(),
+                    next_review=datetime.now() + timedelta(days=1),
                 )
                 db.add(flashcard)
                 imported += 1

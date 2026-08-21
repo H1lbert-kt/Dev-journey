@@ -13,7 +13,7 @@ class SubjectGoal(Base):
     study_mode = Column(String(20), nullable=False, default="programacao")
     daily_minutes = Column(Integer, nullable=False, default=60)
     created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, onupdate=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     subject = relationship("Subject", back_populates="goals")
     user = relationship("User", back_populates="subject_goals")

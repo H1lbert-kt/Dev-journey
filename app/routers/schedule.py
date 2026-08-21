@@ -191,6 +191,9 @@ async def get_day_schedule(day_of_week: int, request: Request, db: Session = Dep
     if not user:
         return JSONResponse(content={"error": "unauthorized"}, status_code=401)
 
+    if not (0 <= day_of_week <= 6):
+        return JSONResponse(content={"error": "day_of_week must be 0-6"}, status_code=400)
+
     entries = db.query(WeeklySchedule).filter(
         WeeklySchedule.user_id == user.id,
         WeeklySchedule.day_of_week == day_of_week,

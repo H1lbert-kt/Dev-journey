@@ -1,38 +1,78 @@
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from pathlib import Path
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import defaultdict
 import asyncio
 import logging
 import os
 import time
 
-from app.database.connection import engine, Base, SessionLocal, DATABASE_URL, IS_POSTGRESQL, init_database
-from app.config.settings import get_settings
-from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews, schedule, exams, journal, today_plan, skills, history, help, study_goal
-
-logging.basicConfig(level=logging.INFO)
+from app.logging_config import setup_logging
+setup_logging()
 logger = logging.getLogger(__name__)
 
-settings = get_settings()
+from app.database.connection import engine, Base, SessionLocal, IS_POSTGRESQL, init_database
+from app.config.settings import get_settings, IS_RENDER
+from app.middleware.request_id import RequestIdMiddleware
+from app.middleware.error_handler import ErrorHandlerMiddleware
+from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews, schedule, exams, journal, today_plan, skills, history, help, study_goal
 
-IS_PRODUCTION = os.environ.get("RENDER", False) or IS_POSTGRESQL
+settings = get_settings()
+IS_PRODUCTION = IS_RENDER or IS_POSTGRESQL
+
+
+def _init_sentry():
+    dsn = os.environ.get("SENTRY_DSN", "")
+    if not dsn:
+        logger.info("Sentry disabled (SENTRY_DSN not set)")
+        return
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.fastapi import FastApiIntegration
+        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+
+        sentry_sdk.init(
+            dsn=dsn,
+            environment="production" if IS_PRODUCTION else "development",
+            integrations=[
+                FastApiIntegration(),
+                SqlalchemyIntegration(),
+            ],
+            traces_sample_rate=0.1,
+            send_default_pii=False,
+            before_send=_sentry_before_send,
+        )
+        logger.info("Sentry initialized")
+    except ImportError:
+        logger.warning("sentry-sdk not installed — run: pip install sentry-sdk[fastapi]")
+    except Exception as e:
+        logger.warning("Sentry init failed: %s", e)
+
+
+def _sentry_before_send(event, hint):
+    if "request" in event:
+        event["request"].pop("cookies", None)
+        event["request"].pop("headers", None)
+    return event
+
+
+_init_sentry()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("=" * 50)
-    logger.info(f"Database: {'PostgreSQL (persistent)' if IS_POSTGRESQL else 'SQLite (ephemeral)'}")
-    logger.info(f"Environment: {'Production' if IS_PRODUCTION else 'Development'}")
+    logger.info("Database: %s", "PostgreSQL" if IS_POSTGRESQL else "SQLite")
+    logger.info("Environment: %s", "Production" if IS_PRODUCTION else "Development")
     logger.info("=" * 50)
     logger.info("Initializing database tables...")
     init_database()
-    logger.info("Database tables initialized successfully.")
+    logger.info("Database tables initialized.")
 
     db = SessionLocal()
     try:
@@ -40,9 +80,9 @@ async def lifespan(app: FastAPI):
         deleted = db.query(UserSession).filter(UserSession.expires_at < datetime.now()).delete()
         db.commit()
         if deleted:
-            logger.info(f"Cleaned up {deleted} expired sessions")
+            logger.info("Cleaned up %d expired sessions", deleted)
     except Exception as e:
-        logger.warning(f"Session cleanup error: {e}")
+        logger.warning("Session cleanup error: %s", e)
     finally:
         db.close()
 
@@ -55,9 +95,9 @@ async def lifespan(app: FastAPI):
                 deleted = db.query(UserSession).filter(UserSession.expires_at < datetime.now()).delete()
                 db.commit()
                 if deleted:
-                    logger.info(f"Periodic cleanup: removed {deleted} expired sessions")
+                    logger.info("Periodic cleanup: removed %d expired sessions", deleted)
             except Exception as e:
-                logger.warning(f"Periodic session cleanup error: {e}")
+                logger.warning("Periodic session cleanup error: %s", e)
             finally:
                 db.close()
 
@@ -128,6 +168,9 @@ class StudyModeMiddleware(BaseHTTPMiddleware):
         return response
 
 
+_rate_limit_instances = []
+
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, login_limit=10, register_limit=5, general_limit=120):
         super().__init__(app)
@@ -139,6 +182,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._register_attempts = defaultdict(list)
         self._cleanup_interval = 300
         self._last_cleanup = time.time()
+        _rate_limit_instances.append(self)
+
+    def reset_limits(self):
+        """Clear all rate limit state. Used in tests."""
+        self._requests.clear()
+        self._login_attempts.clear()
+        self._register_attempts.clear()
 
     def _get_client_ip(self, request: Request) -> str:
         return request.client.host if request.client else "unknown"
@@ -176,27 +226,42 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             recent = [t for t in self._login_attempts[client_ip] if t > now - 900]
             self._login_attempts[client_ip] = recent
             if len(recent) > self.login_limit:
-                return Response(content="Too many login attempts. Try again later.", status_code=429, headers={"Retry-After": "900"})
+                return JSONResponse(
+                    status_code=429,
+                    content={"error": "Muitas tentativas de login. Tente novamente mais tarde."},
+                    headers={"Retry-After": "900"},
+                )
 
         if path == "/register" and request.method == "POST":
             self._register_attempts[client_ip].append(now)
             recent = [t for t in self._register_attempts[client_ip] if t > now - 3600]
             self._register_attempts[client_ip] = recent
             if len(recent) > self.register_limit:
-                return Response(content="Too many registration attempts. Try again later.", status_code=429, headers={"Retry-After": "3600"})
+                return JSONResponse(
+                    status_code=429,
+                    content={"error": "Muitas tentativas de registro. Tente novamente mais tarde."},
+                    headers={"Retry-After": "3600"},
+                )
 
         self._requests[client_ip].append(now)
         recent = [t for t in self._requests[client_ip] if t > now - 60]
         self._requests[client_ip] = recent
         if len(recent) > self.general_limit:
-            return Response(content="Too many requests. Slow down.", status_code=429, headers={"Retry-After": "60"})
+            return JSONResponse(
+                status_code=429,
+                content={"error": "Muitas requisições. Aguarde um momento."},
+                headers={"Retry-After": "60"},
+            )
 
         return await call_next(request)
 
 
+app.add_middleware(ErrorHandlerMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(StudyModeMiddleware)
+app.add_middleware(RequestIdMiddleware)
+
 
 app.include_router(auth.router, tags=["Auth"])
 app.include_router(dashboard.router, tags=["Dashboard"])
@@ -229,16 +294,60 @@ async def root():
 
 @app.get("/health")
 async def health_check():
+    db_ok = False
+    db_error = None
     try:
-        from app.database.connection import engine
         from sqlalchemy import text
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        from fastapi.responses import JSONResponse
-        return JSONResponse(content={"status": "healthy", "version": "1.0.0", "database": "postgresql" if IS_POSTGRESQL else "sqlite"})
-    except Exception:
-        from fastapi.responses import JSONResponse
-        return JSONResponse(content={"status": "unhealthy"}, status_code=503)
+            db_ok = True
+    except Exception as e:
+        db_error = type(e).__name__
+        logger.warning("Health check DB failed: %s", e)
+
+    status = "healthy" if db_ok else "degraded"
+    code = 200 if db_ok else 503
+
+    result = {
+        "status": status,
+        "version": "1.0.0",
+        "database": "postgresql" if IS_POSTGRESQL else "sqlite",
+        "db_connected": db_ok,
+    }
+    if db_error:
+        result["db_error"] = db_error
+
+    return JSONResponse(content=result, status_code=code)
+
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    request_id = getattr(request.state, "request_id", None)
+    headers = {"X-Request-ID": request_id} if request_id else {}
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(
+            content="<h1>404</h1><p>Página não encontrada.</p>",
+            status_code=404,
+            headers=headers,
+        )
+    return JSONResponse(
+        status_code=404,
+        content={"error": "Não encontrado"},
+        headers=headers,
+    )
+
+
+@app.exception_handler(405)
+async def method_not_allowed_handler(request: Request, exc):
+    request_id = getattr(request.state, "request_id", None)
+    headers = {"X-Request-ID": request_id} if request_id else {}
+    return JSONResponse(
+        status_code=405,
+        content={"error": "Método não permitido"},
+        headers=headers,
+    )
 
 
 if __name__ == "__main__":

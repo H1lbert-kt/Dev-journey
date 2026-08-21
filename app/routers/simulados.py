@@ -336,7 +336,10 @@ async def simulado_result(simulado_id: int, request: Request, db: Session = Depe
     all_simulados = db.query(Simulado).filter(
         Simulado.user_id == user.id,
         Simulado.study_mode == user.study_mode,
-    ).order_by(Simulado.created_at.desc()).all()
+    ).order_by(
+        Simulado.display_order.asc(),
+        Simulado.created_at.desc()
+    ).all()
 
     comparison = None
     if len(all_simulados) >= 2:
