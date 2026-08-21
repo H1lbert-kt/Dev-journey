@@ -95,13 +95,11 @@ async def save_session(
 
     validated_exam_id = None
     if exam_id:
-        from app.models.exam import Exam
         if db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id).first():
             validated_exam_id = exam_id
 
     validated_project_id = None
     if project_id:
-        from app.models.project import Project
         if db.query(Project).filter(Project.id == project_id, Project.user_id == user.id).first():
             validated_project_id = project_id
 
@@ -170,6 +168,85 @@ async def save_session(
         return JSONResponse(content={"error": "Erro ao salvar"}, status_code=500)
 
     return JSONResponse(content={"success": True, "day_completed": day_completed})
+
+
+@router.delete("/delete/{session_id}")
+async def delete_session(
+    request: Request,
+    session_id: int,
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    if not user:
+        return JSONResponse(content={"error": "unauthorized"}, status_code=401)
+
+    session = db.query(StudySession).filter(
+        StudySession.id == session_id,
+        StudySession.user_id == user.id,
+    ).first()
+
+    if not session:
+        return JSONResponse(content={"error": "Sessao nao encontrada"}, status_code=404)
+
+    db.delete(session)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        return JSONResponse(content={"error": "Erro ao excluir"}, status_code=500)
+
+    return JSONResponse(content={"success": True})
+
+
+@router.post("/edit/{session_id}")
+async def edit_session(
+    request: Request,
+    session_id: int,
+    subject: str = Form(...),
+    duration_minutes: float = Form(...),
+    session_type: str = Form("estudo"),
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    if not user:
+        return JSONResponse(content={"error": "unauthorized"}, status_code=401)
+
+    session = db.query(StudySession).filter(
+        StudySession.id == session_id,
+        StudySession.user_id == user.id,
+    ).first()
+
+    if not session:
+        return JSONResponse(content={"error": "Sessao nao encontrada"}, status_code=404)
+
+    if not subject or not subject.strip():
+        return JSONResponse(content={"error": "Materia obrigatoria"}, status_code=400)
+
+    if duration_minutes < 0:
+        return JSONResponse(content={"error": "Duracao invalida"}, status_code=400)
+
+    if session_type not in ("estudo", "teoria", "exercicios", "revisao", "projeto", "simulado"):
+        session_type = "estudo"
+
+    session.subject = subject.strip()
+    session.duration_minutes = round(duration_minutes, 2)
+    session.session_type = session_type
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        return JSONResponse(content={"error": "Erro ao editar"}, status_code=500)
+
+    return JSONResponse(content={
+        "success": True,
+        "session": {
+            "id": session.id,
+            "subject": session.subject,
+            "duration_minutes": session.duration_minutes,
+            "session_type": session.session_type,
+        }
+    })
 
 
 @router.post("/set-goal")

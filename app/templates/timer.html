@@ -183,15 +183,57 @@
 
     <div class="section">
         <h2 class="section-title">Histórico</h2>
-        <div class="sessions-list">
+        <div class="sessions-list" id="sessions-list">
             {% for session in sessions %}
-            <div class="session-item" onclick="resumeFromHistory('{{ session.subject }}', {{ session.duration_minutes }})" style="cursor: pointer" title="Clique para retomar desta sessão">
-                <span class="session-subject">{{ session.subject }}</span>
-                <span class="session-duration">{{ "%.1f"|format(session.duration_minutes) }}min</span>
-                <span class="session-date">{{ session.date.strftime('%d/%m/%H:%M') if session.date else '-' }}</span>
+            <div class="session-item" id="session-{{ session.id }}" data-id="{{ session.id }}" data-subject="{{ session.subject }}" data-duration="{{ session.duration_minutes }}" data-type="{{ session.session_type or 'estudo' }}">
+                <div class="session-info" onclick="resumeFromHistory('{{ session.subject }}', {{ session.duration_minutes }})" style="cursor: pointer" title="Clique para retomar desta sessão">
+                    <span class="session-subject">{{ session.subject }}</span>
+                    <span class="session-type-badge">{{ session.session_type or 'estudo' }}</span>
+                    <span class="session-duration">{{ "%.1f"|format(session.duration_minutes) }}min</span>
+                    <span class="session-date">{{ session.date.strftime('%d/%m/%H:%M') if session.date else '-' }}</span>
+                </div>
+                <div class="session-actions">
+                    <button class="session-action-btn" onclick="openEditModal({{ session.id }}, '{{ session.subject }}', {{ session.duration_minutes }}, '{{ session.session_type or 'estudo' }}')" title="Editar">✏️</button>
+                    <button class="session-action-btn session-action-delete" onclick="deleteSession({{ session.id }})" title="Excluir">🗑️</button>
+                </div>
             </div>
             {% endfor %}
+            {% if not sessions %}
+            <div class="empty-state">Nenhuma sessão registrada</div>
+            {% endif %}
         </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="edit-modal" style="display:none" onclick="if(event.target===this)closeEditModal()">
+    <div class="modal-card">
+        <h3 class="modal-title">Editar Sessão</h3>
+        <form id="edit-form" onsubmit="submitEdit(event)">
+            <input type="hidden" id="edit-session-id">
+            <div class="form-group">
+                <label>Matéria</label>
+                <input type="text" id="edit-subject" class="input" required>
+            </div>
+            <div class="form-group">
+                <label>Duração (minutos)</label>
+                <input type="number" id="edit-duration" class="input" min="0.1" step="0.1" required>
+            </div>
+            <div class="form-group">
+                <label>Tipo</label>
+                <select id="edit-session-type" class="input">
+                    <option value="estudo">Estudo</option>
+                    <option value="teoria">Teoria</option>
+                    <option value="exercicios">Exercícios</option>
+                    <option value="revisao">Revisão</option>
+                    <option value="projeto">Projeto</option>
+                    <option value="simulado">Simulado</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn" onclick="closeEditModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -222,6 +264,130 @@
     color: #0c0e12;
     border-color: var(--accent);
     font-weight: 600;
+}
+.session-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+    background: var(--bg-raised);
+    transition: background var(--t);
+}
+.session-item:hover {
+    background: var(--bg-overlay);
+}
+.session-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+.session-subject {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.session-type-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 9999px;
+    background: var(--bg-overlay);
+    color: var(--fg-2);
+    white-space: nowrap;
+}
+.session-duration {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent);
+    white-space: nowrap;
+}
+.session-date {
+    font-size: 12px;
+    color: var(--fg-3);
+    white-space: nowrap;
+}
+.session-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+.session-item:hover .session-actions {
+    opacity: 1;
+}
+.session-action-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-surface);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: background var(--t), border-color var(--t);
+}
+.session-action-btn:hover {
+    background: var(--bg-overlay);
+    border-color: var(--accent);
+}
+.session-action-delete:hover {
+    background: rgba(239,68,68,0.15);
+    border-color: var(--red);
+}
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.modal-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+}
+.modal-title {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+}
+.form-group {
+    margin-bottom: 14px;
+}
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--fg-2);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+.empty-state {
+    text-align: center;
+    padding: 20px;
+    color: var(--fg-3);
+    font-size: 14px;
 }
 </style>
 
@@ -319,6 +485,7 @@ function highlightCurrentSubject() {
     for (var i = 0; i < scheduleSubjects.length; i++) {
         var item = document.getElementById('schedule-item-' + i);
         var status = document.getElementById('schedule-status-' + i);
+        if (!item || !status) continue;
         if (i < currentScheduleIndex) {
             item.classList.remove('active', 'pending');
             item.classList.add('done');
@@ -409,6 +576,8 @@ function showSessionSummary() {
 }
 
 function startTimer() {
+    if (ftRunning) return;
+
     document.getElementById('btn-start').style.display = 'none';
     document.getElementById('btn-pause').style.display = 'inline-flex';
     document.getElementById('btn-stop').style.display = 'inline-flex';
@@ -419,12 +588,13 @@ function startTimer() {
         ? scheduleSubjects[currentScheduleIndex].name
         : document.getElementById('timer-subject').value;
 
-    if (ftRunning || ftSeconds > 0) {
+    if (ftSeconds > 0 && !ftRunning) {
         ftResume();
     } else {
         ftStart(subjectName);
     }
 
+    clearInterval(timerInterval);
     timerInterval = setInterval(function() {
         if (pomodoroMinutes > 0 || pomodoroSeconds > 0) {
             if (pomodoroSeconds <= 0) {
@@ -450,7 +620,9 @@ function startTimer() {
 function pauseTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
-    ftPause();
+    if (ftRunning) {
+        ftPause();
+    }
     document.getElementById('btn-start').style.display = 'inline-flex';
     document.getElementById('btn-start').textContent = 'Continuar';
     document.getElementById('btn-pause').style.display = 'none';
@@ -515,20 +687,27 @@ function saveAndMoveNext() {
     currentScheduleIndex++;
 
     if (currentScheduleIndex >= scheduleSubjects.length) {
-        ftSeconds = 0;
-        ftRunning = false;
-        ftStartTime = 0;
         ftStopTimerLoop();
         ftStopPauseTimer();
         ftStopKeepalive();
+        ftSeconds = 0;
+        ftStartTime = 0;
+        ftRunning = false;
         localStorage.removeItem('ftState');
         ftClearStateOnServer();
         ftBroadcast();
         document.getElementById('floating-timer').style.display = 'none';
         document.title = 'DevJourney';
+        if (ftStopCallback) ftStopCallback();
         finishStudySession();
     } else {
+        ftStopTimerLoop();
         ftSeconds = 0;
+        ftStartTime = 0;
+        ftRunning = false;
+        localStorage.removeItem('ftState');
+        ftClearStateOnServer();
+        ftBroadcast();
         updateDisplay();
         highlightCurrentSubject();
         document.getElementById('timer-subject').value = scheduleSubjects[currentScheduleIndex].name;
@@ -601,15 +780,16 @@ function ftSyncPauseDisplay() {
 }
 
 function resumeFromHistory(subject, durationMinutes) {
-    var seconds = Math.round(durationMinutes * 60);
-    if (ftRunning || ftSeconds > 0) {
+    if (ftRunning) {
         if (!confirm('Você já tem um cronômetro em andamento. Deseja substituir pela sessão do histórico?')) {
             return;
         }
-        clearInterval(timerInterval);
-        timerInterval = null;
         ftPause();
     }
+
+    clearInterval(timerInterval);
+    timerInterval = null;
+
     var subjectSelect = document.getElementById('timer-subject');
     for (var i = 0; i < subjectSelect.options.length; i++) {
         if (subjectSelect.options[i].value === subject) {
@@ -617,8 +797,9 @@ function resumeFromHistory(subject, durationMinutes) {
             break;
         }
     }
-    ftSeconds = seconds;
+    ftSeconds = Math.round(durationMinutes * 60);
     ftSubject = subject;
+    ftStartTime = 0;
     ftSaveState();
     document.getElementById('floating-timer').style.display = 'block';
     document.getElementById('ft-subject').textContent = ftSubject;
@@ -639,6 +820,69 @@ function setPomodoro(minutes) {
     } else {
         document.getElementById('timer-phase').textContent = ftRunning ? 'Estudando...' : 'Modo livre';
     }
+}
+
+function deleteSession(sessionId) {
+    if (!confirm('Excluir esta sessão? Esta ação não pode ser desfeita.')) return;
+
+    fetch('/timer/delete/' + sessionId, { method: 'DELETE' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                var el = document.getElementById('session-' + sessionId);
+                if (el) el.remove();
+                var list = document.getElementById('sessions-list');
+                if (list && list.querySelectorAll('.session-item').length === 0) {
+                    list.innerHTML = '<div class="empty-state">Nenhuma sessão registrada</div>';
+                }
+            } else {
+                alert('Erro ao excluir: ' + (data.error || 'Erro desconhecido'));
+            }
+        })
+        .catch(function() { alert('Erro de conexão ao excluir sessão.'); });
+}
+
+function openEditModal(sessionId, subject, durationMinutes, sessionType) {
+    document.getElementById('edit-session-id').value = sessionId;
+    document.getElementById('edit-subject').value = subject;
+    document.getElementById('edit-duration').value = durationMinutes;
+    document.getElementById('edit-session-type').value = sessionType;
+    document.getElementById('edit-modal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('edit-modal').style.display = 'none';
+}
+
+function submitEdit(e) {
+    e.preventDefault();
+    var sessionId = document.getElementById('edit-session-id').value;
+    var formData = new FormData();
+    formData.append('subject', document.getElementById('edit-subject').value);
+    formData.append('duration_minutes', document.getElementById('edit-duration').value);
+    formData.append('session_type', document.getElementById('edit-session-type').value);
+
+    fetch('/timer/edit/' + sessionId, { method: 'POST', body: formData })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                var el = document.getElementById('session-' + sessionId);
+                if (el) {
+                    el.setAttribute('data-subject', data.session.subject);
+                    el.setAttribute('data-duration', data.session.duration_minutes);
+                    el.setAttribute('data-type', data.session.session_type);
+                    el.querySelector('.session-subject').textContent = data.session.subject;
+                    el.querySelector('.session-duration').textContent = data.session.duration_minutes.toFixed(1) + 'min';
+                    el.querySelector('.session-type-badge').textContent = data.session.session_type;
+                    var info = el.querySelector('.session-info');
+                    info.setAttribute('onclick', "resumeFromHistory('" + data.session.subject.replace(/'/g, "\\'") + "', " + data.session.duration_minutes + ")");
+                }
+                closeEditModal();
+            } else {
+                alert('Erro ao editar: ' + (data.error || 'Erro desconhecido'));
+            }
+        })
+        .catch(function() { alert('Erro de conexão ao editar sessão.'); });
 }
 
 document.addEventListener('DOMContentLoaded', function() {

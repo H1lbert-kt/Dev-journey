@@ -349,14 +349,14 @@
             <div class="floating-timer-left">
                 <span class="floating-timer-icon">&#9200;</span>
                 <span class="floating-timer-subject" id="ft-subject"></span>
-                <button class="floating-timer-btn" onclick="openTimerPopup()" title="Abrir cronômetro em janela separada" style="font-size:12px; padding:4px 6px; margin-left:4px;">&#8599;</button>
+                <button class="floating-timer-btn" onclick="openTimerPopup()" title="Abrir em janela" style="font-size:12px; padding:4px 6px; margin-left:4px;">&#8599;</button>
             </div>
             <div class="floating-timer-center">
                 <span class="floating-timer-time" id="ft-time">00:00:00</span>
-                <span class="floating-timer-pause" id="ft-pause-time" style="display:none; font-size: 11px; color: var(--fg-3); margin-left: 8px;">Pausado: 00:00</span>
+                <span id="ft-pause-time" style="display:none; font-size: 11px; color: var(--fg-3); margin-left: 8px;">Pausado: 00:00</span>
             </div>
             <div class="floating-timer-right">
-                <button class="floating-timer-btn" id="ft-pause" onclick="ftPause()">||</button>
+                <button class="floating-timer-btn" id="ft-pause" onclick="ftPauseToggle()">&#9654;</button>
                 <button class="floating-timer-btn floating-timer-btn-stop" id="ft-stop" onclick="ftStop()">&#9632;</button>
             </div>
         </div>
@@ -454,16 +454,16 @@
         ftStopTimerLoop();
         function tick() {
             if (!ftRunning) return;
+            var now = Date.now();
+            var newSeconds = Math.floor((now - ftStartTime) / 1000);
             if (document.hidden) {
+                ftSeconds = newSeconds;
                 ftAnimFrame = requestAnimationFrame(tick);
                 return;
             }
-            var now = Date.now();
-            var newSeconds = Math.floor((now - ftStartTime) / 1000);
             if (newSeconds !== ftSeconds) {
                 ftSeconds = newSeconds;
                 ftUpdateDisplay();
-                ftSaveState();
             }
             ftAnimFrame = requestAnimationFrame(tick);
         }
@@ -478,6 +478,7 @@
     }
 
     function ftStart(subject) {
+        if (ftRunning) return;
         ftSubject = subject || defaultSubject;
         ftRunning = true;
         ftSeconds = 0;
@@ -494,20 +495,22 @@
     }
 
     function ftResume() {
+        if (ftRunning) return;
         ftRunning = true;
         ftStartTime = Date.now() - (ftSeconds * 1000);
         ftSaveState();
         ftClearStateOnServer();
         ftStopTimerLoop();
         ftStartTimerLoop();
+        ftUpdateDisplay();
         document.getElementById('ft-pause').innerHTML = '||';
         ftStopPauseTimer();
         ftStartKeepalive();
     }
 
     function ftPause() {
-        ftRunning = false;
         ftSeconds = ftCalcSeconds();
+        ftRunning = false;
         ftStopTimerLoop();
         ftSaveState();
         ftSaveStateToServer();
@@ -517,17 +520,28 @@
         ftStartPauseTimer();
     }
 
+    function ftPauseToggle() {
+        if (ftRunning) {
+            ftPause();
+        } else if (ftSeconds > 0) {
+            ftResume();
+        }
+    }
+
     function ftStop() {
-        ftStopTimerLoop();
-        ftSeconds = ftCalcSeconds();
-        var saved = ftSeconds;
+        var finalSeconds = ftCalcSeconds();
         ftRunning = false;
+        ftStopTimerLoop();
+        ftSeconds = finalSeconds;
+        var saved = ftSeconds;
         ftStartTime = 0;
         ftStopKeepalive();
         ftStopPauseTimer();
         document.getElementById('floating-timer').style.display = 'none';
         document.title = 'DevJourney';
+        ftSaveState();
         ftBroadcast();
+        if (ftSyncDisplay) ftSyncDisplay();
         if (ftStopCallback) ftStopCallback();
 
         if (saved > 0) {
@@ -584,7 +598,6 @@
 
     function ftStartPauseTimer() {
         ftStopPauseTimer();
-        ftPauseSeconds = 0;
         var pauseTimeEl = document.getElementById('ft-pause-time');
         if (pauseTimeEl) {
             pauseTimeEl.style.display = 'inline';
@@ -736,7 +749,6 @@
         if (document.visibilityState === 'visible' && ftRunning) {
             ftSeconds = ftCalcSeconds();
             ftUpdateDisplay();
-            ftSaveState();
         }
     });
 
@@ -748,7 +760,7 @@
         if (ftState && ftState.seconds > 0) {
             ftSeconds = ftState.seconds;
             ftSubject = ftState.subject || defaultSubject;
-            ftStartTime = ftState.startTime || 0;
+            ftStartTime = ftState.running && ftState.startTime ? ftState.startTime : 0;
             ft.style.display = 'block';
             document.getElementById('ft-subject').textContent = ftSubject;
             if (ftState.running && ftStartTime > 0 && !ftRunning) {
@@ -759,6 +771,11 @@
                 ftStartTimerLoop();
                 ftStartKeepalive();
             } else if (!ftRunning) {
+                if (ftState.running && ftStartTime === 0) {
+                    ftState.running = false;
+                    ftSaveState();
+                }
+                document.getElementById('ft-pause').innerHTML = '&#9654;';
                 ftUpdateDisplay();
                 ftStartPauseTimer();
             }
