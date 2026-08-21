@@ -66,44 +66,126 @@ def _sanitize_value(text: str) -> str:
     return text[:300]
 
 
-def _send_telegram(text: str) -> bool:
+def _api_call(method: str, payload: dict) -> dict | None:
     if not IS_ENABLED:
-        logger.warning("Telegram send skipped: IS_ENABLED=False")
-        return False
+        return None
     try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        payload = json.dumps({
-            "chat_id": TELEGRAM_CHAT_ID,
-            "text": text,
-            "parse_mode": "Markdown",
-            "disable_web_page_preview": True,
-        }).encode()
-        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
-        resp = urllib.request.urlopen(req, timeout=10)
-        resp_body = resp.read().decode()
-        logger.info("Telegram message sent OK (status=%s)", resp.status)
-        return True
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/{method}"
+        data = json.dumps(payload).encode()
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        resp = urllib.request.urlopen(req, timeout=15)
+        return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         error_body = ""
         try:
             error_body = e.read().decode()[:300]
         except Exception:
             pass
-        logger.warning("Telegram API HTTP %s: %s", e.code, error_body)
-        return False
-    except urllib.error.URLError as e:
-        logger.warning("Telegram API connection error: %s", e.reason)
-        return False
+        logger.warning("Telegram API %s HTTP %s: %s", method, e.code, error_body)
+        return None
     except Exception as e:
-        logger.warning("Telegram notification failed: %s: %s", type(e).__name__, e)
-        return False
+        logger.warning("Telegram API %s failed: %s: %s", method, type(e).__name__, e)
+        return None
+
+
+def send_message(text: str, chat_id: str = None, reply_markup: dict = None) -> dict | None:
+    payload = {
+        "chat_id": chat_id or TELEGRAM_CHAT_ID,
+        "text": text,
+        "parse_mode": "Markdown",
+        "disable_web_page_preview": True,
+    }
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+    return _api_call("sendMessage", payload)
+
+
+def send_error_alert(error_type: str, error_value: str, endpoint: str = "",
+                     method: str = "", environment: str = "unknown",
+                     timestamp: str = "", frame_info: str = "",
+                     approval_id: str = "", sentry_url: str = "") -> dict | None:
+    clean_value = _sanitize_value(error_value)
+    clean_url = _sanitize_url("")
+    frame_clean = frame_info if frame_info else ""
+
+    text = (
+        f"🚨 *ERRO NO SERVIDOR*\n\n"
+        f"DevJourney detectou um erro em produção.\n\n"
+        f"*Erro:*\n```\n{error_type}: {clean_value}\n```\n"
+    )
+    if frame_clean:
+        text += f"*Local:* `{frame_clean.strip()}`\n"
+    if endpoint:
+        text += f"*Endpoint:* `{method} {endpoint}`\n"
+    text += f"*Ambiente:* {environment}\n"
+    text += f"*Horário:* {timestamp}\n"
+    if sentry_url:
+        text += f"*Sentry:* [Ver evento]({sentry_url})\n"
+    text += f"\nDeseja que o OpenCode analise e tente corrigir este erro?"
+
+    reply_markup = None
+    if approval_id:
+        reply_markup = {
+            "inline_keyboard": [[
+                {"text": "✅ Sim, corrigir", "callback_data": f"fix:yes:{approval_id}"},
+                {"text": "❌ Não corrigir", "callback_data": f"fix:no:{approval_id}"},
+            ]]
+        }
+
+    return send_message(text, reply_markup=reply_markup)
+
+
+def send_fix_result(approval_id: str, error_type: str, error_value: str,
+                    files: list, summary: str, tests_passed: bool,
+                    tests_output: str) -> dict | None:
+    clean_value = _sanitize_value(error_value)
+    files_text = "\n".join(f"  `{f}`" for f in files) if files else "  (nenhum)"
+    test_emoji = "✅" if tests_passed else "❌"
+    test_lines = tests_output.strip().split("\n")[-3:] if tests_output else []
+    test_summary = "\n".join(test_lines)
+
+    text = (
+        f"🔧 *CORREÇÃO PREPARADA*\n\n"
+        f"*Erro:*\n```\n{error_type}: {clean_value}\n```\n\n"
+        f"*Causa encontrada:*\n{summary}\n\n"
+        f"*Arquivos alterados:*\n{files_text}\n\n"
+        f"*Testes:* {test_emoji}\n"
+    )
+    if test_summary:
+        text += f"```\n{test_summary}\n```\n\n"
+
+    if tests_passed:
+        text += "Deseja fazer o deploy?"
+        reply_markup = {
+            "inline_keyboard": [[
+                {"text": "🚀 DEPLOY", "callback_data": f"deploy:yes:{approval_id}"},
+                {"text": "❌ CANCELAR", "callback_data": f"deploy:no:{approval_id}"},
+            ]]
+        }
+    else:
+        text += "❌ *CORREÇÃO NÃO APROVADA*\nNão realizar deploy."
+        reply_markup = None
+
+    return send_message(text, reply_markup=reply_markup)
+
+
+def send_deploy_result(approval_id: str, success: bool, message: str) -> dict | None:
+    if success:
+        text = f"✅ *DEPLOY REALIZADO*\n\n{message}"
+    else:
+        text = f"❌ *DEPLOY FALHOU*\n\n{message}"
+    return send_message(text)
+
+
+def send_simple(text: str) -> dict | None:
+    return send_message(text)
 
 
 def notify_error_async(error_type: str, error_value: str, endpoint: str = "",
                        level: str = "error", url: str = "",
                        environment: str = "unknown", timestamp: str = "",
-                       frame_info: str = "") -> None:
-    """Queue a Telegram notification in a background thread. Never blocks."""
+                       frame_info: str = "", approval_id: str = "",
+                       sentry_url: str = "") -> None:
     if not IS_ENABLED:
         return
 
@@ -112,25 +194,17 @@ def notify_error_async(error_type: str, error_value: str, endpoint: str = "",
         return
 
     def _send():
-        clean_value = _sanitize_value(error_value)
-        clean_url = _sanitize_url(url)
-
-        level_emoji = {"error": "🔴", "warning": "🟡", "fatal": "💀"}.get(level, "⚪")
-
-        text = (
-            f"{level_emoji} *DevJourney — {level.upper()}*\n\n"
-            f"*{error_type}*\n"
-            f"```\n{clean_value}\n```"
+        send_error_alert(
+            error_type=error_type,
+            error_value=error_value,
+            endpoint=endpoint,
+            method=level,
+            environment=environment,
+            timestamp=timestamp,
+            frame_info=frame_info,
+            approval_id=approval_id,
+            sentry_url=sentry_url,
         )
-        if frame_info:
-            text += f"{frame_info}\n"
-        if endpoint:
-            text += f"*Endpoint:* `{endpoint}`\n"
-        if clean_url:
-            text += f"*URL:* {clean_url}\n"
-        text += f"*Env:* {environment} | *Time:* {timestamp}"
-
-        _send_telegram(text)
 
     t = threading.Thread(target=_send, daemon=True)
     t.start()

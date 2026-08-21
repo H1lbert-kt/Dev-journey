@@ -1,4 +1,5 @@
 import logging
+import uuid
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, HTMLResponse
@@ -26,15 +27,19 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 request_id,
             )
 
+            sentry_event_id = None
             try:
                 import sentry_sdk
-                sentry_sdk.capture_exception(exc)
+                sentry_event_id = sentry_sdk.capture_exception(exc)
             except ImportError:
                 pass
 
             try:
                 from app.notifications.telegram import notify_error_async
                 from datetime import datetime
+
+                approval_id = uuid.uuid4().hex[:16]
+
                 frames = getattr(exc, "__traceback__", None)
                 frame_info = ""
                 if frames:
@@ -42,17 +47,30 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                     while tb.tb_next:
                         tb = tb.tb_next
                     f = tb.tb_frame
-                    frame_info = f"\n`{f.f_code.co_filename}:{tb.tb_lineno}` in `{f.f_code.co_name}`"
+                    frame_info = f"`{f.f_code.co_filename}:{tb.tb_lineno}` in `{f.f_code.co_name}`"
+
+                environment = "production" if IS_PRODUCTION else "development"
+                timestamp = datetime.now().strftime("%d/%m/%Y %H:%M")
+
+                sentry_url = ""
+                if sentry_event_id and IS_PRODUCTION:
+                    import os
+                    org = os.environ.get("SENTRY_ORG", "")
+                    project = os.environ.get("SENTRY_PROJECT", "devjourney")
+                    if org:
+                        sentry_url = f"https://sentry.io/organizations/{org}/projects/{project}/events/{sentry_event_id}/"
 
                 notify_error_async(
                     error_type=type(exc).__name__,
                     error_value=str(exc),
-                    endpoint=f"{method} {endpoint}",
-                    level="error",
+                    endpoint=endpoint,
+                    level=method,
                     url=str(request.url),
-                    environment="production" if IS_PRODUCTION else "development",
-                    timestamp=datetime.now().isoformat(),
+                    environment=environment,
+                    timestamp=timestamp,
                     frame_info=frame_info,
+                    approval_id=approval_id,
+                    sentry_url=sentry_url,
                 )
             except Exception:
                 pass
