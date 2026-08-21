@@ -4122,3 +4122,92 @@ textarea.input {
     font-size: 13px;
     color: var(--fg-2);
 }
+
+.subject-time-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.subject-time-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.subject-time-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.subject-time-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--fg-0);
+}
+
+.subject-time-value {
+    font-size: 12px;
+    color: var(--fg-2);
+    font-variant-numeric: tabular-nums;
+}
+
+.subject-time-bar {
+    height: 6px;
+    background: var(--bg-1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.subject-time-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.chart-container {
+    padding: 12px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.chart-wrapper {
+    height: 200px;
+    position: relative;
+}
+
+.chart-stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.chart-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.chart-stat-label {
+    font-size: 11px;
+    color: var(--fg-3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chart-stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--fg-0);
+}

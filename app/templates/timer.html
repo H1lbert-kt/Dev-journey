@@ -676,7 +676,7 @@ function saveAndMoveNext() {
                         setTimeout(function() { attemptSave(retries - 1); }, 2000);
                     } else {
                         var pending = JSON.parse(localStorage.getItem('ftPendingSaves') || '[]');
-                        pending.push({subject: subjectName, duration: duration, ts: Date.now()});
+                        pending.push({subject: subjectName, duration: duration, ts: Date.now(), examId: currentExamId || null, projectId: currentProjectId || null});
                         localStorage.setItem('ftPendingSaves', JSON.stringify(pending));
                     }
                 });

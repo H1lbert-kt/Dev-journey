@@ -150,6 +150,24 @@
             <h2 class="section-title">Sessões de Estudo</h2>
         </div>
 
+        {% if subject_minutes %}
+        <div class="subject-time-breakdown">
+            {% for sub_name, minutes in subject_minutes %}
+            <div class="subject-time-row">
+                <div class="subject-time-info">
+                    <span class="subject-time-name">{{ sub_name }}</span>
+                    <span class="subject-time-value">
+                        {% if minutes >= 60 %}{{ (minutes / 60)|int }}h {{ (minutes % 60)|int }}min{% else %}{{ minutes|int }}min{% endif %}
+                    </span>
+                </div>
+                <div class="subject-time-bar">
+                    <div class="subject-time-fill" style="width: {{ (minutes / subject_minutes[0][1] * 100) if subject_minutes[0][1] > 0 else 0 }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         {% if study_sessions %}
         <div class="sessions-list">
             {% for session in study_sessions %}
@@ -180,6 +198,64 @@
         </div>
     </div>
     {% endif %}
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Simulados</h2>
+            <button class="btn btn-primary" onclick="openModal('create-exam-simulado-modal')">+ Novo Simulado</button>
+        </div>
+
+        {% if simulados %}
+        <div class="chart-container">
+            <div class="chart-wrapper">
+                <canvas id="examSimuladoChart"></canvas>
+            </div>
+            <div class="chart-stats">
+                <div class="chart-stat">
+                    <span class="chart-stat-label">Media</span>
+                    <span class="chart-stat-value" id="exam-sim-avg">--</span>
+                </div>
+                <div class="chart-stat">
+                    <span class="chart-stat-label">Total</span>
+                    <span class="chart-stat-value" id="exam-sim-count">{{ simulados|length }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="simulados-list">
+            {% for sim in simulados %}
+            <div class="simulado-item">
+                <div class="simulado-info">
+                    <h3>{{ sim.name }}</h3>
+                    <div class="simulado-meta">
+                        <span class="simulado-date">{{ sim.created_at.strftime('%d/%m/%Y') if sim.created_at else '-' }}</span>
+                        {% if sim.correction_method == "cespe" %}
+                        <span class="simulado-method-badge">CESPE</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="simulado-stats">
+                    <div class="simulado-score-group">
+                        <span class="simulado-score {% if sim.score is not none and sim.score >= 70 %}score-good{% elif sim.score is not none and sim.score >= 50 %}score-medium{% else %}score-bad{% endif %}">
+                            {{ sim.score if sim.score is not none else 0 }}%
+                        </span>
+                        {% if sim.final_score is not none %}
+                        <span class="simulado-points">{{ sim.final_score|int }}pts</span>
+                        {% endif %}
+                    </div>
+                    <span class="simulado-questions">{{ sim.correct_answers }}/{{ sim.total_questions }}</span>
+                    <span class="simulado-time">{{ "%.0f"|format(sim.time_minutes) }}min</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state-small">
+            <p>Nenhum simulado registrado para este concurso.</p>
+            <button class="btn btn-primary" onclick="openModal('create-exam-simulado-modal')">+ Registrar Simulado</button>
+        </div>
+        {% endif %}
+    </div>
 </div>
 
 <div id="add-subject-modal" class="modal">
@@ -201,4 +277,106 @@
         </form>
     </div>
 </div>
+
+<div id="create-exam-simulado-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Registrar Simulado</h2>
+            <button class="modal-close" onclick="closeModal('create-exam-simulado-modal')">&times;</button>
+        </div>
+        <form action="/simulados/create" method="post">
+            <input type="hidden" name="exam_id" value="{{ exam.id }}">
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" name="name" required class="input" placeholder="Ex: CESPE 2024" maxlength="200">
+            </div>
+            <div class="form-group">
+                <label>Concurso</label>
+                <input type="text" class="input" value="{{ exam.name }}" disabled>
+            </div>
+            <div class="form-group">
+                <label>Método de Correção</label>
+                <div class="correction-method-selector">
+                    <label class="correction-option">
+                        <input type="radio" name="correction_method" value="normal" checked>
+                        <span class="correction-label">Normal</span>
+                        <span class="correction-desc">Acertos / Total</span>
+                    </label>
+                    <label class="correction-option">
+                        <input type="radio" name="correction_method" value="cespe">
+                        <span class="correction-label">CESPE</span>
+                        <span class="correction-desc">Erradas anulam certas</span>
+                    </label>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Total</label>
+                    <input type="number" name="total_questions" required class="input" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Certas</label>
+                    <input type="number" name="correct_answers" required class="input" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Erradas</label>
+                    <input type="number" name="wrong_answers" value="0" class="input" min="0">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Ou tempo manual (minutos)</label>
+                <input type="number" name="time_minutes_manual" class="input" min="0.5" step="0.5">
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Registrar</button>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if simulados %}
+    var scores = [
+        {% for sim in simulados %}{{ sim.score if sim.score is not none else 0 }}{% if not loop.last %},{% endif %}{% endfor %}
+    ];
+    var labels = [
+        {% for sim in simulados %}'{{ sim.created_at.strftime("%d/%m") if sim.created_at else "" }}'{% if not loop.last %},{% endif %}{% endfor %}
+    ];
+    var avg = scores.length ? Math.round(scores.reduce(function(a,b){return a+b},0)/scores.length) : 0;
+
+    var avgEl = document.getElementById('exam-sim-avg');
+    if (avgEl) avgEl.textContent = avg + '%';
+
+    var canvas = document.getElementById('examSimuladoChart');
+    if (canvas) {
+        var ctx = canvas.getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels.reverse(),
+                datasets: [{
+                    label: 'Pontuação',
+                    data: scores.reverse(),
+                    borderColor: '#58a6ff',
+                    backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                    borderWidth: 2, pointRadius: 4, pointHoverRadius: 6,
+                    tension: 0.3, spanGaps: false
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { backgroundColor: '#161b22', titleColor: '#f0f6fc', bodyColor: '#8b949e', borderColor: '#30363d', borderWidth: 1 }
+                },
+                scales: {
+                    x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', maxRotation: 45 } },
+                    y: { min: 0, grid: { color: '#21262d' }, ticks: { color: '#8b949e', callback: function(v) { return v + '%'; } } }
+                }
+            }
+        });
+    }
+    {% endif %}
+});
+</script>
 {% endblock %}

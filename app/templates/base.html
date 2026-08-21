@@ -544,6 +544,8 @@
             formData.append('duration', saved);
             var resumeId = (typeof resumedSessionId !== 'undefined') ? resumedSessionId : null;
             if (resumeId) formData.append('session_id', resumeId);
+            if (typeof currentExamId !== 'undefined' && currentExamId) formData.append('exam_id', currentExamId);
+            if (typeof currentProjectId !== 'undefined' && currentProjectId) formData.append('project_id', currentProjectId);
 
             function attemptSave(retries) {
                 fetch('/timer/save', { method: 'POST', body: formData })
@@ -563,7 +565,12 @@
                             setTimeout(function() { attemptSave(retries - 1); }, 2000);
                         } else {
                             var pending = JSON.parse(localStorage.getItem('ftPendingSaves') || '[]');
-                            pending.push({subject: ftSubject, duration: saved, ts: Date.now(), sessionId: resumeId});
+                            pending.push({
+                                subject: ftSubject, duration: saved, ts: Date.now(),
+                                sessionId: resumeId,
+                                examId: (typeof currentExamId !== 'undefined') ? currentExamId : null,
+                                projectId: (typeof currentProjectId !== 'undefined') ? currentProjectId : null
+                            });
                             localStorage.setItem('ftPendingSaves', JSON.stringify(pending));
                             ftSeconds = 0;
                             localStorage.removeItem('ftState');
@@ -682,6 +689,8 @@
         formData.append('subject', item.subject);
         formData.append('duration', item.duration);
         if (item.sessionId) formData.append('session_id', item.sessionId);
+        if (item.examId) formData.append('exam_id', item.examId);
+        if (item.projectId) formData.append('project_id', item.projectId);
         fetch('/timer/save', { method: 'POST', body: formData })
             .then(function(r) {
                 if (!r.ok) throw new Error();

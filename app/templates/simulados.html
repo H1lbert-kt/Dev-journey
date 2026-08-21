@@ -154,12 +154,14 @@
                 <input type="text" name="name" required class="input" placeholder="Ex: CESPE 2024" maxlength="200">
             </div>
 
-            {% if active_goal %}
+            {% if exams %}
             <div class="form-group">
-                <label>Prova <span style="font-size:11px; color:var(--fg-3); font-weight:400">(opcional)</span></label>
+                <label>Concurso <span style="font-size:11px; color:var(--fg-3); font-weight:400">(opcional)</span></label>
                 <select name="exam_id" class="input">
-                    <option value="0">Nenhuma prova</option>
-                    <option value="{{ active_goal.exam_id }}" selected>{{ active_goal.title }}</option>
+                    <option value="0">Nenhum concurso</option>
+                    {% for exam in exams %}
+                    <option value="{{ exam.id }}" {% if active_goal and active_goal.exam_id == exam.id %}selected{% endif %}>{{ exam.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
             {% endif %}

@@ -5,6 +5,7 @@ from sqlalchemy import func
 from app.database.connection import get_db
 from app.models.simulado import Simulado
 from app.models.study_goal import StudyGoal
+from app.models.exam import Exam
 from app.routers.auth import require_auth
 
 router = APIRouter()
@@ -80,6 +81,8 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
         else:
             comparisons[curr.id] = {"diff": None}
 
+    exams = db.query(Exam).filter(Exam.user_id == user.id, Exam.study_mode == user.study_mode).order_by(Exam.name).all()
+
     return request.app.state.templates.TemplateResponse(
         request,
         "simulados.html",
@@ -95,6 +98,7 @@ async def simulados_page(request: Request, db: Session = Depends(get_db)):
             "active_goal": active_goal,
             "goal_simulados": goal_simulados,
             "goal_avg": goal_avg,
+            "exams": exams,
         },
     )
 

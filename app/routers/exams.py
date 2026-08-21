@@ -256,11 +256,18 @@ async def exam_detail(exam_id: int, request: Request, db: Session = Depends(get_
         StudySession.study_mode == user.study_mode,
     ).order_by(StudySession.date.desc()).all()
 
+    subject_minutes = {}
+    for s in study_sessions:
+        subject_minutes[s.subject] = round(subject_minutes.get(s.subject, 0) + s.duration_minutes, 1)
+    subject_minutes_sorted = sorted(subject_minutes.items(), key=lambda x: -x[1])
+
     simulados = db.query(Simulado).filter(
         Simulado.user_id == user.id,
         Simulado.study_mode == user.study_mode,
         Simulado.exam_id == exam.id,
     ).order_by(Simulado.created_at.desc()).all()
+
+    last_simulado = simulados[0] if simulados else None
 
     return request.app.state.templates.TemplateResponse(
         request,
@@ -271,7 +278,9 @@ async def exam_detail(exam_id: int, request: Request, db: Session = Depends(get_
             "user_subjects": user_subjects,
             "stats": stats,
             "study_sessions": study_sessions,
+            "subject_minutes": subject_minutes_sorted,
             "simulados": simulados,
+            "last_simulado": last_simulado,
             "today": date.today(),
             "status_label": STATUS_LABELS.get(exam.status, exam.status),
             "study_mode": user.study_mode,
