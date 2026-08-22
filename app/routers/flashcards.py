@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, Form, UploadFile, File
+from fastapi import APIRouter, Request, Depends, Form, UploadFile, File, Query
 from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
@@ -17,7 +17,7 @@ MAX_IMPORT_LINES = 500
 
 
 @router.get("/")
-async def flashcards_page(request: Request, db: Session = Depends(get_db)):
+async def flashcards_page(request: Request, imported: int = Query(None), db: Session = Depends(get_db)):
     user = require_auth(request, db)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
@@ -41,6 +41,7 @@ async def flashcards_page(request: Request, db: Session = Depends(get_db)):
             "card_states": card_states,
             "stats": stats,
             "study_mode": user.study_mode,
+            "imported_count": imported,
         },
     )
 
@@ -285,7 +286,7 @@ async def import_flashcards(
                     subject_id=subject_id,
                     user_id=user.id,
                     study_mode=user.study_mode,
-                    next_review=datetime.now() + timedelta(days=1),
+                    next_review=datetime.now(),
                 )
                 db.add(flashcard)
                 imported += 1
@@ -294,7 +295,7 @@ async def import_flashcards(
         db.commit()
     except Exception:
         db.rollback()
-    return RedirectResponse(url="/flashcards", status_code=303)
+    return RedirectResponse(url=f"/flashcards?imported={imported}", status_code=303)
 
 
 @router.post("/{card_id}/delete")

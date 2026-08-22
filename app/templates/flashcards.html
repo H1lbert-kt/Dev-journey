@@ -4,6 +4,17 @@
 
 {% block content %}
 <div class="page">
+    {% if imported_count is not none %}
+    <div class="import-success-banner" id="import-banner">
+        <span class="import-success-icon">&#10004;</span>
+        <span class="import-success-text">{{ imported_count }} cards importados com sucesso!</span>
+        {% if stats.due > 0 %}
+        <a href="/flashcards/review" class="btn btn-primary btn-small">Comecar a Revisar</a>
+        {% endif %}
+        <button class="import-success-close" onclick="document.getElementById('import-banner').style.display='none'">&times;</button>
+    </div>
+    {% endif %}
+
     <div class="page-header">
         <h1 class="page-title">Flashcards</h1>
         <p class="page-subtitle">Sistema de repetição espaçada</p>

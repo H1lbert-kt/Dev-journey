@@ -4171,3 +4171,41 @@ textarea.input {
     border-radius: 3px;
     transition: width 0.3s ease;
 }
+
+.import-success-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--green-subtle);
+    border: 1px solid var(--green-muted);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    animation: fadeIn 0.3s ease;
+}
+
+.import-success-icon {
+    color: var(--green);
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.import-success-text {
+    flex: 1;
+    color: var(--fg-0);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.import-success-close {
+    background: none;
+    border: none;
+    color: var(--fg-3);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.import-success-close:hover {
+    color: var(--fg-0);
+}
