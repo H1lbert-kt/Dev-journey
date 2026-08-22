@@ -17,7 +17,7 @@ MAX_IMPORT_LINES = 500
 
 
 @router.get("/")
-async def flashcards_page(request: Request, imported: int = Query(None), db: Session = Depends(get_db)):
+async def flashcards_page(request: Request, imported: int = Query(None), deleted: int = Query(None), db: Session = Depends(get_db)):
     user = require_auth(request, db)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
@@ -42,6 +42,7 @@ async def flashcards_page(request: Request, imported: int = Query(None), db: Ses
             "stats": stats,
             "study_mode": user.study_mode,
             "imported_count": imported,
+            "deleted_count": deleted,
         },
     )
 
@@ -316,3 +317,30 @@ async def delete_flashcard(card_id: int, request: Request, db: Session = Depends
         except Exception:
             db.rollback()
     return RedirectResponse(url="/flashcards", status_code=303)
+
+
+@router.post("/subject/{subject_id}/delete-all")
+async def delete_all_subject_flashcards(subject_id: int, request: Request, db: Session = Depends(get_db)):
+    user = require_auth(request, db)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    subject = db.query(Subject).filter(
+        Subject.id == subject_id,
+        Subject.user_id == user.id,
+        Subject.study_mode == user.study_mode,
+    ).first()
+    if not subject:
+        return RedirectResponse(url="/flashcards", status_code=303)
+
+    deleted = db.query(Flashcard).filter(
+        Flashcard.subject_id == subject_id,
+        Flashcard.user_id == user.id,
+        Flashcard.study_mode == user.study_mode,
+    ).delete()
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+    return RedirectResponse(url=f"/flashcards?deleted={deleted}", status_code=303)

@@ -1684,6 +1684,13 @@ textarea.input {
     color: var(--fg-3);
 }
 
+.fc-subject-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
 .fc-upcoming {
     display: flex;
     gap: 12px;

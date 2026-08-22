@@ -240,7 +240,11 @@ def get_flashcard_stats(db: Session, user_id: int, study_mode: str) -> dict:
     for card in all_cards:
         sname = card.subject.name if card.subject else "Sem matéria"
         if sname not in by_subject:
-            by_subject[sname] = {"total": 0, "due": 0, "new": 0, "color": card.subject.color if card.subject else "#58a6ff"}
+            by_subject[sname] = {
+                "total": 0, "due": 0, "new": 0,
+                "color": card.subject.color if card.subject else "#58a6ff",
+                "subject_id": card.subject_id
+            }
         by_subject[sname]["total"] += 1
         if card.next_review and card.next_review <= now:
             by_subject[sname]["due"] += 1

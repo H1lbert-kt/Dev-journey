@@ -15,6 +15,14 @@
     </div>
     {% endif %}
 
+    {% if deleted_count is not none %}
+    <div class="import-success-banner" id="delete-banner" style="background: var(--red-subtle); border-color: var(--red);">
+        <span class="import-success-icon" style="color: var(--red);">&#10004;</span>
+        <span class="import-success-text">{{ deleted_count }} cards excluidos com sucesso!</span>
+        <button class="import-success-close" onclick="document.getElementById('delete-banner').style.display='none'">&times;</button>
+    </div>
+    {% endif %}
+
     <div class="page-header">
         <h1 class="page-title">Flashcards</h1>
         <p class="page-subtitle">Sistema de repetição espaçada</p>
@@ -82,9 +90,14 @@
                         <span class="fc-subject-name">{{ name }}</span>
                         <span class="fc-subject-meta">{{ data.total }} cards{% if data.due > 0 %} · {{ data.due }} para revisar{% endif %}</span>
                     </div>
-                    {% if data.due > 0 %}
-                    <a href="/flashcards/review" class="btn btn-small">Revisar</a>
-                    {% endif %}
+                    <div class="fc-subject-actions">
+                        {% if data.due > 0 %}
+                        <a href="/flashcards/review" class="btn btn-small">Revisar</a>
+                        {% endif %}
+                        <form action="/flashcards/subject/{{ data.subject_id }}/delete-all" method="post" style="display:inline" onclick="event.stopPropagation()" onsubmit="return confirm('Tem certeza que deseja excluir TODOS os {{ data.total }} cards de {{ name }}? Esta acao nao pode ser desfeita.')">
+                            <button type="submit" class="btn btn-danger btn-small" title="Excluir todos os cards desta materia">Excluir Bloco</button>
+                        </form>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
