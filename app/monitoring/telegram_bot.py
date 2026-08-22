@@ -44,7 +44,7 @@ class TelegramBot:
             logger.warning("Telegram API %s HTTP %s: %s", method, e.code, body)
             return None
         except Exception as e:
-            logger.warning("Telegram API %s error: %s", e)
+            logger.warning("Telegram API %s error: %s", method, e)
             return None
 
     def send_message(self, chat_id: str, text: str, reply_markup: dict = None) -> dict | None:
