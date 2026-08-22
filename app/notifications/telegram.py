@@ -105,7 +105,6 @@ def send_error_alert(error_type: str, error_value: str, endpoint: str = "",
                      timestamp: str = "", frame_info: str = "",
                      approval_id: str = "", sentry_url: str = "") -> dict | None:
     clean_value = _sanitize_value(error_value)
-    clean_url = _sanitize_url("")
     frame_clean = frame_info if frame_info else ""
 
     text = (
@@ -119,61 +118,7 @@ def send_error_alert(error_type: str, error_value: str, endpoint: str = "",
         text += f"*Endpoint:* `{method} {endpoint}`\n"
     text += f"*Ambiente:* {environment}\n"
     text += f"*Horário:* {timestamp}\n"
-    if sentry_url:
-        text += f"*Sentry:* [Ver evento]({sentry_url})\n"
-    text += f"\nDeseja que o OpenCode analise e tente corrigir este erro?"
 
-    reply_markup = None
-    if approval_id:
-        reply_markup = {
-            "inline_keyboard": [[
-                {"text": "✅ Sim, corrigir", "callback_data": f"fix:yes:{approval_id}"},
-                {"text": "❌ Não corrigir", "callback_data": f"fix:no:{approval_id}"},
-            ]]
-        }
-
-    return send_message(text, reply_markup=reply_markup)
-
-
-def send_fix_result(approval_id: str, error_type: str, error_value: str,
-                    files: list, summary: str, tests_passed: bool,
-                    tests_output: str) -> dict | None:
-    clean_value = _sanitize_value(error_value)
-    files_text = "\n".join(f"  `{f}`" for f in files) if files else "  (nenhum)"
-    test_emoji = "✅" if tests_passed else "❌"
-    test_lines = tests_output.strip().split("\n")[-3:] if tests_output else []
-    test_summary = "\n".join(test_lines)
-
-    text = (
-        f"🔧 *CORREÇÃO PREPARADA*\n\n"
-        f"*Erro:*\n```\n{error_type}: {clean_value}\n```\n\n"
-        f"*Causa encontrada:*\n{summary}\n\n"
-        f"*Arquivos alterados:*\n{files_text}\n\n"
-        f"*Testes:* {test_emoji}\n"
-    )
-    if test_summary:
-        text += f"```\n{test_summary}\n```\n\n"
-
-    if tests_passed:
-        text += "Deseja fazer o deploy?"
-        reply_markup = {
-            "inline_keyboard": [[
-                {"text": "🚀 DEPLOY", "callback_data": f"deploy:yes:{approval_id}"},
-                {"text": "❌ CANCELAR", "callback_data": f"deploy:no:{approval_id}"},
-            ]]
-        }
-    else:
-        text += "❌ *CORREÇÃO NÃO APROVADA*\nNão realizar deploy."
-        reply_markup = None
-
-    return send_message(text, reply_markup=reply_markup)
-
-
-def send_deploy_result(approval_id: str, success: bool, message: str) -> dict | None:
-    if success:
-        text = f"✅ *DEPLOY REALIZADO*\n\n{message}"
-    else:
-        text = f"❌ *DEPLOY FALHOU*\n\n{message}"
     return send_message(text)
 
 

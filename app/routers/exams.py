@@ -265,7 +265,10 @@ async def exam_detail(exam_id: int, request: Request, db: Session = Depends(get_
         Simulado.user_id == user.id,
         Simulado.study_mode == user.study_mode,
         Simulado.exam_id == exam.id,
-    ).order_by(Simulado.created_at.desc()).all()
+    ).order_by(
+        Simulado.display_order.asc(),
+        Simulado.created_at.desc(),
+    ).all()
 
     last_simulado = simulados[0] if simulados else None
 
