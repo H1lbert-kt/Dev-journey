@@ -197,9 +197,32 @@ def _handle_message(chat_id: int, text: str):
         send_simple(
             "🤖 *Comandos:*\n"
             "/status — Ver status do sistema\n"
+            "/test — Enviar erro de teste\n"
             "/help — Esta mensagem\n\n"
             "Use os botões inline para aprovar/rejeitar correções e deploys."
         )
+    elif text == "/test":
+        _send_test_error(chat_id)
+
+
+def _send_test_error(chat_id: int):
+    import secrets
+    import time
+    from app.notifications.telegram import send_error_alert
+
+    approval_id = secrets.token_hex(8)
+    logger.info("Test error triggered by chat_id=%d, approval_id=%s", chat_id, approval_id)
+
+    send_error_alert(
+        error_type="TestError",
+        error_value="Erro de teste do sistema de monitoramento. Clique em 'Sim, corrigir' para testar o fluxo completo.",
+        endpoint="/test",
+        method="COMMAND",
+        environment="test",
+        timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
+        frame_info="controller.py:_send_test_error",
+        approval_id=approval_id,
+    )
 
 
 def _setup_signal_handlers():
