@@ -283,7 +283,6 @@ async def create_simulado(
 
     validated_exam_id = None
     if exam_id > 0:
-        from app.models.exam import Exam
         exam_ownership = db.query(Exam).filter(Exam.id == exam_id, Exam.user_id == user.id).first()
         if exam_ownership:
             validated_exam_id = exam_id

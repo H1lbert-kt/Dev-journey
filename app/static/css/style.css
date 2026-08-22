@@ -4160,7 +4160,7 @@ textarea.input {
 
 .subject-time-bar {
     height: 6px;
-    background: var(--bg-1);
+    background: var(--bg-overlay);
     border-radius: 3px;
     overflow: hidden;
 }
@@ -4170,44 +4170,4 @@ textarea.input {
     background: var(--accent);
     border-radius: 3px;
     transition: width 0.3s ease;
-}
-
-.chart-container {
-    padding: 12px;
-    background: var(--bg-raised);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 12px;
-}
-
-.chart-wrapper {
-    height: 200px;
-    position: relative;
-}
-
-.chart-stats {
-    display: flex;
-    gap: 16px;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
-}
-
-.chart-stat {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.chart-stat-label {
-    font-size: 11px;
-    color: var(--fg-3);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.chart-stat-value {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--fg-0);
 }

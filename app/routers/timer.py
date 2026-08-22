@@ -203,6 +203,7 @@ async def delete_session(
     session = db.query(StudySession).filter(
         StudySession.id == session_id,
         StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
     ).first()
 
     if not session:
@@ -234,6 +235,7 @@ async def edit_session(
     session = db.query(StudySession).filter(
         StudySession.id == session_id,
         StudySession.user_id == user.id,
+        StudySession.study_mode == user.study_mode,
     ).first()
 
     if not session:

@@ -54,6 +54,9 @@ async def review_session(request: Request, db: Session = Depends(get_db)):
     due_cards = get_due_cards(db, user.id, user.study_mode)
 
     if not due_cards:
+        flashcards = db.query(Flashcard).filter(
+            Flashcard.user_id == user.id, Flashcard.study_mode == user.study_mode
+        ).all()
         return request.app.state.templates.TemplateResponse(
             request,
             "flashcards.html",
@@ -61,9 +64,8 @@ async def review_session(request: Request, db: Session = Depends(get_db)):
                 "subjects": db.query(Subject).filter(
                     Subject.user_id == user.id, Subject.study_mode == user.study_mode
                 ).all(),
-                "flashcards": db.query(Flashcard).filter(
-                    Flashcard.user_id == user.id, Flashcard.study_mode == user.study_mode
-                ).all(),
+                "flashcards": flashcards,
+                "card_states": {card.id: get_card_state(card) for card in flashcards},
                 "stats": get_flashcard_stats(db, user.id, user.study_mode),
                 "study_mode": user.study_mode,
                 "review_message": "Nenhum card para revisar no momento.",

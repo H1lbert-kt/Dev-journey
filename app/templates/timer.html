@@ -186,14 +186,14 @@
         <div class="sessions-list" id="sessions-list">
             {% for session in sessions %}
             <div class="session-item" id="session-{{ session.id }}" data-id="{{ session.id }}" data-subject="{{ session.subject }}" data-duration="{{ session.duration_minutes }}" data-type="{{ session.session_type or 'estudo' }}">
-                <div class="session-info" onclick="resumeFromHistory({{ session.id }}, '{{ session.subject }}', {{ session.duration_minutes }})" style="cursor: pointer" title="Clique para retomar esta sessão">
+                <div class="session-info" onclick="resumeFromHistory({{ session.id }}, {{ session.subject|tojson }}, {{ session.duration_minutes }})" style="cursor: pointer" title="Clique para retomar esta sessão">
                     <span class="session-subject">{{ session.subject }}</span>
                     <span class="session-type-badge">{{ session.session_type or 'estudo' }}</span>
                     <span class="session-duration">{{ "%.1f"|format(session.duration_minutes) }}min</span>
                     <span class="session-date">{{ session.date.strftime('%d/%m/%H:%M') if session.date else '-' }}</span>
                 </div>
                 <div class="session-actions">
-                    <button class="session-action-btn" onclick="openEditModal({{ session.id }}, '{{ session.subject }}', {{ session.duration_minutes }}, '{{ session.session_type or 'estudo' }}')" title="Editar">✏️</button>
+                    <button class="session-action-btn" onclick="openEditModal({{ session.id }}, {{ session.subject|tojson }}, {{ session.duration_minutes }}, {{ (session.session_type or 'estudo')|tojson }})" title="Editar">✏️</button>
                     <button class="session-action-btn session-action-delete" onclick="deleteSession({{ session.id }})" title="Excluir">🗑️</button>
                 </div>
             </div>
@@ -567,9 +567,18 @@ function showSessionSummary() {
         var mins = Math.round(r.seconds / 60);
         var div = document.createElement('div');
         div.className = 'summary-item';
-        div.innerHTML = '<span class="summary-dot" style="background:' + r.color + '"></span>' +
-            '<span class="summary-name">' + r.name + '</span>' +
-            '<span class="summary-time">' + mins + 'min</span>';
+        var dot = document.createElement('span');
+        dot.className = 'summary-dot';
+        dot.style.background = r.color;
+        var name = document.createElement('span');
+        name.className = 'summary-name';
+        name.textContent = r.name;
+        var time = document.createElement('span');
+        time.className = 'summary-time';
+        time.textContent = mins + 'min';
+        div.appendChild(dot);
+        div.appendChild(name);
+        div.appendChild(time);
         container.appendChild(div);
     }
 
