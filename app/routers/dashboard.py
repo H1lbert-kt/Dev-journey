@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Depends
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from datetime import datetime, timedelta, date
+from datetime import datetime
 from app.database.connection import get_db
 from app.services.dashboard_service import DashboardService
 from app.services.phase_service import PhaseService

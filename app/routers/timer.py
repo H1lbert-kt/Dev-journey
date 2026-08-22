@@ -11,7 +11,6 @@ from app.models.calendar_day import CalendarDay
 from app.models.weekly_schedule import WeeklySchedule
 from app.models.exam import Exam
 from app.models.project import Project
-from app.models.today_plan import TodayPlanItem
 from app.routers.auth import require_auth
 
 router = APIRouter()

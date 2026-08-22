@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from app.database.connection import get_db
 from app.models.flashcard import Flashcard
 from app.routers.auth import require_auth
-from app.services.flashcard_srs import get_due_cards, get_flashcard_stats, get_card_state
+from app.services.flashcard_srs import get_due_cards, get_flashcard_stats
 
 router = APIRouter()
 

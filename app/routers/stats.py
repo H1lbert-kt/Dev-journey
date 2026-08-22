@@ -10,7 +10,6 @@ from app.services.project_service import ProjectService
 from app.services.calendar_service import CalendarService
 from app.services.flashcard_srs import get_flashcard_stats
 from app.models.study_session import StudySession
-from app.models.simulado import Simulado
 from app.routers.auth import require_auth
 
 router = APIRouter()

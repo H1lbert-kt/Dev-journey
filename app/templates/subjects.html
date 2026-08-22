@@ -23,7 +23,7 @@
                 <span class="subject-health-name">{{ sd.subject.name }}</span>
                 <span class="subject-health-domain">{{ sd.domain }}%</span>
                 <span class="subject-health-status health-{{ sd.health }}">{{ sd.health_label }}</span>
-                <form action="/subjects/{{ sd.subject.id }}/delete" method="post" onsubmit="return confirm('Excluir {{ sd.subject.name }}?')" style="margin-left: auto;">
+                <form action="/subjects/{{ sd.subject.id }}/delete" method="post" onsubmit="return confirm('Excluir {{ sd.subject.name|tojson }}?')" style="margin-left: auto;">
                     <button type="submit" class="delete-btn" title="Excluir">&times;</button>
                 </form>
             </div>

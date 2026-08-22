@@ -94,7 +94,7 @@
                         {% if data.due > 0 %}
                         <a href="/flashcards/review" class="btn btn-small">Revisar</a>
                         {% endif %}
-                        <form action="/flashcards/subject/{{ data.subject_id }}/delete-all" method="post" style="display:inline" onclick="event.stopPropagation()" onsubmit="return confirm('Tem certeza que deseja excluir TODOS os {{ data.total }} cards de {{ name }}? Esta acao nao pode ser desfeita.')">
+                        <form action="/flashcards/subject/{{ data.subject_id }}/delete-all" method="post" style="display:inline" onclick="event.stopPropagation()" onsubmit="return confirm('Tem certeza que deseja excluir TODOS os {{ data.total }} cards de {{ name|tojson }}? Esta acao nao pode ser desfeita.')">
                             <button type="submit" class="btn btn-danger btn-small" title="Excluir todos os cards desta materia">Excluir Bloco</button>
                         </form>
                     </div>

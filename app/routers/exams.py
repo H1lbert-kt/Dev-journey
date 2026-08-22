@@ -10,7 +10,6 @@ from app.models.exam import Exam, ExamSubject
 from app.models.study_session import StudySession
 from app.models.simulado import Simulado
 from app.models.subject import Subject
-from app.models.calendar_day import CalendarDay
 from app.routers.auth import require_auth
 
 logger = logging.getLogger(__name__)
