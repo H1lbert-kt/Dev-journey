@@ -12,7 +12,6 @@ from app.services.domain_service import DomainService
 from app.models.study_session import StudySession
 from app.models.today_plan import TodayPlanItem
 from app.models.subject import Subject
-from app.models.study_goal import StudyGoal
 from app.routers.auth import require_auth
 
 router = APIRouter()
@@ -57,16 +56,6 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         Subject.study_mode == user.study_mode
     ).all()
 
-    active_goal = db.query(StudyGoal).filter(
-        StudyGoal.user_id == user.id,
-        StudyGoal.study_mode == user.study_mode,
-        StudyGoal.active == True,
-    ).first()
-
-    goal_days_until = None
-    if active_goal and active_goal.target_date:
-        goal_days_until = (active_goal.target_date - date.today()).days
-
     next_action = rec_service.get_next_action()
     weekly_report = rec_service.get_weekly_report()
     subjects_domain = domain_service.get_all_subjects_domain()
@@ -86,8 +75,6 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
             "completed_plan_items": completed_plan_items,
             "total_plan_items": total_plan_items,
             "subjects": subjects,
-            "active_goal": active_goal,
-            "goal_days_until": goal_days_until,
             "next_action": next_action,
             "weekly_report": weekly_report,
             "subjects_domain": subjects_domain,

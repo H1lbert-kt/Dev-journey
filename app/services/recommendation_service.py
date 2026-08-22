@@ -286,8 +286,6 @@ class RecommendationService:
 
     def _importance_score(self, subject: Subject) -> float:
         """0-100: higher = more important (linked to goals/exams)."""
-        from app.models.study_goal import StudyGoal
-        from app.models.exam import Exam
         from app.models.flashcard import Flashcard
 
         score = 0.0
@@ -300,14 +298,6 @@ class RecommendationService:
             score += 20.0
         elif flashcard_count > 5:
             score += 10.0
-
-        active_goal = self.db.query(StudyGoal).filter(
-            StudyGoal.user_id == self.user_id,
-            StudyGoal.study_mode == self.study_mode,
-            StudyGoal.active == True,
-        ).first()
-        if active_goal and active_goal.exam_id:
-            score += 30.0
 
         return min(score, 100.0)
 

@@ -20,7 +20,7 @@ from app.database.connection import engine, Base, SessionLocal, IS_POSTGRESQL, i
 from app.config.settings import get_settings, IS_RENDER
 from app.middleware.request_id import RequestIdMiddleware
 from app.middleware.error_handler import ErrorHandlerMiddleware
-from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews, schedule, exams, journal, today_plan, skills, history, help, study_goal
+from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews, schedule, exams, journal, today_plan, skills, history, help
 
 settings = get_settings()
 IS_PRODUCTION = IS_RENDER or IS_POSTGRESQL
@@ -284,7 +284,6 @@ app.include_router(today_plan.router, prefix="/today-plan", tags=["Today Plan"])
 app.include_router(skills.router, prefix="/skills", tags=["Skills"])
 app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(help.router, tags=["Help"])
-app.include_router(study_goal.router, prefix="/study-goal", tags=["Study Goal"])
 
 
 @app.get("/")

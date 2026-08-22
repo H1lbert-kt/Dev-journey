@@ -10,7 +10,6 @@ from app.services.project_service import ProjectService
 from app.services.calendar_service import CalendarService
 from app.services.flashcard_srs import get_flashcard_stats
 from app.models.study_session import StudySession
-from app.models.study_goal import StudyGoal
 from app.models.simulado import Simulado
 from app.routers.auth import require_auth
 
@@ -105,30 +104,6 @@ async def stats(request: Request, db: Session = Depends(get_db)):
         })
     subjects_detail.sort(key=lambda x: x["total_minutes"], reverse=True)
 
-    active_goal = db.query(StudyGoal).filter(
-        StudyGoal.user_id == user.id,
-        StudyGoal.study_mode == user.study_mode,
-        StudyGoal.active == True,
-    ).first()
-
-    goal_simulados = []
-    goal_chart_labels = []
-    goal_chart_data = []
-    if active_goal and active_goal.exam_id:
-        goal_simulados = db.query(Simulado).filter(
-            Simulado.user_id == user.id,
-            Simulado.study_mode == user.study_mode,
-            Simulado.exam_id == active_goal.exam_id,
-        ).order_by(Simulado.created_at.asc()).all()
-
-        for sim in goal_simulados:
-            goal_chart_labels.append(sim.created_at.strftime('%d/%m') if sim.created_at else '')
-            if sim.correction_method == 'cespe':
-                score = max(0, sim.correct_answers - sim.wrong_answers) / max(1, sim.total_questions) * 100
-            else:
-                score = sim.correct_answers / max(1, sim.total_questions) * 100
-            goal_chart_data.append(round(score, 1))
-
     weak_subjects = []
     if subjects_detail:
         sorted_subjects = sorted(subjects_detail, key=lambda x: x["total_minutes"])
@@ -161,10 +136,6 @@ async def stats(request: Request, db: Session = Depends(get_db)):
             "subjects_detail": subjects_detail,
             "total_study_time": round(total_study_time, 1),
             "study_mode": user.study_mode,
-            "active_goal": active_goal,
-            "goal_simulados": goal_simulados,
-            "goal_chart_labels": goal_chart_labels,
-            "goal_chart_data": goal_chart_data,
             "weak_subjects": weak_subjects,
             "worst_subject": worst_subject,
             "best_subject": best_subject,

@@ -6,7 +6,7 @@
 <div class="page">
     <div class="page-header">
         <h1 class="page-title">&#10067; Central de Ajuda</h1>
-        <p class="page-subtitle">Como usar o DevJourney</p>
+        <p class="page-subtitle">Guia completo para usar o DevJourney</p>
     </div>
 
     <div class="help-search">
@@ -14,7 +14,7 @@
     </div>
 
     <div class="help-categories" id="help-categories">
-        <div class="help-category" data-keywords="cronometro cronômetro tempo sessão sessao timer estudar parar pausar">
+        <div class="help-category" data-keywords="cronometro cronômetro tempo sessão sessao timer estudar parar pausar pomodoro foco">
             <h2 class="section-title">&#9200; Cronômetro</h2>
             <div class="help-content">
                 <div class="help-item">
@@ -28,10 +28,18 @@
                     <h3>Cronômetro Flutuante</h3>
                     <p>Um mini-cronômetro aparece no canto da tela enquanto você navega. Clique nele para expandir ou minimizar.</p>
                 </div>
+                <div class="help-item">
+                    <h3>Modo Pomodoro</h3>
+                    <p>O cronômetro suporta o método Pomodoro: 25 minutos de foco seguidos de 5 minutos de pausa. Após 4 ciclos, uma pausa mais longa de 15-30 minutos.</p>
+                </div>
+                <div class="help-item">
+                    <h3>Salvamento automático</h3>
+                    <p>Suas sessões são salvas automaticamente. Mesmo se o navegador fechar, os dados são preservados.</p>
+                </div>
             </div>
         </div>
 
-        <div class="help-category" data-keywords="plano hoje tarefas checklist planejar rotina">
+        <div class="help-category" data-keywords="plano hoje tarefas checklist planejar rotina organização">
             <h2 class="section-title">&#128203; Plano de Hoje</h2>
             <div class="help-content">
                 <div class="help-item">
@@ -41,17 +49,21 @@
                     <p>3. Marque como concluído ao finalizar</p>
                     <p>4. O progresso aparece no dashboard</p>
                 </div>
+                <div class="help-item">
+                    <h3>Prioridades</h3>
+                    <p>Cada tarefa pode ter prioridade Alta, Média ou Baixa. Tarefas de alta prioridade aparecem destacadas para ajudar no foco.</p>
+                </div>
             </div>
         </div>
 
-        <div class="help-category" data-keywords="simulado prova teste nota pontuacao cespe normal desempenho objetivo">
+        <div class="help-category" data-keywords="simulado prova teste nota pontuacao cespe normal desempenho">
             <h2 class="section-title">&#128220; Simulados</h2>
             <div class="help-content">
                 <div class="help-item">
                     <h3>Criar um simulado</h3>
                     <p>1. Vá em "Simulados" e clique em "Novo Simulado"</p>
                     <p>2. Preencha nome, data, quantidades de acerto/erro/branco</p>
-                    <p>3. Escolha o modo de pontuacao (Normal ou CESPE)</p>
+                    <p>3. Escolha o modo de pontuação (Normal ou CESPE)</p>
                     <p>4. O gráfico de desempenho é atualizado automaticamente</p>
                 </div>
                 <div class="help-item">
@@ -60,8 +72,12 @@
                     <p><strong>CESPE:</strong> max(0, acertos - erros) / total x 100</p>
                 </div>
                 <div class="help-item">
-                    <h3>Vincular a um objetivo</h3>
-                    <p>Selecione um concurso ou vestibular no campo "Objetivo" ao criar o simulado. Os dados serão agrupados no gráfico do objetivo.</p>
+                    <h3>Vincular a um concurso</h3>
+                    <p>Ao criar um simulado, selecione o concurso vinculado. Isso permite agrupar simulados por prova e acompanhar a evolução específica.</p>
+                </div>
+                <div class="help-item">
+                    <h3>Reordenar simulados</h3>
+                    <p>Use os botões de seta para reordenar seus simulados. A ordem afeta a exibição no gráfico.</p>
                 </div>
             </div>
         </div>
@@ -74,6 +90,12 @@
                     <p>1. Vá em "Flashcards" e clique em "Novo Card"</p>
                     <p>2. Defina a frente (pergunta) e o verso (resposta)</p>
                     <p>3. Associe a uma matéria para organizar</p>
+                </div>
+                <div class="help-item">
+                    <h3>Importar flashcards</h3>
+                    <p>Você pode importar flashcards em lote usando o formato JSON. Clique em "Importar" e selecione o arquivo.</p>
+                    <p>Formato aceito:</p>
+                    <pre style="background:var(--bg-2);padding:8px;border-radius:6px;font-size:12px;overflow-x:auto">[{"front": "Pergunta", "back": "Resposta"}]</pre>
                 </div>
                 <div class="help-item">
                     <h3>Revisão com repetição espaçada</h3>
@@ -93,21 +115,9 @@
                     <p>During review: <strong>Espaço</strong> = mostrar resposta</p>
                     <p><strong>1</strong> = Errei, <strong>2</strong> = Difícil, <strong>3</strong> = Bom, <strong>4</strong> = Fácil</p>
                 </div>
-            </div>
-        </div>
-
-        <div class="help-category" data-keywords="estatisticas dados grafico evolucao progresso materia desempenho">
-            <h2 class="section-title">&#128200; Estatísticas</h2>
-            <div class="help-content">
                 <div class="help-item">
-                    <h3>Entendendo seus dados</h3>
-                    <p><strong>Ranking Pessoal:</strong> comparação com dias anteriores</p>
-                    <p><strong>Sequência:</strong> dias consecutivos estudando</p>
-                    <p><strong>Tempo por Matéria:</strong> distribuição do tempo de estudo</p>
-                </div>
-                <div class="help-item">
-                    <h3>Objetivo específico</h3>
-                    <p>Se você tem um objetivo ativo, o gráfico de desempenho por simulado é exibido aqui. Veja sua evolução ao longo do tempo.</p>
+                    <h3>Excluir bloco de flashcards</h3>
+                    <p>Para excluir todos os flashcards de uma matéria, clique no botão "Excluir Bloco" ao lado do nome da matéria na listagem.</p>
                 </div>
             </div>
         </div>
@@ -122,23 +132,50 @@
                     <p>3. Defina nome e cor para identificação visual</p>
                     <p>4. As matérias aparecem no cronômetro e no plano</p>
                 </div>
+                <div class="help-item">
+                    <h3>Organização por modo</h3>
+                    <p>Cada modo de estudo (Programação, Concursos, Vestibulares) tem suas próprias matérias. Isso permite manter uma organização separada para cada área.</p>
+                </div>
             </div>
         </div>
 
-        <div class="help-category" data-keywords="concursos vestibular objetivo meta prova alvo examinar concurso vestibular">
-            <h2 class="section-title">&#127919; Objetivos</h2>
+        <div class="help-category" data-keywords="concursos vestibular prova alvo examinar concurso vestibular edital banca">
+            <h2 class="section-title">&#127963; Concursos & Vestibulares</h2>
             <div class="help-content">
                 <div class="help-item">
-                    <h3>Cadastrar objetivo</h3>
-                    <p>1. Vá em "Objetivos" no menu</p>
-                    <p>2. Clique em "Novo Objetivo"</p>
-                    <p>3. Escolha o tipo: Concurso ou Vestibular</p>
-                    <p>4. Preencha título, data-alvo e detalhes</p>
-                    <p>5. O countdown aparece no dashboard</p>
+                    <h3>Cadastrar concurso/vestibular</h3>
+                    <p>1. Vá em "Concursos" no menu (modo Concursos ou Vestibulares)</p>
+                    <p>2. Clique em "Novo Concurso"</p>
+                    <p>3. Preencha nome, banca organizadora, cargo, data da prova</p>
+                    <p>4. Adicione informações sobre salário e vagas</p>
+                </div>
+                <div class="help-item">
+                    <h3>Matérias do edital</h3>
+                    <p>Na página do concurso, adicione as matérias do edital com seus pesos. Acompanhe o progresso de estudo de cada matéria individualmente.</p>
                 </div>
                 <div class="help-item">
                     <h3>Vincular simulados</h3>
-                    <p>Ao criar um simulado, selecione o objetivo vinculado. Isso permite acompanhar a evolução específica daquela prova.</p>
+                    <p>Ao criar um simulado, selecione o concurso vinculado. Isso permite agrupar os resultados por prova.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-category" data-keywords="estatisticas dados grafico evolucao progresso materia desempenho">
+            <h2 class="section-title">&#128200; Estatísticas</h2>
+            <div class="help-content">
+                <div class="help-item">
+                    <h3>Entendendo seus dados</h3>
+                    <p><strong>Sequência:</strong> dias consecutivos estudando</p>
+                    <p><strong>Tempo por Matéria:</strong> distribuição do tempo de estudo</p>
+                    <p><strong>Flashcards:</strong> cards revisados, aprendidos e pendentes</p>
+                </div>
+                <div class="help-item">
+                    <h3>Métricas de desempenho</h3>
+                    <p>Veja quantas horas estudou hoje, ontem, na semana e no mês. Compare com seus dias anteriores para acompanhar a evolução.</p>
+                </div>
+                <div class="help-item">
+                    <h3>Matérias mais fracas</h3>
+                    <p>O sistema identifica automaticamente as matérias com menos tempo de estudo e sugere foco nelas.</p>
                 </div>
             </div>
         </div>
@@ -148,13 +185,82 @@
             <div class="help-content">
                 <div class="help-item">
                     <h3>Trocar modo</h3>
-                    <p>No menu lateral, use os botões "Programacao", "Concursos" para alternar entre os modos.</p>
-                    <p>Cada modo tem navegacao e conteudo diferentes.</p>
+                    <p>No menu lateral, use os botões "Programação", "Concursos" ou "Vestibulares" para alternar entre os modos.</p>
+                    <p>Cada modo tem navegação e conteúdo diferentes, permitindo organizar seus estudos por área de interesse.</p>
+                </div>
+                <div class="help-item">
+                    <h3>O que muda em cada modo</h3>
+                    <p><strong>Programação:</strong> foco em roadmap, projetos e skills técnicas</p>
+                    <p><strong>Concursos:</strong> foco em concursos, editais e matérias de prova</p>
+                    <p><strong>Vestibulares:</strong> foco em vestibulares e matérias do ensino médio</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-category" data-keywords="atalhos teclado shortcuts ctrl k navegação rapida">
+            <h2 class="section-title">&#9000; Atalhos do Teclado</h2>
+            <div class="help-content">
+                <div class="help-item">
+                    <h3>Navegação rápida</h3>
+                    <p><strong>Ctrl + K</strong> ou <strong>Ctrl + /</strong> — Abre o painel de navegação rápida (Command Palette)</p>
+                    <p>Digite o nome de qualquer página para navegar instantaneamente.</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.help-category {
+    background: var(--bg-2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.help-category:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 12px rgba(103, 80, 164, 0.08);
+}
+.help-category .section-title {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+.help-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.help-item {
+    padding-left: 16px;
+    border-left: 3px solid var(--accent);
+}
+.help-item h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+    color: var(--fg-1);
+}
+.help-item p {
+    margin: 3px 0;
+    font-size: 13px;
+    color: var(--fg-2);
+    line-height: 1.5;
+}
+.help-item strong {
+    color: var(--accent);
+    font-weight: 600;
+}
+.help-search {
+    margin-bottom: 24px;
+}
+.help-categories {
+    display: flex;
+    flex-direction: column;
+}
+</style>
 
 <script>
 function filterHelp(query) {

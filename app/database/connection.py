@@ -71,7 +71,7 @@ def init_database():
         "habits", "calendar_days", "achievements", "study_sessions",
         "subjects", "flashcards", "flashcard_reviews", "simulados", "subject_goals",
         "weekly_schedule", "exams", "exam_subjects", "skills",
-        "journal_entries", "today_plan_items", "study_goals",
+        "journal_entries", "today_plan_items",
     ]
 
     missing_tables = [t for t in required_tables if t not in existing_tables]

@@ -33,4 +33,3 @@ class User(Base):
     skills = relationship("Skill", back_populates="user", cascade="all, delete-orphan")
     journal_entries = relationship("JournalEntry", back_populates="user", cascade="all, delete-orphan")
     today_plan_items = relationship("TodayPlanItem", back_populates="user", cascade="all, delete-orphan")
-    study_goals = relationship("StudyGoal", back_populates="user", cascade="all, delete-orphan")

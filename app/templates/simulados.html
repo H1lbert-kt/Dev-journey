@@ -37,29 +37,6 @@
         </div>
     </div>
 
-    {% if active_goal and goal_simulados %}
-    <div class="section">
-        <div class="section-header">
-            <h2 class="section-title">Desempenho na Prova</h2>
-            <span class="section-subtitle">{{ active_goal.title }}</span>
-        </div>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-number">{{ goal_simulados|length }}</span>
-                    <span class="stat-label">Simulados</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-number">{{ goal_avg }}%</span>
-                    <span class="stat-label">Media</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
     <div class="section">
         <div class="chart-container">
             <div class="chart-filters">
@@ -160,7 +137,7 @@
                 <select name="exam_id" class="input">
                     <option value="0">Nenhum concurso</option>
                     {% for exam in exams %}
-                    <option value="{{ exam.id }}" {% if active_goal and active_goal.exam_id == exam.id %}selected{% endif %}>{{ exam.name }}</option>
+                    <option value="{{ exam.id }}">{{ exam.name }}</option>
                     {% endfor %}
                 </select>
             </div>

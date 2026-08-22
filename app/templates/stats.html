@@ -130,24 +130,6 @@
     </div>
     {% endif %}
 
-    {% if active_goal %}
-    <div class="section">
-        <h2 class="section-title">&#127919; Objetivo: {{ active_goal.title }}</h2>
-
-        {% if goal_chart_data %}
-        <div class="chart-container">
-            <canvas id="goalChart"></canvas>
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <span class="empty-state-icon">&#128220;</span>
-            <h3>Nenhum simulado vinculado</h3>
-            <p>Vincule simulados ao seu objetivo em <a href="/simulados">Simulados</a></p>
-        </div>
-        {% endif %}
-    </div>
-    {% endif %}
-
     {% if weak_subjects %}
     <div class="section">
         <h2 class="section-title">&#9888; Matérias mais fracas</h2>
@@ -239,31 +221,4 @@
     {% endif %}
 </div>
 
-{% if goal_chart_data %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script>
-new Chart(document.getElementById('goalChart'), {
-    type: 'line',
-    data: {
-        labels: {{ goal_chart_labels|tojson }},
-        datasets: [{
-            label: 'Desempenho (%)',
-            data: {{ goal_chart_data|tojson }},
-            borderColor: '#6750a4',
-            backgroundColor: '#6750a433',
-            tension: 0.3,
-            fill: true,
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true, max: 100, ticks: { callback: function(v) { return v + '%'; } } }
-        }
-    }
-});
-</script>
-{% endif %}
 {% endblock %}

@@ -25,7 +25,6 @@ class Exam(Base):
     user = relationship("User", back_populates="exams")
     subjects = relationship("ExamSubject", back_populates="exam", cascade="all, delete-orphan")
     study_sessions = relationship("StudySession", back_populates="exam")
-    study_goals = relationship("StudyGoal", back_populates="exam")
 
 
 class ExamSubject(Base):

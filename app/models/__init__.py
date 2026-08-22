@@ -16,6 +16,5 @@ from app.models.exam import Exam, ExamSubject
 from app.models.skill import Skill
 from app.models.journal import JournalEntry
 from app.models.today_plan import TodayPlanItem
-from app.models.study_goal import StudyGoal
 
-__all__ = ["User", "Phase", "Goal", "Project", "Habit", "CalendarDay", "Achievement", "StudySession", "Subject", "Flashcard", "FlashcardReview", "Simulado", "SubjectGoal", "UserSession", "WeeklySchedule", "Exam", "ExamSubject", "Skill", "JournalEntry", "TodayPlanItem", "StudyGoal"]
+__all__ = ["User", "Phase", "Goal", "Project", "Habit", "CalendarDay", "Achievement", "StudySession", "Subject", "Flashcard", "FlashcardReview", "Simulado", "SubjectGoal", "UserSession", "WeeklySchedule", "Exam", "ExamSubject", "Skill", "JournalEntry", "TodayPlanItem"]
