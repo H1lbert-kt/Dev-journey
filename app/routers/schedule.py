@@ -41,13 +41,13 @@ async def schedule_page(request: Request, db: Session = Depends(get_db)):
 
     today_minutes = {}
     today = datetime.now().date()
-    sessions = db.query(StudySession).filter(
+    today_sessions = db.query(StudySession).filter(
         StudySession.user_id == user.id,
         StudySession.study_mode == user.study_mode,
+        func.date(StudySession.date) == today,
     ).all()
-    for s in sessions:
-        if s.date and s.date.date() == today:
-            today_minutes[s.subject] = today_minutes.get(s.subject, 0) + s.duration_minutes
+    for s in today_sessions:
+        today_minutes[s.subject] = today_minutes.get(s.subject, 0) + s.duration_minutes
 
     completed_days = {}
     all_sessions_today = db.query(StudySession).filter(

@@ -9,7 +9,6 @@ from app.database.connection import get_db
 from app.models.exam import Exam, ExamSubject
 from app.models.study_session import StudySession
 from app.models.simulado import Simulado
-from app.models.simulado import Simulado
 from app.models.subject import Subject
 from app.routers.auth import require_auth
 

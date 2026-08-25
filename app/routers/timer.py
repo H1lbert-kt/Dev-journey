@@ -88,7 +88,7 @@ async def save_session(
 
     if not subject or not subject.strip():
         return JSONResponse(content={"error": "Materia obrigatoria"}, status_code=400)
-    if duration < 0:
+    if duration <= 0:
         return JSONResponse(content={"error": "Duracao invalida"}, status_code=400)
     if session_type not in ("estudo", "teoria", "exercicios", "revisao", "projeto", "simulado"):
         session_type = "estudo"

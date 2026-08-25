@@ -322,6 +322,9 @@
 .session-item:hover .session-actions {
     opacity: 1;
 }
+@media (hover: none) {
+    .session-actions { opacity: 1; }
+}
 .session-action-btn {
     width: 28px;
     height: 28px;
@@ -904,8 +907,13 @@ function submitEdit(e) {
                     el.querySelector('.session-subject').textContent = data.session.subject;
                     el.querySelector('.session-duration').textContent = data.session.duration_minutes.toFixed(1) + 'min';
                     el.querySelector('.session-type-badge').textContent = data.session.session_type;
+                    var subjJson = JSON.stringify(data.session.subject);
                     var info = el.querySelector('.session-info');
-                    info.setAttribute('onclick', "resumeFromHistory(" + data.session.id + ", '" + data.session.subject.replace(/'/g, "\\'") + "', " + data.session.duration_minutes + ")");
+                    info.setAttribute('onclick', "resumeFromHistory(" + data.session.id + ", " + subjJson + ", " + data.session.duration_minutes + ")");
+                    var editBtn = el.querySelector('.session-action-btn');
+                    if (editBtn) {
+                        editBtn.setAttribute('onclick', "openEditModal(" + data.session.id + ", " + subjJson + ", " + data.session.duration_minutes + ", " + JSON.stringify(data.session.session_type) + ")");
+                    }
                 }
                 closeEditModal();
             } else {
