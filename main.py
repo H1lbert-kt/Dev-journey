@@ -287,7 +287,18 @@ app.include_router(help.router, tags=["Help"])
 
 
 @app.get("/")
-async def root():
+async def root(request: Request):
+    token = request.cookies.get("session_token")
+    if token:
+        from app.utils.auth import get_session
+        from app.database.connection import SessionLocal
+        db = SessionLocal()
+        try:
+            session = get_session(token, db)
+            if session:
+                return RedirectResponse(url="/dashboard", status_code=303)
+        finally:
+            db.close()
     return RedirectResponse(url="/login", status_code=303)
 
 

@@ -153,7 +153,7 @@ def get_due_cards(db: Session, user_id: int, study_mode: str) -> list:
     overdue = [c for c in due if c.review_count > 0]
     new_cards = [c for c in due if c.review_count == 0]
 
-    overdue.sort(key=lambda c: c.next_review or datetime.min)
+    overdue.sort(key=lambda c: c.next_review or datetime.min, reverse=True)
     new_cards.sort(key=lambda c: c.created_at)
 
     return overdue + new_cards

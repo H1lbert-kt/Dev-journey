@@ -110,9 +110,6 @@ class DomainService:
         young = sum(1 for f in flashcards if 1 <= f.interval_days < 21)
         avg_ease = sum(f.ease_factor for f in flashcards) / total
 
-        if total == 0:
-            return 50.0
-
         mature_pct = mature / total * 100
         ease_score = min(100, (avg_ease / 2.5) * 100)
 

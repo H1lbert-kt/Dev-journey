@@ -188,7 +188,7 @@ async def switch_mode(
         return RedirectResponse(url="/", status_code=303)
 
     referer = request.headers.get("referer", "/")
-    if not referer.startswith("/") or referer.startswith("//"):
+    if not referer.startswith("/") or referer.startswith("//") or "\\ " in referer:
         referer = "/"
     response = RedirectResponse(url=referer, status_code=303)
     response.set_cookie("study_mode", mode, httponly=True, max_age=86400, samesite="lax")
