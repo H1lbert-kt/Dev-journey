@@ -9,6 +9,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-devjourney}
       POSTGRES_USER: ${POSTGRES_USER:-devjourney}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devjourney_secure_password}
+      TZ: America/Sao_Paulo
     ports:
       - "${POSTGRES_PORT:-5431}:5432"
     volumes:

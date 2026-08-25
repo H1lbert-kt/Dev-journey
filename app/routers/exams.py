@@ -9,6 +9,7 @@ from app.database.connection import get_db
 from app.models.exam import Exam, ExamSubject
 from app.models.study_session import StudySession
 from app.models.simulado import Simulado
+from app.models.simulado import Simulado
 from app.models.subject import Subject
 from app.routers.auth import require_auth
 
@@ -226,6 +227,11 @@ async def delete_exam(exam_id: int, request: Request, db: Session = Depends(get_
                 StudySession.user_id == user.id,
                 StudySession.study_mode == user.study_mode,
             ).update({StudySession.exam_id: None})
+            db.query(Simulado).filter(
+                Simulado.exam_id == exam_id,
+                Simulado.user_id == user.id,
+                Simulado.study_mode == user.study_mode,
+            ).update({Simulado.exam_id: None})
             db.delete(exam)
             db.commit()
         except Exception:

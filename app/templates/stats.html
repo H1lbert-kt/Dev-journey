@@ -82,16 +82,38 @@
         </div>
 
         <div class="stat-card large">
-            <div class="stat-icon">&#127919;</div>
+            <div class="stat-icon">&#128220;</div>
             <div class="stat-info">
-                <span class="stat-number">{{ completed_projects }}</span>
-                <span class="stat-label">
-                    {% if study_mode == "programacao" %}Projetos
-                    {% else %}Simulados
-                    {% endif %}
-                </span>
+                <span class="stat-number">{{ simulado_count }}</span>
+                <span class="stat-label">Simulados</span>
             </div>
         </div>
+
+        {% if simulado_count > 0 %}
+        <div class="stat-card large">
+            <div class="stat-icon">&#127942;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ simulado_avg }}%</span>
+                <span class="stat-label">Media Geral</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#128200;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ simulado_best }}%</span>
+                <span class="stat-label">Melhor Nota</span>
+            </div>
+        </div>
+
+        <div class="stat-card large">
+            <div class="stat-icon">&#128196;</div>
+            <div class="stat-info">
+                <span class="stat-number">{{ simulado_total_correct }}/{{ simulado_total_questions }}</span>
+                <span class="stat-label">Acertos/Total</span>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     {% if flashcard_stats.total > 0 %}

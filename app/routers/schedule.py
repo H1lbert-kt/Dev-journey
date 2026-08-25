@@ -26,8 +26,9 @@ async def schedule_page(request: Request, db: Session = Depends(get_db)):
     for day_idx in range(7):
         schedule[day_idx] = []
 
-    for entry in db.query(WeeklySchedule).filter(
-        WeeklySchedule.user_id == user.id
+    for entry in db.query(WeeklySchedule).join(Subject, WeeklySchedule.subject_id == Subject.id).filter(
+        WeeklySchedule.user_id == user.id,
+        Subject.study_mode == user.study_mode,
     ).order_by(WeeklySchedule.day_of_week, WeeklySchedule.order).all():
         if entry.subject:
             schedule[entry.day_of_week].append({
@@ -194,9 +195,10 @@ async def get_day_schedule(day_of_week: int, request: Request, db: Session = Dep
     if not (0 <= day_of_week <= 6):
         return JSONResponse(content={"error": "day_of_week must be 0-6"}, status_code=400)
 
-    entries = db.query(WeeklySchedule).filter(
+    entries = db.query(WeeklySchedule).join(Subject, WeeklySchedule.subject_id == Subject.id).filter(
         WeeklySchedule.user_id == user.id,
         WeeklySchedule.day_of_week == day_of_week,
+        Subject.study_mode == user.study_mode,
     ).order_by(WeeklySchedule.order).all()
 
     subjects = []

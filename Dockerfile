@@ -32,6 +32,7 @@ COPY --from=builder /root/.local /root/.local
 
 # Ensure PATH includes installed packages
 ENV PATH=/root/.local/bin:$PATH
+ENV TZ=America/Sao_Paulo
 
 # Copy application code
 COPY . .

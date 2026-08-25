@@ -10,6 +10,7 @@ from app.services.project_service import ProjectService
 from app.services.calendar_service import CalendarService
 from app.services.flashcard_srs import get_flashcard_stats
 from app.models.study_session import StudySession
+from app.models.simulado import Simulado
 from app.routers.auth import require_auth
 
 router = APIRouter()
@@ -116,6 +117,24 @@ async def stats(request: Request, db: Session = Depends(get_db)):
 
     flashcard_stats = get_flashcard_stats(db, user.id, user.study_mode)
 
+    simulados = db.query(Simulado).filter(
+        Simulado.user_id == user.id,
+        Simulado.study_mode == user.study_mode,
+    ).order_by(Simulado.created_at.desc()).all()
+
+    simulado_count = len(simulados)
+    simulado_avg = 0
+    simulado_best = 0
+    simulado_total_questions = 0
+    simulado_total_correct = 0
+    if simulados:
+        simulado_total_questions = sum(s.total_questions for s in simulados)
+        simulado_total_correct = sum(s.correct_answers for s in simulados)
+        scores = [s.score for s in simulados if s.score is not None]
+        if scores:
+            simulado_avg = round(sum(scores) / len(scores), 1)
+            simulado_best = round(max(scores), 1)
+
     return request.app.state.templates.TemplateResponse(
         request,
         "stats.html",
@@ -139,5 +158,10 @@ async def stats(request: Request, db: Session = Depends(get_db)):
             "worst_subject": worst_subject,
             "best_subject": best_subject,
             "flashcard_stats": flashcard_stats,
+            "simulado_count": simulado_count,
+            "simulado_avg": simulado_avg,
+            "simulado_best": simulado_best,
+            "simulado_total_questions": simulado_total_questions,
+            "simulado_total_correct": simulado_total_correct,
         },
     )
