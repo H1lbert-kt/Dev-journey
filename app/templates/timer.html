@@ -193,8 +193,8 @@
                     <span class="session-date">{{ session.date.strftime('%d/%m/%H:%M') if session.date else '-' }}</span>
                 </div>
                 <div class="session-actions">
-                    <button class="session-action-btn" onclick="openEditModal({{ session.id }}, {{ session.subject|tojson }}, {{ session.duration_minutes }}, {{ (session.session_type or 'estudo')|tojson }})" title="Editar">✏️</button>
-                    <button class="session-action-btn session-action-delete" onclick="deleteSession({{ session.id }})" title="Excluir">🗑️</button>
+                    <button class="session-action-btn" onclick="event.stopPropagation();openEditModal({{ session.id }}, {{ session.subject|tojson }}, {{ session.duration_minutes }}, {{ (session.session_type or 'estudo')|tojson }})" title="Editar">✏️</button>
+                    <button class="session-action-btn session-action-delete" onclick="event.stopPropagation();deleteSession({{ session.id }})" title="Excluir">🗑️</button>
                 </div>
             </div>
             {% endfor %}
@@ -285,6 +285,7 @@
     gap: 10px;
     flex: 1;
     min-width: 0;
+    overflow: hidden;
 }
 .session-subject {
     font-weight: 600;
@@ -318,8 +319,8 @@
     margin-left: 8px;
 }
 .session-action-btn {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background: var(--bg-surface);
@@ -327,8 +328,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 14px;
     transition: background var(--t), border-color var(--t);
+    flex-shrink: 0;
 }
 .session-action-btn:hover {
     background: var(--bg-overlay);
@@ -904,7 +906,7 @@ function submitEdit(e) {
                     info.setAttribute('onclick', "resumeFromHistory(" + data.session.id + ", " + subjJson + ", " + data.session.duration_minutes + ")");
                     var editBtn = el.querySelector('.session-action-btn');
                     if (editBtn) {
-                        editBtn.setAttribute('onclick', "openEditModal(" + data.session.id + ", " + subjJson + ", " + data.session.duration_minutes + ", " + JSON.stringify(data.session.session_type) + ")");
+                        editBtn.setAttribute('onclick', "event.stopPropagation();openEditModal(" + data.session.id + ", " + subjJson + ", " + data.session.duration_minutes + ", " + JSON.stringify(data.session.session_type) + ")");
                     }
                 }
                 closeEditModal();
