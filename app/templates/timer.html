@@ -187,14 +187,14 @@
             {% for session in sessions %}
             <div class="session-item" id="session-{{ session.id }}" data-id="{{ session.id }}" data-subject="{{ session.subject }}" data-duration="{{ session.duration_minutes }}" data-type="{{ session.session_type or 'estudo' }}">
                 <div class="session-info">
-                    <span class="session-subject" onclick="resumeFromHistory({{ session.id }}, {{ session.subject|tojson }}, {{ session.duration_minutes }})" style="cursor: pointer" title="Clique para retomar">{{ session.subject }}</span>
+                    <span class="session-subject" style="cursor: pointer" title="Clique para retomar">{{ session.subject }}</span>
                     <span class="session-type-badge">{{ session.session_type or 'estudo' }}</span>
                     <span class="session-duration">{{ "%.1f"|format(session.duration_minutes) }}min</span>
                     <span class="session-date">{{ session.date.strftime('%d/%m/%H:%M') if session.date else '-' }}</span>
                 </div>
                 <div class="session-actions">
-                    <button class="session-action-btn" onclick="event.preventDefault();event.stopPropagation();openEditModal({{ session.id }}, {{ session.subject|tojson }}, {{ session.duration_minutes }}, {{ (session.session_type or 'estudo')|tojson }})" title="Editar">✏️</button>
-                    <button class="session-action-btn session-action-delete" onclick="event.preventDefault();event.stopPropagation();deleteSession({{ session.id }})" title="Excluir">🗑️</button>
+                    <button class="session-action-btn" title="Editar">✏️</button>
+                    <button class="session-action-btn session-action-delete" title="Excluir">🗑️</button>
                 </div>
             </div>
             {% endfor %}
@@ -849,6 +849,29 @@ function setPomodoro(minutes) {
     }
 }
 
+document.getElementById('sessions-list').addEventListener('click', function(e) {
+    var item = e.target.closest('.session-item');
+    if (!item) return;
+    var id = parseInt(item.dataset.id);
+    var subject = item.dataset.subject;
+    var duration = parseFloat(item.dataset.duration);
+    var type = item.dataset.type;
+
+    if (e.target.closest('.session-action-delete')) {
+        e.preventDefault();
+        e.stopPropagation();
+        deleteSession(id);
+    } else if (e.target.closest('.session-action-btn')) {
+        e.preventDefault();
+        e.stopPropagation();
+        openEditModal(id, subject, duration, type);
+    } else if (e.target.classList.contains('session-subject') || e.target.closest('.session-info')) {
+        e.preventDefault();
+        e.stopPropagation();
+        resumeFromHistory(id, subject, duration);
+    }
+});
+
 function deleteSession(sessionId) {
     if (!confirm('Excluir esta sessão? Esta ação não pode ser desfeita.')) return;
 
@@ -898,18 +921,9 @@ function submitEdit(e) {
                     el.setAttribute('data-subject', data.session.subject);
                     el.setAttribute('data-duration', data.session.duration_minutes);
                     el.setAttribute('data-type', data.session.session_type);
+                    el.querySelector('.session-subject').textContent = data.session.subject;
                     el.querySelector('.session-duration').textContent = data.session.duration_minutes.toFixed(1) + 'min';
                     el.querySelector('.session-type-badge').textContent = data.session.session_type;
-                    var subjJson = JSON.stringify(data.session.subject);
-                    var subjectSpan = el.querySelector('.session-subject');
-                    if (subjectSpan) {
-                        subjectSpan.textContent = data.session.subject;
-                        subjectSpan.setAttribute('onclick', "resumeFromHistory(" + data.session.id + ", " + subjJson + ", " + data.session.duration_minutes + ")");
-                    }
-                    var editBtn = el.querySelector('.session-action-btn');
-                    if (editBtn) {
-                        editBtn.setAttribute('onclick', "event.preventDefault();event.stopPropagation();openEditModal(" + data.session.id + ", " + subjJson + ", " + data.session.duration_minutes + ", " + JSON.stringify(data.session.session_type) + ")");
-                    }
                 }
                 closeEditModal();
             } else {
