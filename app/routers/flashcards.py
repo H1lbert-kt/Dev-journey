@@ -272,6 +272,8 @@ async def import_flashcards(
         parts = None
         if ";" in line:
             parts = line.split(";", 1)
+        elif "," in line:
+            parts = line.split(",", 1)
         elif "\t" in line:
             parts = line.split("\t", 1)
         elif "|" in line:

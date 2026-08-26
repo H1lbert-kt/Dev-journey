@@ -191,7 +191,7 @@
                 <div class="file-upload-area" id="file-upload-area" onclick="document.getElementById('file-input').click()">
                     <span class="file-upload-icon">&#128196;</span>
                     <p class="file-upload-text">Clique ou arraste um arquivo aqui</p>
-                    <p class="file-upload-hint">Formatos aceitos: .txt, .csv (um card por linha: frente;verso)</p>
+                    <p class="file-upload-hint">Formatos aceitos: .txt, .csv (um card por linha: frente;verso ou frente,verso)</p>
                     <input type="file" id="file-input" name="file" class="file-upload-input" accept=".txt,.csv" required>
                 </div>
                 <div id="file-name" style="margin-top: 8px; font-size: 13px; color: var(--accent);"></div>
@@ -247,7 +247,7 @@ function handleFile(file) {
         var lines = e.target.result.split('\n').filter(function(l) { return l.trim(); });
         var cards = [];
         for (var i = 0; i < lines.length; i++) {
-            var parts = lines[i].split(/[;\t|]/);
+            var parts = lines[i].split(/[;\t|,]/);
             if (parts.length >= 2) {
                 cards.push({
                     front: parts[0].trim(),
