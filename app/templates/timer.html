@@ -611,6 +611,7 @@ function startTimer() {
 
     clearInterval(timerInterval);
     timerInterval = setInterval(function() {
+        updateDisplay();
         if (pomodoroEndTime > 0 && Date.now() >= pomodoroEndTime) {
             pomodoroEndTime = 0;
             pomodoroRemainingMs = 0;
@@ -738,6 +739,10 @@ function stopTimer() {
     }
 
     var saved = ftStop();
+    ftSeconds = 0;
+    ftStartTime = 0;
+    ftRunning = false;
+    localStorage.removeItem('ftState');
     pomodoroMinutes = 0;
     pomodoroEndTime = 0;
     pomodoroRemainingMs = 0;
@@ -937,6 +942,10 @@ document.addEventListener('DOMContentLoaded', function() {
     ftStopCallback = function() {
         clearInterval(timerInterval);
         timerInterval = null;
+        ftSeconds = 0;
+        ftStartTime = 0;
+        ftRunning = false;
+        localStorage.removeItem('ftState');
         document.getElementById('btn-start').style.display = 'inline-flex';
         document.getElementById('btn-start').textContent = 'Iniciar';
         document.getElementById('btn-pause').style.display = 'none';
