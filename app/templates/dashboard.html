@@ -12,7 +12,7 @@
             {% endif %}
         </h1>
         <p class="page-subtitle">
-            {% if today_minutes > 0 %}Você já estudou {{ today_minutes }}min hoje
+            {% if today_minutes > 0 %}Você já estudou {{ today_minutes|format_minutes }} hoje
             {% else %}Comece seus estudos de hoje!
             {% endif %}
         </p>
@@ -29,7 +29,7 @@
                 <span class="next-action-subject-name">{{ next_action.subject }}</span>
                 <span class="next-action-activity">{{ next_action.activity }}</span>
             </div>
-            <div class="next-action-duration">{{ next_action.duration }} minutos</div>
+            <div class="next-action-duration">{{ next_action.duration|format_minutes }}</div>
             <div class="next-action-reason">{{ next_action.reason }}</div>
         </div>
         <div class="next-action-footer">
@@ -69,7 +69,7 @@
             <div class="today-progress-bar">
                 <div class="today-progress-fill" style="width: {{ (today_minutes / (daily_goal or 360) * 100) if (daily_goal or 360) > 0 else 0 }}%"></div>
             </div>
-            <span class="today-progress-text">{{ today_minutes }}min / {{ daily_goal }}min</span>
+            <span class="today-progress-text">{{ today_minutes|format_minutes }} / {{ daily_goal|format_minutes }}</span>
         </div>
         <div class="today-stats-row">
             <div class="today-mini-stat">
@@ -106,7 +106,7 @@
                     <span class="plan-item-title {% if item.completed %}completed-text{% endif %}" id="dash-title-{{ item.id }}">{{ item.title }}</span>
                     <div class="plan-item-meta">
                         {% if item.estimated_minutes %}
-                        <span class="plan-meta-item">{{ item.estimated_minutes }}min</span>
+                        <span class="plan-meta-item">{{ item.estimated_minutes|format_minutes }}</span>
                         {% endif %}
                         {% if item.subject %}
                         <span class="plan-badge plan-badge-subject" style="background-color: {{ item.subject.color or 'var(--accent)' }}18; color: {{ item.subject.color or 'var(--accent)' }}">{{ item.subject.name }}</span>

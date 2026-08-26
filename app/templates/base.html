@@ -371,6 +371,18 @@
     }
     updateLogo(currentStudyMode);
 
+    function formatMinutes(val) {
+        val = parseFloat(val) || 0;
+        if (val <= 0) return '0min';
+        if (val >= 60) {
+            var h = Math.floor(val / 60);
+            var m = Math.round(val % 60);
+            if (m === 60) { h++; m = 0; }
+            return (h < 10 ? '0' + h : h) + 'h' + (m < 10 ? '0' + m : m);
+        }
+        return Math.round(val) + 'min';
+    }
+
     var ftState = null;
     try { ftState = JSON.parse(localStorage.getItem('ftState') || 'null'); } catch(e) { ftState = null; }
     var ftSeconds = ftState ? ftState.seconds : 0;

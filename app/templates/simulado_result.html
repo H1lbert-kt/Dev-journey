@@ -41,7 +41,7 @@
             {% if simulado.time_minutes > 0 %}
             <div class="simulado-detail-item">
                 <span class="simulado-detail-label">Tempo</span>
-                <span class="simulado-detail-value">{{ simulado.time_minutes }}min</span>
+                <span class="simulado-detail-value">{{ simulado.time_minutes|format_minutes }}</span>
             </div>
             {% endif %}
         </div>

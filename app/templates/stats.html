@@ -16,12 +16,12 @@
         <div class="ranking-grid">
             <div class="ranking-card">
                 <div class="ranking-label">Hoje</div>
-                <div class="ranking-value">{{ today_minutes|int }}min</div>
+                <div class="ranking-value">{{ today_minutes|format_minutes }}</div>
                 <div class="ranking-comparison {% if today_minutes > yesterday_minutes %}ranking-up{% elif today_minutes < yesterday_minutes %}ranking-down{% else %}ranking-same{% endif %}">
                     {% if today_minutes > yesterday_minutes %}
-                    &#9650; +{{ (today_minutes - yesterday_minutes)|int }}min vs ontem
+                    &#9650; +{{ (today_minutes - yesterday_minutes)|format_minutes }} vs ontem
                     {% elif today_minutes < yesterday_minutes %}
-                    &#9660; {{ (today_minutes - yesterday_minutes)|int }}min vs ontem
+                    &#9660; {{ (yesterday_minutes - today_minutes)|format_minutes }} vs ontem
                     {% else %}
                     &#9644; igual a ontem
                     {% endif %}
@@ -29,13 +29,13 @@
             </div>
             <div class="ranking-card">
                 <div class="ranking-label">Esta Semana</div>
-                <div class="ranking-value">{{ week_minutes|int }}min</div>
-                <div class="ranking-comparison ranking-same">{{ "%.1f"|format(daily_avg) }}min/dia</div>
+                <div class="ranking-value">{{ week_minutes|format_minutes }}</div>
+                <div class="ranking-comparison ranking-same">{{ daily_avg|format_minutes }}/dia</div>
             </div>
             <div class="ranking-card">
                 <div class="ranking-label">Este Mes</div>
-                <div class="ranking-value">{{ month_minutes|int }}min</div>
-                <div class="ranking-comparison ranking-same">{{ "%.1f"|format(month_minutes / 60) }}h total</div>
+                <div class="ranking-value">{{ month_minutes|format_minutes }}</div>
+                <div class="ranking-comparison ranking-same">{{ month_minutes|format_minutes }} total</div>
             </div>
         </div>
     </div>
@@ -68,7 +68,7 @@
         <div class="stat-card large">
             <div class="stat-icon">&#128196;</div>
             <div class="stat-info">
-                <span class="stat-number">{{ today_minutes }}min</span>
+                <span class="stat-number">{{ today_minutes|format_minutes }}</span>
                 <span class="stat-label">Hoje</span>
             </div>
         </div>
@@ -159,7 +159,7 @@
             {% for w in weak_subjects %}
             <div class="weak-subject-item">
                 <span class="weak-subject-name">{{ w.name }}</span>
-                <span class="weak-subject-minutes">{{ w.minutes }}min estudados</span>
+                <span class="weak-subject-minutes">{{ w.minutes|format_minutes }} estudados</span>
             </div>
             {% endfor %}
         </div>
@@ -209,7 +209,7 @@
                         <span class="subject-detail-stat-label">Sessões</span>
                     </div>
                     <div class="subject-detail-stat">
-                        <span class="subject-detail-stat-value">{{ s.avg_per_session }}min</span>
+                        <span class="subject-detail-stat-value">{{ s.avg_per_session|format_minutes }}</span>
                         <span class="subject-detail-stat-label">Média/sessão</span>
                     </div>
                     <div class="subject-detail-stat">

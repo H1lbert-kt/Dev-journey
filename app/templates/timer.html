@@ -6,7 +6,7 @@
 <div class="page">
     <div class="page-header">
         <h1 class="page-title">Cronômetro de Estudos</h1>
-        <p class="page-subtitle">Hoje: {{ today_minutes }}min | Meta: {{ daily_goal }}min</p>
+        <p class="page-subtitle">Hoje: {{ today_minutes|format_minutes }} | Meta: {{ daily_goal|format_minutes }}</p>
     </div>
 
     <div class="section">
@@ -37,7 +37,7 @@
                 <div class="subject-goal-info">
                     <div class="subject-goal-name">{{ subject.name }}</div>
                 </div>
-                <div class="subject-goal-time">{{ studied|round(0)|int }}min</div>
+                <div class="subject-goal-time">{{ studied|format_minutes }}</div>
             </div>
             {% endif %}
             {% endfor %}
@@ -189,7 +189,7 @@
                 <div class="session-info">
                     <span class="session-subject" style="cursor: pointer" title="Clique para retomar">{{ session.subject }}</span>
                     <span class="session-type-badge">{{ session.session_type or 'estudo' }}</span>
-                    <span class="session-duration">{{ "%.1f"|format(session.duration_minutes) }}min</span>
+                    <span class="session-duration">{{ session.duration_minutes|format_minutes }}</span>
                     <span class="session-date">{{ session.date.strftime('%d/%m/%H:%M') if session.date else '-' }}</span>
                 </div>
                 <div class="session-actions">
@@ -572,14 +572,14 @@ function showSessionSummary() {
         name.textContent = r.name;
         var time = document.createElement('span');
         time.className = 'summary-time';
-        time.textContent = mins + 'min';
+        time.textContent = formatMinutes(mins);
         div.appendChild(dot);
         div.appendChild(name);
         div.appendChild(time);
         container.appendChild(div);
     }
 
-    document.getElementById('session-summary-total').textContent = Math.round(totalSeconds / 60) + 'min';
+    document.getElementById('session-summary-total').textContent = formatMinutes(Math.round(totalSeconds / 60));
     document.getElementById('session-summary').style.display = 'block';
     sessionResults = [];
 }
@@ -922,7 +922,7 @@ function submitEdit(e) {
                     el.setAttribute('data-duration', data.session.duration_minutes);
                     el.setAttribute('data-type', data.session.session_type);
                     el.querySelector('.session-subject').textContent = data.session.subject;
-                    el.querySelector('.session-duration').textContent = data.session.duration_minutes.toFixed(1) + 'min';
+                    el.querySelector('.session-duration').textContent = formatMinutes(data.session.duration_minutes);
                     el.querySelector('.session-type-badge').textContent = data.session.session_type;
                 }
                 closeEditModal();

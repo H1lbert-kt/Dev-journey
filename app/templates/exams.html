@@ -101,7 +101,7 @@
 
                 {% if exam.salary or exam.vacancies or stats.total_minutes > 0 %}
                 <div class="exam-meta">
-                    {% if stats.total_minutes > 0 %}<span>&#9203; {{ stats.total_minutes }}min estudados</span>{% endif %}
+                    {% if stats.total_minutes > 0 %}<span>&#9203; {{ stats.total_minutes|format_minutes }} estudados</span>{% endif %}
                     {% if exam.salary %}<span>&#128176; {{ exam.salary }}</span>{% endif %}
                     {% if exam.vacancies %}<span>&#128101; {{ exam.vacancies }} vagas</span>{% endif %}
                 </div>

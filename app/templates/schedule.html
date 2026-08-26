@@ -29,7 +29,7 @@
                         <span class="weekly-subject-name">{{ item.name }}</span>
                         {% set studied = today_minutes.get(item.name, 0) %}
                         {% if studied > 0 %}
-                        <span class="weekly-subject-time">{{ studied|round(0)|int }}min</span>
+                        <span class="weekly-subject-time">{{ studied|format_minutes }}</span>
                         {% endif %}
                     </div>
                     <div class="weekly-subject-actions">

@@ -78,8 +78,8 @@
         <div class="stat-card">
             <div class="stat-icon">&#9203;</div>
             <div class="stat-info">
-                <span class="stat-number">{{ total_minutes }}</span>
-                <span class="stat-label">Minutos Totais</span>
+                <span class="stat-number">{{ total_minutes|format_minutes }}</span>
+                <span class="stat-label">Tempo Total</span>
             </div>
         </div>
 
@@ -94,7 +94,7 @@
         <div class="stat-card">
             <div class="stat-icon">&#128200;</div>
             <div class="stat-info">
-                <span class="stat-number">{{ (total_minutes / (total_sessions if total_sessions > 0 else 1))|round(1) }}</span>
+                <span class="stat-number">{{ (total_minutes / (total_sessions if total_sessions > 0 else 1))|format_minutes }}</span>
                 <span class="stat-label">Média por Sessão</span>
             </div>
         </div>
@@ -107,7 +107,7 @@
             {% for subj, mins in by_subject.items() %}
             <div class="stat-card">
                 <div class="stat-info">
-                    <span class="stat-number">{{ mins|round(0)|int }}</span>
+                    <span class="stat-number">{{ mins|format_minutes }}</span>
                     <span class="stat-label">{{ subj }}</span>
                 </div>
             </div>
@@ -124,7 +124,7 @@
             <div class="session-card">
                 <div class="session-card-header">
                     <span class="session-subject">{{ session.subject }}</span>
-                    <span class="session-duration">{{ session.duration_minutes|int }}min</span>
+                    <span class="session-duration">{{ session.duration_minutes|format_minutes }}</span>
                 </div>
                 <div class="session-card-meta">
                     {% set type_colors = {

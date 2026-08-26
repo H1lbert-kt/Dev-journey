@@ -45,7 +45,7 @@
                         <span class="plan-meta-item">
                             {% set type_icons = {'estudo': '&#128214;', 'revisao': '&#128260;', 'simulado': '&#128196;', 'projeto': '&#128187;', 'concurso': '&#127963;'} %}
                             <span class="plan-type-icon">{{ type_icons.get(item.item_type, '&#128214;') }}</span>
-                            {{ item.estimated_minutes }}min
+                            {{ item.estimated_minutes|format_minutes }}
                         </span>
                         {% endif %}
                         {% if item.time_optional %}

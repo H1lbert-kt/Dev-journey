@@ -614,9 +614,9 @@ textarea.input {
     flex-shrink: 0;
 }
 
-.stat-number { font-size:24px; font-weight:700; display:block; letter-spacing:-.3px; }
+.stat-number { font-size:24px; font-weight:700; display:block; letter-spacing:-.3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .stat-label { font-size:12px; color:var(--fg-2); }
-.stat-info { display:flex; flex-direction:column; gap:2px; }
+.stat-info { display:flex; flex-direction:column; gap:2px; min-width:0; }
 
 /* ==================== PHASES ==================== */
 .phases-grid {
@@ -1598,6 +1598,9 @@ textarea.input {
     font-weight: 700;
     line-height: 1;
     margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .fc-stat-label {
@@ -2366,7 +2369,7 @@ textarea.input {
     margin-bottom: 6px;
 }
 
-.ranking-value { font-size:24px; font-weight:700; color:var(--accent); letter-spacing:-.3px; }
+.ranking-value { font-size:24px; font-weight:700; color:var(--accent); letter-spacing:-.3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .ranking-comparison {
     font-size: 11px;
@@ -3507,7 +3510,7 @@ textarea.input {
 }
 
 .subject-detail-stat { text-align:center; }
-.subject-detail-stat-value { display:block; font-size:14px; font-weight:700; color:var(--fg-0); }
+.subject-detail-stat-value { display:block; font-size:14px; font-weight:700; color:var(--fg-0); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .subject-detail-stat-label {
     display: block;

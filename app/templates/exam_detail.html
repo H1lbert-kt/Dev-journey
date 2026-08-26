@@ -43,7 +43,7 @@
         <div class="stat-card large">
             <div class="stat-icon">&#9203;</div>
             <div class="stat-info">
-                <span class="stat-number">{{ stats.total_minutes }}</span>
+                <span class="stat-number">{{ stats.total_minutes|format_minutes }}</span>
                 <span class="stat-label">Minutos Estudados</span>
             </div>
         </div>
@@ -157,7 +157,7 @@
                 <div class="subject-time-info">
                     <span class="subject-time-name">{{ sub_name }}</span>
                     <span class="subject-time-value">
-                        {% if minutes >= 60 %}{{ (minutes / 60)|int }}h {{ (minutes % 60)|int }}min{% else %}{{ minutes|int }}min{% endif %}
+                        {{ minutes|format_minutes }}
                     </span>
                 </div>
                 <div class="subject-time-bar">
@@ -177,7 +177,7 @@
                     <span class="session-type">{{ session.session_type or 'estudo' }}</span>
                 </div>
                 <div class="session-meta">
-                    <span class="session-duration">{{ session.duration_minutes|int }}min</span>
+                    <span class="session-duration">{{ session.duration_minutes|format_minutes }}</span>
                     <span class="session-date">{{ session.date.strftime('%d/%m/%Y') if session.date else '-' }}</span>
                 </div>
             </div>
@@ -244,7 +244,7 @@
                         {% endif %}
                     </div>
                     <span class="simulado-questions">{{ sim.correct_answers }}/{{ sim.total_questions }}</span>
-                    <span class="simulado-time">{{ "%.0f"|format(sim.time_minutes) }}min</span>
+                    <span class="simulado-time">{{ sim.time_minutes|format_minutes }}</span>
                 </div>
             </div>
             {% endfor %}

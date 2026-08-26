@@ -100,7 +100,7 @@
                     <span class="simulado-questions">
                         {{ simulado.correct_answers }}/{{ simulado.total_questions }}
                     </span>
-                    <span class="simulado-time">{{ "%.0f"|format(simulado.time_minutes) }}min</span>
+                    <span class="simulado-time">{{ simulado.time_minutes|format_minutes }}</span>
                 </div>
                 <form action="/simulados/{{ simulado.id }}/delete" method="post" onsubmit="return confirm('Excluir este simulado?')">
                     <button type="submit" class="delete-btn" title="Excluir">&times;</button>

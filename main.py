@@ -130,6 +130,26 @@ templates = Jinja2Templates(directory=APP_DIR / "templates")
 app.state.templates = templates
 
 
+def format_minutes(value):
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+    if value <= 0:
+        return "0min"
+    if value >= 60:
+        h = int(value // 60)
+        m = int(round(value % 60))
+        if m == 60:
+            h += 1
+            m = 0
+        return f"{h:02d}h{m:02d}"
+    return f"{int(round(value))}min"
+
+
+templates.env.filters["format_minutes"] = format_minutes
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
