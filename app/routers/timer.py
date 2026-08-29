@@ -67,6 +67,7 @@ async def timer_page(
             "auto_duration": duration,
             "auto_start": auto_start == 1 if auto_start else False,
             "plan_item_id": plan_item,
+            "plan_item_estimated_seconds": (duration or 0) * 60 if duration else 0,
         },
     )
 

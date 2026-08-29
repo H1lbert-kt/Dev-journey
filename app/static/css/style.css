@@ -1102,20 +1102,6 @@ textarea.input {
     transition: width .3s var(--ease);
 }
 
-.timer-current-subject {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 14px;
-    padding: 10px;
-    background: var(--bg-raised);
-    border-radius: var(--radius);
-}
-
-.timer-current-subject span:first-child { font-size:14px; font-weight:600; }
-.timer-current-subject span:last-child { font-size:12px; color:var(--fg-2); }
-
 .sessions-list {
     display: flex;
     flex-direction: column;
@@ -1138,46 +1124,6 @@ textarea.input {
 .session-subject { flex:1; font-weight:500; font-size:13px; }
 .session-duration { color:var(--accent); font-weight:600; font-size:13px; }
 .session-date { color:var(--fg-3); font-size:12px; }
-
-.session-summary {
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 22px;
-    margin-bottom: 28px;
-}
-
-.session-summary-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 14px;
-}
-
-.summary-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 10px;
-    background: var(--bg-raised);
-    border-radius: var(--radius);
-}
-
-.summary-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.summary-name { flex:1; font-size:13px; font-weight:500; }
-.summary-time { font-size:12px; color:var(--accent); font-weight:600; }
-
-.session-summary-total {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.session-summary-total span:last-child { color:var(--accent); }
 
 /* ==================== SUBJECT GOALS ==================== */
 .subject-goals-list {
@@ -2510,67 +2456,6 @@ textarea.input {
 
 .floating-timer-btn:hover { background:var(--accent); color:#0c0e12; border-color:var(--accent); }
 .floating-timer-btn-stop:hover { background:var(--red); border-color:var(--red); }
-
-/* ==================== SCHEDULE ==================== */
-.schedule-selector { margin-bottom:18px; }
-
-.schedule-selector label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: var(--fg-2);
-    text-transform: uppercase;
-    letter-spacing: .4px;
-}
-
-.schedule-subjects { text-align:left; margin-bottom:18px; }
-
-.schedule-subjects-header label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: var(--fg-2);
-    text-transform: uppercase;
-    letter-spacing: .4px;
-}
-
-.schedule-subjects-list {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.schedule-subject-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 10px;
-    background: var(--bg-raised);
-    border-radius: var(--radius);
-    transition: all var(--t);
-    border: 1px solid transparent;
-}
-
-.schedule-subject-item.active {
-    border-color: var(--accent);
-    background: var(--accent-subtle);
-}
-
-.schedule-subject-item.done { opacity:.45; }
-.schedule-subject-item.pending { opacity:.55; }
-
-.schedule-subject-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.schedule-subject-text { flex:1; font-size:13px; font-weight:500; }
-.schedule-subject-status { font-size:13px; color:var(--accent); }
-
-.schedule-empty {
-    font-size: 12px;
-    color: var(--fg-3);
-    text-align: center;
-    padding: 14px;
-}
 
 /* ==================== WEEKLY SCHEDULE ==================== */
 .weekly-grid {

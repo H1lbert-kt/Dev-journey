@@ -50,30 +50,6 @@
                 <div class="timer-progress-fill" style="width: {{ (today_minutes / (daily_goal or 360) * 100) if (daily_goal or 360) > 0 else 0 }}%"></div>
             </div>
 
-            <div class="schedule-selector" id="schedule-selector">
-                <label>Agenda Semanal</label>
-                <select id="schedule-day" class="input" onchange="loadDaySchedule()">
-                    <option value="">Selecionar dia...</option>
-                    <option value="0">Segunda</option>
-                    <option value="1">Terça</option>
-                    <option value="2">Quarta</option>
-                    <option value="3">Quinta</option>
-                    <option value="4">Sexta</option>
-                    <option value="5">Sábado</option>
-                    <option value="6">Domingo</option>
-                </select>
-            </div>
-
-            <div class="schedule-subjects" id="schedule-subjects" style="display:none">
-                <div class="schedule-subjects-header">
-                    <label>Matérias do dia:</label>
-                </div>
-                <div class="schedule-subjects-list" id="schedule-subjects-list"></div>
-                <button class="btn btn-success btn-full" id="btn-start-session" onclick="startStudySession()" style="margin-top: 12px">
-                    Iniciar Sessão de Estudos
-                </button>
-            </div>
-
             <div class="timer-subject-area" id="manual-subject-area">
                 <label>Tipo de Sessão</label>
                 <div class="session-type-chips" id="session-type-chips">
@@ -149,10 +125,6 @@
                 <div class="timer-time" id="timer-display">00:00:00</div>
                 <div class="timer-phase" id="timer-phase">Pronto</div>
                 <div id="timer-pause-display" style="display:none; font-size: 14px; color: var(--fg-3); margin-top: 4px;">Pausado: 00:00</div>
-                <div class="timer-current-subject" id="timer-current-subject" style="display:none">
-                    <span id="current-subject-name"></span>
-                    <span id="current-subject-progress"></span>
-                </div>
             </div>
 
             <div class="timer-controls">
@@ -169,15 +141,6 @@
                 <button class="btn btn-small" onclick="setPomodoro(60)">60min</button>
                 <button class="btn btn-small" onclick="setPomodoro(0)">Livre</button>
             </div>
-        </div>
-    </div>
-
-    <div class="session-summary" id="session-summary" style="display:none">
-        <h2 class="section-title">Resumo da Sessão</h2>
-        <div class="session-summary-list" id="session-summary-list"></div>
-        <div class="session-summary-total">
-            <span>Total:</span>
-            <span id="session-summary-total">0min</span>
         </div>
     </div>
 
@@ -394,16 +357,13 @@ var pomodoroMinutes = 0;
 var pomodoroEndTime = 0;
 var pomodoroRemainingMs = 0;
 
-var scheduleSubjects = [];
-var currentScheduleIndex = 0;
-var sessionMode = false;
-var sessionResults = [];
-
 var currentSessionType = 'estudo';
 var currentProjectId = null;
 var currentExamId = null;
 var resumedSessionId = null;
 var linkedPlanItemId = {{ plan_item_id|default('null', true) }};
+var planItemEstimatedSeconds = {{ plan_item_estimated_seconds|default('0', true) }};
+var planItemStartTime = 0;
 
 function setSessionType(type) {
     currentSessionType = type;
@@ -416,174 +376,6 @@ function setSessionType(type) {
     }
 }
 
-function loadDaySchedule() {
-    var dayVal = document.getElementById('schedule-day').value;
-    if (dayVal === '') {
-        document.getElementById('schedule-subjects').style.display = 'none';
-        document.getElementById('manual-subject-area').style.display = 'block';
-        return;
-    }
-
-    fetch('/schedule/api/' + dayVal)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            scheduleSubjects = data.subjects || [];
-            var list = document.getElementById('schedule-subjects-list');
-            list.innerHTML = '';
-
-            if (scheduleSubjects.length === 0) {
-                list.innerHTML = '<div class="schedule-empty">Nenhuma matéria neste dia. <a href="/schedule">Adicionar</a></div>';
-                document.getElementById('btn-start-session').style.display = 'none';
-            } else {
-                for (var i = 0; i < scheduleSubjects.length; i++) {
-                    var s = scheduleSubjects[i];
-                    var div = document.createElement('div');
-                    div.className = 'schedule-subject-item';
-                    div.id = 'schedule-item-' + i;
-                    var dotSpan = document.createElement('span');
-                    dotSpan.className = 'schedule-subject-dot';
-                    dotSpan.style.background = s.color;
-                    var textSpan = document.createElement('span');
-                    textSpan.className = 'schedule-subject-text';
-                    textSpan.textContent = s.name;
-                    var statusSpan = document.createElement('span');
-                    statusSpan.className = 'schedule-subject-status';
-                    statusSpan.id = 'schedule-status-' + i;
-                    div.appendChild(dotSpan);
-                    div.appendChild(textSpan);
-                    div.appendChild(statusSpan);
-                    list.appendChild(div);
-                }
-                document.getElementById('btn-start-session').style.display = 'block';
-            }
-
-            document.getElementById('schedule-subjects').style.display = 'block';
-            document.getElementById('manual-subject-area').style.display = 'none';
-        })
-        .catch(function() {
-            document.getElementById('manual-subject-area').style.display = 'block';
-        });
-}
-
-function startStudySession() {
-    if (scheduleSubjects.length === 0) return;
-
-    sessionMode = true;
-    currentScheduleIndex = 0;
-    sessionResults = [];
-    resumedSessionId = null;
-    document.getElementById('session-summary').style.display = 'none';
-    document.getElementById('schedule-selector').style.display = 'none';
-    document.getElementById('btn-start-session').style.display = 'none';
-
-    highlightCurrentSubject();
-    document.getElementById('timer-subject').value = scheduleSubjects[0].name;
-    startTimer();
-}
-
-function highlightCurrentSubject() {
-    for (var i = 0; i < scheduleSubjects.length; i++) {
-        var item = document.getElementById('schedule-item-' + i);
-        var status = document.getElementById('schedule-status-' + i);
-        if (!item || !status) continue;
-        if (i < currentScheduleIndex) {
-            item.classList.remove('active', 'pending');
-            item.classList.add('done');
-            status.innerHTML = '&#10004;';
-        } else if (i === currentScheduleIndex) {
-            item.classList.add('active');
-            item.classList.remove('done', 'pending');
-            status.innerHTML = '&#9654;';
-        } else {
-            item.classList.add('pending');
-            item.classList.remove('active', 'done');
-            status.textContent = '';
-        }
-    }
-
-    if (currentScheduleIndex < scheduleSubjects.length) {
-        var sub = scheduleSubjects[currentScheduleIndex];
-        document.getElementById('current-subject-name').textContent = sub.name;
-        document.getElementById('current-subject-name').style.color = sub.color;
-        document.getElementById('current-subject-progress').textContent =
-            (currentScheduleIndex + 1) + '/' + scheduleSubjects.length;
-        document.getElementById('timer-current-subject').style.display = 'flex';
-    }
-}
-
-function finishStudySession() {
-    sessionMode = false;
-    clearInterval(timerInterval);
-    timerInterval = null;
-
-    document.getElementById('timer-phase').textContent = 'Sessão finalizada!';
-    document.getElementById('btn-start').style.display = 'inline-flex';
-    document.getElementById('btn-start').textContent = 'Iniciar';
-    document.getElementById('btn-pause').style.display = 'none';
-    document.getElementById('btn-stop').style.display = 'none';
-    document.getElementById('btn-reset').style.display = 'none';
-    document.getElementById('timer-current-subject').style.display = 'none';
-    document.getElementById('schedule-selector').style.display = 'block';
-
-    showSessionSummary();
-    updateDisplay();
-
-    fetch('/timer/check-day').then(function(r) { return r.json(); }).then(function(data) {
-        if (data.day_completed) {
-            showDayCompleted();
-        }
-    }).catch(function() {});
-}
-
-function showDayCompleted() {
-    var overlay = document.createElement('div');
-    overlay.className = 'celebration';
-    overlay.innerHTML = '<div class="celebration-content">' +
-        '<span class="celebration-icon">&#127881;</span>' +
-        '<h2>Dia Completo!</h2>' +
-        '<p>Todas as matérias do dia foram estudadas</p>' +
-        '<p style="margin-top: 16px"><button class="btn btn-primary" onclick="this.closest(\'.celebration\').remove()">Fechar</button></p>' +
-        '</div>';
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) overlay.remove();
-    });
-    document.body.appendChild(overlay);
-    setTimeout(function() { overlay.remove(); }, 8000);
-}
-
-function showSessionSummary() {
-    if (sessionResults.length === 0) return;
-
-    var container = document.getElementById('session-summary-list');
-    container.innerHTML = '';
-    var totalSeconds = 0;
-
-    for (var i = 0; i < sessionResults.length; i++) {
-        var r = sessionResults[i];
-        totalSeconds += r.seconds;
-        var mins = Math.round(r.seconds / 60);
-        var div = document.createElement('div');
-        div.className = 'summary-item';
-        var dot = document.createElement('span');
-        dot.className = 'summary-dot';
-        dot.style.background = r.color;
-        var name = document.createElement('span');
-        name.className = 'summary-name';
-        name.textContent = r.name;
-        var time = document.createElement('span');
-        time.className = 'summary-time';
-        time.textContent = formatMinutes(mins);
-        div.appendChild(dot);
-        div.appendChild(name);
-        div.appendChild(time);
-        container.appendChild(div);
-    }
-
-    document.getElementById('session-summary-total').textContent = formatMinutes(Math.round(totalSeconds / 60));
-    document.getElementById('session-summary').style.display = 'block';
-    sessionResults = [];
-}
-
 function startTimer() {
     if (ftRunning) return;
 
@@ -593,14 +385,13 @@ function startTimer() {
     document.getElementById('btn-reset').style.display = 'inline-flex';
     document.getElementById('timer-phase').textContent = 'Estudando...';
 
-    var subjectName = sessionMode && currentScheduleIndex < scheduleSubjects.length
-        ? scheduleSubjects[currentScheduleIndex].name
-        : document.getElementById('timer-subject').value;
+    var subjectName = document.getElementById('timer-subject').value;
 
     if (ftSeconds > 0 && !ftRunning) {
         ftResume();
     } else {
         resumedSessionId = null;
+        planItemStartTime = Date.now();
         ftStart(subjectName);
     }
 
@@ -612,14 +403,25 @@ function startTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(function() {
         updateDisplay();
+        if (linkedPlanItemId && planItemEstimatedSeconds > 0 && planItemStartTime > 0) {
+            var elapsed = Math.floor((Date.now() - planItemStartTime) / 1000);
+            if (elapsed >= planItemEstimatedSeconds) {
+                fetch('/today-plan/' + linkedPlanItemId + '/toggle', { method: 'POST' })
+                    .then(function(r) { return r.json(); })
+                    .catch(function() {});
+                document.getElementById('timer-phase').textContent = 'Atividade concluída!';
+                linkedPlanItemId = null;
+                planItemEstimatedSeconds = 0;
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Atividade concluída! Tempo estimado atingido.');
+                }
+            }
+        }
         if (pomodoroEndTime > 0 && Date.now() >= pomodoroEndTime) {
             pomodoroEndTime = 0;
             pomodoroRemainingMs = 0;
             pauseTimer();
             document.getElementById('timer-phase').textContent = 'Pomodoro finalizado!';
-            if (sessionMode) {
-                saveAndMoveNext();
-            }
             if ('Notification' in window && Notification.permission === 'granted') {
                 new Notification('Pomodoro finalizado! Hora de descansar.');
             }
@@ -643,100 +445,9 @@ function pauseTimer() {
     document.getElementById('timer-phase').textContent = 'Pausado';
 }
 
-function saveAndMoveNext() {
-    if (!sessionMode && !linkedPlanItemId) return;
-
-    var subjectName, duration;
-
-    if (sessionMode) {
-        subjectName = scheduleSubjects[currentScheduleIndex].name;
-        duration = ftSeconds;
-        sessionResults.push({
-            name: subjectName,
-            color: scheduleSubjects[currentScheduleIndex].color,
-            seconds: duration
-        });
-    } else {
-        subjectName = document.getElementById('timer-subject').value;
-        duration = ftSeconds;
-    }
-
-    if (duration > 0) {
-        var formData = new FormData();
-        formData.append('subject', subjectName);
-        formData.append('duration', duration);
-        formData.append('session_type', currentSessionType);
-        if (currentProjectId) formData.append('project_id', currentProjectId);
-        if (currentExamId) formData.append('exam_id', currentExamId);
-
-        function attemptSave(retries) {
-            fetch('/timer/save', { method: 'POST', body: formData })
-                .then(function(r) {
-                    if (!r.ok) throw new Error('Server error');
-                    return r.json();
-                })
-                .then(function(data) {
-                    if (data.error) throw new Error(data.error);
-                })
-                .catch(function() {
-                    if (retries > 0) {
-                        setTimeout(function() { attemptSave(retries - 1); }, 2000);
-                    } else {
-                        var pending = JSON.parse(localStorage.getItem('ftPendingSaves') || '[]');
-                        pending.push({subject: subjectName, duration: duration, ts: Date.now(), examId: currentExamId || null, projectId: currentProjectId || null});
-                        localStorage.setItem('ftPendingSaves', JSON.stringify(pending));
-                    }
-                });
-        }
-        attemptSave(2);
-    }
-
-    if (linkedPlanItemId && !sessionMode) {
-        fetch('/today-plan/' + linkedPlanItemId + '/toggle', { method: 'POST' })
-            .then(function(r) { return r.json(); })
-            .catch(function() {});
-        linkedPlanItemId = null;
-    }
-
-    currentScheduleIndex++;
-
-    if (currentScheduleIndex >= scheduleSubjects.length) {
-        ftStopTimerLoop();
-        ftStopPauseTimer();
-        ftStopKeepalive();
-        ftSeconds = 0;
-        ftStartTime = 0;
-        ftRunning = false;
-        localStorage.removeItem('ftState');
-        ftClearStateOnServer();
-        ftBroadcast();
-        document.getElementById('floating-timer').style.display = 'none';
-        document.title = 'DevJourney';
-        if (ftStopCallback) ftStopCallback();
-        finishStudySession();
-    } else {
-        ftStopTimerLoop();
-        ftSeconds = 0;
-        ftStartTime = 0;
-        ftRunning = false;
-        localStorage.removeItem('ftState');
-        ftClearStateOnServer();
-        ftBroadcast();
-        updateDisplay();
-        highlightCurrentSubject();
-        document.getElementById('timer-subject').value = scheduleSubjects[currentScheduleIndex].name;
-        startTimer();
-    }
-}
-
 function stopTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
-
-    if (sessionMode || linkedPlanItemId) {
-        saveAndMoveNext();
-        return;
-    }
 
     var saved = ftStop();
     ftSeconds = 0;
@@ -746,6 +457,7 @@ function stopTimer() {
     pomodoroMinutes = 0;
     pomodoroEndTime = 0;
     pomodoroRemainingMs = 0;
+    planItemStartTime = 0;
     document.getElementById('btn-start').style.display = 'inline-flex';
     document.getElementById('btn-start').textContent = 'Iniciar';
     document.getElementById('btn-pause').style.display = 'none';
@@ -761,9 +473,8 @@ function resetTimer() {
     pomodoroMinutes = 0;
     pomodoroEndTime = 0;
     pomodoroRemainingMs = 0;
-    sessionMode = false;
-    sessionResults = [];
     resumedSessionId = null;
+    planItemStartTime = 0;
     ftReset();
     updateDisplay();
     document.getElementById('btn-start').style.display = 'inline-flex';
@@ -772,9 +483,6 @@ function resetTimer() {
     document.getElementById('btn-stop').style.display = 'none';
     document.getElementById('btn-reset').style.display = 'none';
     document.getElementById('timer-phase').textContent = 'Pronto';
-    document.getElementById('timer-current-subject').style.display = 'none';
-    document.getElementById('schedule-selector').style.display = 'block';
-    document.getElementById('btn-start-session').style.display = 'block';
 }
 
 function updateDisplay() {
@@ -813,7 +521,6 @@ function resumeFromHistory(sessionId, subject, durationMinutes) {
     pomodoroMinutes = 0;
     pomodoroEndTime = 0;
     pomodoroRemainingMs = 0;
-    sessionMode = false;
 
     var subjectSelect = document.getElementById('timer-subject');
     for (var i = 0; i < subjectSelect.options.length; i++) {
