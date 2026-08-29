@@ -57,7 +57,7 @@
                 </div>
                 <div class="plan-item-actions">
                     {% if item.item_type == 'estudo' and item.subject %}
-                    <a href="/timer?subject={{ item.subject.name|urlencode }}&plan_item={{ item.id }}&duration={{ item.estimated_minutes or 30 }}" class="btn btn-small btn-success" title="Iniciar timer">&#9200;</a>
+                    <a href="/timer?subject={{ item.subject.name|urlencode }}&plan_item={{ item.id }}&duration={{ item.estimated_minutes or 30 }}&auto_start=1" class="btn btn-small btn-success" title="Iniciar timer">&#9200;</a>
                     {% endif %}
                     <button class="btn btn-small" onclick="openModal('edit-item-{{ item.id }}')">Editar</button>
                     <form action="/today-plan/{{ item.id }}/delete" method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir esta atividade?')">
@@ -174,11 +174,10 @@ function toggleItem(id) {
     var item = document.getElementById('plan-item-' + id);
     var checkbox = document.getElementById('checkbox-' + id);
     var title = document.getElementById('title-' + id);
-    var wasCompleted = item && item.classList.contains('completed');
 
     if (item) item.style.opacity = '0.6';
 
-    fetch('/today-plan/' + id + '/toggle', { method: 'POST' })
+    csrfFetch('/today-plan/' + id + '/toggle', { method: 'POST' })
     .then(function(r) {
         if (!r.ok) throw new Error('Server error');
         return r.json();
@@ -187,15 +186,15 @@ function toggleItem(id) {
         if (data.error) throw new Error(data.error);
         if (item) item.style.opacity = '1';
         if (data.completed) {
-            item.classList.add('completed');
-            checkbox.classList.add('checked');
-            checkbox.innerHTML = '&#10004;';
-            title.classList.add('completed-text');
+            if (item) item.classList.add('completed');
+            if (checkbox) checkbox.classList.add('checked');
+            if (checkbox) checkbox.innerHTML = '&#10004;';
+            if (title) title.classList.add('completed-text');
         } else {
-            item.classList.remove('completed');
-            checkbox.classList.remove('checked');
-            checkbox.innerHTML = '&#9744;';
-            title.classList.remove('completed-text');
+            if (item) item.classList.remove('completed');
+            if (checkbox) checkbox.classList.remove('checked');
+            if (checkbox) checkbox.innerHTML = '&#9744;';
+            if (title) title.classList.remove('completed-text');
         }
         updateProgress();
     }).catch(function() {

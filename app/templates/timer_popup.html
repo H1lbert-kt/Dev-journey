@@ -138,6 +138,7 @@
     if (typeof BroadcastChannel !== 'undefined') {
         channel = new BroadcastChannel('devjourney-timer');
         channel.onmessage = function(e) {
+            if (!e.data) return;
             if (e.data.type === 'state') {
                 popupSeconds = e.data.seconds || 0;
                 popupRunning = e.data.running || false;

@@ -126,7 +126,7 @@ function rsRate(quality) {
     var statsKeys = {0: 'again', 3: 'hard', 4: 'good', 5: 'easy'};
     rsStats[statsKeys[quality]]++;
 
-    fetch('/flashcards/api/review', {
+    csrfFetch('/flashcards/api/review', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({card_id: card.id, quality: quality})
@@ -183,7 +183,7 @@ function rsShowComplete() {
 
     var pending = JSON.parse(localStorage.getItem('fcPendingReviews') || '[]');
     if (pending.length > 0) {
-        fetch('/flashcards/api/review-batch', {
+        csrfFetch('/flashcards/api/review-batch', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({reviews: pending})

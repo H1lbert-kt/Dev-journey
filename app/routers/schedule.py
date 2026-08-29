@@ -46,18 +46,17 @@ async def schedule_page(request: Request, db: Session = Depends(get_db)):
         StudySession.study_mode == user.study_mode,
         func.date(StudySession.date) == today,
     ).all()
+    studied_names_today = {s.subject for s in today_sessions}
     for s in today_sessions:
         today_minutes[s.subject] = today_minutes.get(s.subject, 0) + s.duration_minutes
 
     completed_days = {}
-    all_sessions_today = db.query(StudySession).filter(
-        StudySession.user_id == user.id,
-        StudySession.study_mode == user.study_mode,
-        func.date(StudySession.date) == today,
-    ).all()
-    studied_names_today = {s.subject for s in all_sessions_today}
+    today_idx = today.weekday()
 
     for day_idx in range(7):
+        if day_idx != today_idx:
+            completed_days[day_idx] = False
+            continue
         day_subjects = schedule[day_idx]
         if not day_subjects:
             completed_days[day_idx] = False

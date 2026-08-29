@@ -17,6 +17,7 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         request_id = request.headers.get(self.HEADER_NAME, "")
         if not request_id:
             request_id = uuid.uuid4().hex
+        request_id = request_id[:128]
 
         request.state.request_id = request_id
 

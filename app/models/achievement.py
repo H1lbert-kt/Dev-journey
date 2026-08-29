@@ -14,6 +14,7 @@ class Achievement(Base):
     unlocked = Column(Boolean, nullable=False, default=False)
     unlocked_at = Column(DateTime, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    study_mode = Column(String(20), nullable=True, default="programacao")
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="achievements")

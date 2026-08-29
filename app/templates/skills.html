@@ -484,7 +484,7 @@
         var formData = new FormData();
         formData.append('progress', progress);
 
-        fetch('/skills/' + skillId + '/update', {
+        csrfFetch('/skills/' + skillId + '/update', {
             method: 'POST',
             body: formData
         }).then(function(response) {

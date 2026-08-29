@@ -46,7 +46,10 @@
 
     function tick() {
         if (!hidden && el) {
-            if (studyMode) {
+            if (studyMode && studyRunning && studySeconds > 0) {
+                studySeconds++;
+                el.textContent = fmt(studySeconds * 1000);
+            } else if (studyMode) {
                 el.textContent = fmt(studySeconds * 1000);
             } else {
                 el.textContent = fmt(Date.now() - pageStartTime);

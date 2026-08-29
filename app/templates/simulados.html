@@ -250,7 +250,7 @@ function saveOrder() {
     items.forEach(function(item) { order.push(parseInt(item.dataset.id)); });
 
     function attemptSave(retries) {
-        fetch('/simulados/reorder', {
+        csrfFetch('/simulados/reorder', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({order: order})

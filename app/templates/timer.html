@@ -125,6 +125,17 @@
                 <div class="timer-time" id="timer-display">00:00:00</div>
                 <div class="timer-phase" id="timer-phase">Pronto</div>
                 <div id="timer-pause-display" style="display:none; font-size: 14px; color: var(--fg-3); margin-top: 4px;">Pausado: 00:00</div>
+                {% if plan_item_id and plan_item_estimated_seconds %}
+                <div id="plan-progress" style="margin-top:10px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--fg-2); margin-bottom:4px;">
+                        <span id="plan-progress-text">0min / {{ plan_item_estimated_seconds // 60 }}min</span>
+                        <span id="plan-progress-pct">0%</span>
+                    </div>
+                    <div style="height:6px; background:var(--bg-overlay); border-radius:3px; overflow:hidden;">
+                        <div id="plan-progress-bar" style="height:100%; width:0%; background:var(--accent); border-radius:3px; transition:width 1s linear;"></div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <div class="timer-controls">
@@ -363,7 +374,6 @@ var currentExamId = null;
 var resumedSessionId = null;
 var linkedPlanItemId = {{ plan_item_id|default('null', true) }};
 var planItemEstimatedSeconds = {{ plan_item_estimated_seconds|default('0', true) }};
-var planItemStartTime = 0;
 
 function setSessionType(type) {
     currentSessionType = type;
@@ -391,8 +401,10 @@ function startTimer() {
         ftResume();
     } else {
         resumedSessionId = null;
-        planItemStartTime = Date.now();
         ftStart(subjectName);
+        if (linkedPlanItemId) {
+            ftSaveState();
+        }
     }
 
     if (pomodoroMinutes > 0 && pomodoroRemainingMs > 0 && pomodoroEndTime <= 0) {
@@ -403,18 +415,16 @@ function startTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(function() {
         updateDisplay();
-        if (linkedPlanItemId && planItemEstimatedSeconds > 0 && planItemStartTime > 0) {
-            var elapsed = Math.floor((Date.now() - planItemStartTime) / 1000);
-            if (elapsed >= planItemEstimatedSeconds) {
-                fetch('/today-plan/' + linkedPlanItemId + '/toggle', { method: 'POST' })
-                    .then(function(r) { return r.json(); })
-                    .catch(function() {});
-                document.getElementById('timer-phase').textContent = 'Atividade concluída!';
-                linkedPlanItemId = null;
-                planItemEstimatedSeconds = 0;
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification('Atividade concluída! Tempo estimado atingido.');
-                }
+        if (linkedPlanItemId && planItemEstimatedSeconds > 0 && ftSeconds >= planItemEstimatedSeconds) {
+            csrfFetch('/today-plan/' + linkedPlanItemId + '/toggle', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .catch(function() {});
+            document.getElementById('timer-phase').textContent = 'Atividade concluída!';
+            linkedPlanItemId = null;
+            planItemEstimatedSeconds = 0;
+            ftSaveState();
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Atividade concluída! Tempo estimado atingido.');
             }
         }
         if (pomodoroEndTime > 0 && Date.now() >= pomodoroEndTime) {
@@ -449,6 +459,17 @@ function stopTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
 
+    if (linkedPlanItemId && planItemEstimatedSeconds > 0 && ftSeconds >= planItemEstimatedSeconds) {
+        csrfFetch('/today-plan/' + linkedPlanItemId + '/toggle', { method: 'POST' })
+            .then(function(r) { return r.json(); })
+            .catch(function() {});
+        document.getElementById('timer-phase').textContent = 'Atividade concluída!';
+        linkedPlanItemId = null;
+        planItemEstimatedSeconds = 0;
+    } else if (linkedPlanItemId && planItemEstimatedSeconds > 0 && ftSeconds < planItemEstimatedSeconds) {
+        document.getElementById('timer-phase').textContent = 'Sessão salva!';
+    }
+
     var saved = ftStop();
     ftSeconds = 0;
     ftStartTime = 0;
@@ -457,13 +478,14 @@ function stopTimer() {
     pomodoroMinutes = 0;
     pomodoroEndTime = 0;
     pomodoroRemainingMs = 0;
-    planItemStartTime = 0;
     document.getElementById('btn-start').style.display = 'inline-flex';
     document.getElementById('btn-start').textContent = 'Iniciar';
     document.getElementById('btn-pause').style.display = 'none';
     document.getElementById('btn-stop').style.display = 'none';
     document.getElementById('btn-reset').style.display = 'none';
-    document.getElementById('timer-phase').textContent = saved > 0 ? 'Sessão salva!' : 'Pronto';
+    if (saved > 0 && !document.getElementById('timer-phase').textContent.includes('concluída')) {
+        document.getElementById('timer-phase').textContent = 'Sessão salva!';
+    }
     updateDisplay();
 }
 
@@ -474,7 +496,6 @@ function resetTimer() {
     pomodoroEndTime = 0;
     pomodoroRemainingMs = 0;
     resumedSessionId = null;
-    planItemStartTime = 0;
     ftReset();
     updateDisplay();
     document.getElementById('btn-start').style.display = 'inline-flex';
@@ -491,6 +512,17 @@ function updateDisplay() {
     var s = ftSeconds % 60;
     document.getElementById('timer-display').textContent =
         String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    if (linkedPlanItemId && planItemEstimatedSeconds > 0) {
+        var pct = Math.min(100, Math.round(ftSeconds / planItemEstimatedSeconds * 100));
+        var estMin = Math.round(planItemEstimatedSeconds / 60);
+        var doneMin = Math.round(ftSeconds / 60);
+        var bar = document.getElementById('plan-progress-bar');
+        var txt = document.getElementById('plan-progress-text');
+        var pctEl = document.getElementById('plan-progress-pct');
+        if (bar) bar.style.width = pct + '%';
+        if (txt) txt.textContent = doneMin + 'min / ' + estMin + 'min';
+        if (pctEl) pctEl.textContent = pct + '%';
+    }
 }
 
 ftSyncDisplay = updateDisplay;
@@ -587,7 +619,7 @@ document.getElementById('sessions-list').addEventListener('click', function(e) {
 function deleteSession(sessionId) {
     if (!confirm('Excluir esta sessão? Esta ação não pode ser desfeita.')) return;
 
-    fetch('/timer/delete/' + sessionId, { method: 'DELETE' })
+    csrfFetch('/timer/delete/' + sessionId, { method: 'DELETE' })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
@@ -624,7 +656,7 @@ function submitEdit(e) {
     formData.append('duration_minutes', document.getElementById('edit-duration').value);
     formData.append('session_type', document.getElementById('edit-session-type').value);
 
-    fetch('/timer/edit/' + sessionId, { method: 'POST', body: formData })
+    csrfFetch('/timer/edit/' + sessionId, { method: 'POST', body: formData })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {

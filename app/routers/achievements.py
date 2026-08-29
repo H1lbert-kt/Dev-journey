@@ -31,7 +31,8 @@ AUTO_ACHIEVEMENTS = [
 def check_auto_achievements(user_id, db, study_mode=None):
     """Check and unlock auto-achievements based on user data."""
     achievements = db.query(Achievement).filter(
-        Achievement.user_id == user_id
+        Achievement.user_id == user_id,
+        Achievement.study_mode == study_mode if study_mode else True,
     ).all()
     existing_names = {a.name for a in achievements}
     newly_unlocked = []
@@ -99,6 +100,7 @@ def check_auto_achievements(user_id, db, study_mode=None):
                 unlocked=True,
                 unlocked_at=datetime.now(),
                 user_id=user_id,
+                study_mode=study_mode,
             )
             db.add(achievement)
             newly_unlocked.append(auto["name"])
@@ -146,7 +148,8 @@ async def achievements(request: Request, db: Session = Depends(get_db)):
     check_auto_achievements(user.id, db, study_mode=user.study_mode)
 
     achievements = db.query(Achievement).filter(
-        Achievement.user_id == user.id
+        Achievement.user_id == user.id,
+        Achievement.study_mode == user.study_mode,
     ).order_by(Achievement.unlocked.desc(), Achievement.created_at.desc()).all()
 
     return request.app.state.templates.TemplateResponse(

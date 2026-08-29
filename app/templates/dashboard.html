@@ -114,7 +114,7 @@
                     </div>
                 </div>
                 {% if not item.completed and item.subject %}
-                <button class="btn btn-small btn-start-task" onclick="startTask({{ item.id }}, {{ item.subject.name|tojson }}, {{ item.estimated_minutes or 30 }}, {{ (item.subject.color or '#58a6ff')|tojson }})" aria-label="Iniciar tarefa">▶</button>
+                <button class="btn btn-small btn-start-task" data-plan-item-id="{{ item.id }}" data-subject="{{ item.subject.name }}" data-duration="{{ item.estimated_minutes or 30 }}" aria-label="Iniciar tarefa">&#9654;</button>
                 {% endif %}
             </div>
             {% endfor %}
@@ -322,10 +322,16 @@ function startNextAction() {
     if (form) form.submit();
 }
 
-function startTask(itemId, subjectName, duration, color) {
-    var url = '/timer?subject=' + encodeURIComponent(subjectName) + '&duration=' + duration + '&auto_start=1&plan_item=' + itemId;
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-start-task');
+    if (!btn) return;
+    var itemId = btn.getAttribute('data-plan-item-id');
+    var subjectName = btn.getAttribute('data-subject');
+    var duration = btn.getAttribute('data-duration');
+    if (!itemId || !subjectName) return;
+    var url = '/timer?subject=' + encodeURIComponent(subjectName) + '&duration=' + (duration || 30) + '&auto_start=1&plan_item=' + itemId;
     window.location.href = url;
-}
+});
 
 function toggleDashPlanItem(id) {
     var item = document.getElementById('dash-plan-item-' + id);
@@ -334,7 +340,7 @@ function toggleDashPlanItem(id) {
 
     if (item) item.style.opacity = '0.6';
 
-    fetch('/today-plan/' + id + '/toggle', { method: 'POST' })
+    csrfFetch('/today-plan/' + id + '/toggle', { method: 'POST' })
     .then(function(r) {
         if (!r.ok) throw new Error('Server error');
         return r.json();
@@ -344,17 +350,19 @@ function toggleDashPlanItem(id) {
         if (item) item.style.opacity = '1';
 
         if (data.completed) {
-            item.classList.add('completed');
-            checkbox.classList.add('checked');
-            checkbox.innerHTML = '&#10004;';
-            title.classList.add('completed-text');
-            var btn = item.querySelector('.btn-start-task');
-            if (btn) btn.style.display = 'none';
+            if (item) item.classList.add('completed');
+            if (checkbox) checkbox.classList.add('checked');
+            if (checkbox) checkbox.innerHTML = '&#10004;';
+            if (title) title.classList.add('completed-text');
+            if (item) {
+                var btn = item.querySelector('.btn-start-task');
+                if (btn) btn.style.display = 'none';
+            }
         } else {
-            item.classList.remove('completed');
-            checkbox.classList.remove('checked');
-            checkbox.innerHTML = '&#9744;';
-            title.classList.remove('completed-text');
+            if (item) item.classList.remove('completed');
+            if (checkbox) checkbox.classList.remove('checked');
+            if (checkbox) checkbox.innerHTML = '&#9744;';
+            if (title) title.classList.remove('completed-text');
         }
 
         updatePlanCount();

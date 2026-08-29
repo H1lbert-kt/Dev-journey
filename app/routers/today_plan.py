@@ -109,6 +109,10 @@ async def create_item(
         priority = "media"
     if item_type not in ("estudo", "revisao", "simulado", "projeto", "concurso"):
         item_type = "estudo"
+    title = title.strip()[:200]
+    if not title:
+        title = "Sem titulo"
+    estimated_minutes = max(1, min(480, estimated_minutes))
 
     item = TodayPlanItem(
         title=title.strip(),
@@ -179,6 +183,10 @@ async def update_item(
         priority = "media"
     if item_type not in ("estudo", "revisao", "simulado", "projeto", "concurso"):
         item_type = "estudo"
+    title = title.strip()[:200]
+    if not title:
+        title = "Sem titulo"
+    estimated_minutes = max(1, min(480, estimated_minutes))
 
     item.title = title.strip()
     item.subject_id = subject_id if subject_id else None

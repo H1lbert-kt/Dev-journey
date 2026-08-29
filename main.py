@@ -20,6 +20,7 @@ from app.database.connection import engine, Base, SessionLocal, IS_POSTGRESQL, i
 from app.config.settings import get_settings, IS_RENDER
 from app.middleware.request_id import RequestIdMiddleware
 from app.middleware.error_handler import ErrorHandlerMiddleware
+from app.middleware.csrf import CSRFMiddleware
 from app.routers import dashboard, roadmap, projects, habits, calendar, stats, achievements, auth, timer, methods, subjects, flashcards, simulados, reviews, schedule, exams, journal, today_plan, skills, history, help
 
 settings = get_settings()
@@ -90,16 +91,20 @@ async def lifespan(app: FastAPI):
         while True:
             await asyncio.sleep(3600)
             try:
-                db = SessionLocal()
-                from app.models.user_session import UserSession
-                deleted = db.query(UserSession).filter(UserSession.expires_at < datetime.now()).delete()
-                db.commit()
+                def _cleanup():
+                    db = SessionLocal()
+                    try:
+                        from app.models.user_session import UserSession
+                        deleted = db.query(UserSession).filter(UserSession.expires_at < datetime.now()).delete()
+                        db.commit()
+                        return deleted
+                    finally:
+                        db.close()
+                deleted = await asyncio.to_thread(_cleanup)
                 if deleted:
                     logger.info("Periodic cleanup: removed %d expired sessions", deleted)
             except Exception as e:
                 logger.warning("Periodic session cleanup error: %s", e)
-            finally:
-                db.close()
 
     cleanup_task = asyncio.create_task(periodic_cleanup())
 
@@ -148,6 +153,14 @@ def format_minutes(value):
 
 
 templates.env.filters["format_minutes"] = format_minutes
+
+
+def _get_csrf_token(request):
+    from app.middleware.csrf import CSRF_COOKIE
+    return request.cookies.get(CSRF_COOKIE, "")
+
+
+templates.env.globals["get_csrf_token"] = _get_csrf_token
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -276,11 +289,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
-app.add_middleware(ErrorHandlerMiddleware)
-app.add_middleware(RateLimitMiddleware)
-app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(StudyModeMiddleware)
 app.add_middleware(RequestIdMiddleware)
+app.add_middleware(CSRFMiddleware, secret_key=settings.SECRET_KEY)
+app.add_middleware(StudyModeMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware)
+app.add_middleware(ErrorHandlerMiddleware)
 
 
 app.include_router(auth.router, tags=["Auth"])

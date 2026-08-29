@@ -11,8 +11,8 @@ IS_POSTGRESQL = DATABASE_URL.startswith("postgresql")
 connect_args = {}
 engine_kwargs = {
     "pool_pre_ping": True,
-    "pool_size": 10,
-    "max_overflow": 20,
+    "pool_size": 5,
+    "max_overflow": 10,
     "pool_recycle": 300,
 }
 
@@ -139,6 +139,9 @@ def _add_missing_columns(inspector):
             ("study_mode", "VARCHAR(20)", "'programacao'"),
         ],
         "exams": [
+            ("study_mode", "VARCHAR(20)", "'programacao'"),
+        ],
+        "achievements": [
             ("study_mode", "VARCHAR(20)", "'programacao'"),
         ],
         "subject_goals": [

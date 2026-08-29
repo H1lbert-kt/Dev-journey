@@ -28,6 +28,9 @@ self.addEventListener('fetch', event => {
     if (url.includes('/api/') || url.includes('/timer/save') || url.includes('/timer/ping')) return;
 
     if (event.request.mode === 'navigate' || event.request.headers.get('accept') === 'text/html') {
+        event.respondWith(
+            fetch(event.request).catch(() => caches.match('/').then(r => r || new Response('<!DOCTYPE html><html><body style="font-family:sans-serif;text-align:center;padding:40px"><h1>Offline</h1><p>Sem conexão com a internet.</p></body></html>', {status: 503, headers: {'Content-Type': 'text/html'}})))
+        );
         return;
     }
 

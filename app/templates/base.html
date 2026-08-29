@@ -2,12 +2,13 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta name="theme-color" content="#0c0e12">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DevJourney">
     <meta name="description" content="Acompanhe seu progresso de estudos para programação e concursos">
+    <meta name="csrf-token" content="{{ get_csrf_token(request) }}">
     <title>{% block title %}DevJourney{% endblock %}</title>
     <link rel="manifest" href="/static/manifest.json">
     <link rel="stylesheet" href="/static/css/style.css">
@@ -362,14 +363,31 @@
         hamburger.classList.toggle('active');
     }
 
-    var currentStudyMode = '{{ request.state.study_mode|default("programacao") }}';
+    var currentStudyMode = {{ request.state.study_mode|tojson }};
     var defaultSubject = currentStudyMode === 'programacao' ? 'Programação' : 'Português';
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-    function updateLogo(mode) {
-        var logo = document.getElementById('site-logo');
-        logo.textContent = 'DevJourney';
+    function csrfFetch(url, options) {
+        options = options || {};
+        if (options.method && options.method.toUpperCase() !== 'GET' && options.method.toUpperCase() !== 'HEAD') {
+            options.headers = options.headers || {};
+            if (!options.headers['X-CSRF-Token']) {
+                options.headers['X-CSRF-Token'] = csrfToken;
+            }
+        }
+        return fetch(url, options);
     }
-    updateLogo(currentStudyMode);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('form[method="post"], form[method="POST"]').forEach(function(form) {
+            if (form.querySelector('input[name="csrf_token"]')) return;
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'csrf_token';
+            input.value = csrfToken;
+            form.appendChild(input);
+        });
+    });
 
     function formatMinutes(val) {
         val = parseFloat(val) || 0;
@@ -430,7 +448,9 @@
             subject: ftSubject,
             running: ftRunning,
             startTime: ftStartTime,
-            sessionId: (typeof resumedSessionId !== 'undefined') ? resumedSessionId : null
+            sessionId: (typeof resumedSessionId !== 'undefined') ? resumedSessionId : null,
+            planItemId: (typeof linkedPlanItemId !== 'undefined') ? linkedPlanItemId : null,
+            planItemEstimatedSeconds: (typeof planItemEstimatedSeconds !== 'undefined') ? planItemEstimatedSeconds : 0
         }));
         ftBroadcast();
     }
@@ -550,7 +570,7 @@
             if (typeof currentProjectId !== 'undefined' && currentProjectId) formData.append('project_id', currentProjectId);
 
             function attemptSave(retries) {
-                fetch('/timer/save', { method: 'POST', body: formData })
+                csrfFetch('/timer/save', { method: 'POST', body: formData })
                     .then(function(r) {
                         if (!r.ok) throw new Error('Server error');
                         return r.json();
@@ -651,7 +671,7 @@
         formData.append('subject', ftSubject);
 
         function attemptSave(retries) {
-            fetch('/timer/save-state', { method: 'POST', body: formData })
+            csrfFetch('/timer/save-state', { method: 'POST', body: formData })
                 .then(function(r) {
                     if (!r.ok) throw new Error('Server error');
                     return r.json();
@@ -676,7 +696,7 @@
     }
 
     function ftClearStateOnServer() {
-        fetch('/timer/clear-state', { method: 'POST' })
+        csrfFetch('/timer/clear-state', { method: 'POST' })
             .then(function(r) { if (!r.ok) throw new Error(); })
             .catch(function() {});
     }
@@ -693,7 +713,7 @@
         if (item.sessionId) formData.append('session_id', item.sessionId);
         if (item.examId) formData.append('exam_id', item.examId);
         if (item.projectId) formData.append('project_id', item.projectId);
-        fetch('/timer/save', { method: 'POST', body: formData })
+        csrfFetch('/timer/save', { method: 'POST', body: formData })
             .then(function(r) {
                 if (!r.ok) throw new Error();
                 return r.json();
@@ -746,15 +766,31 @@
             if (ftState.sessionId && typeof resumedSessionId !== 'undefined') {
                 resumedSessionId = ftState.sessionId;
             }
+            if (ftState.planItemId && typeof linkedPlanItemId !== 'undefined') {
+                linkedPlanItemId = ftState.planItemId;
+            }
+            if (ftState.planItemEstimatedSeconds && typeof planItemEstimatedSeconds !== 'undefined') {
+                planItemEstimatedSeconds = ftState.planItemEstimatedSeconds;
+            }
             ft.style.display = 'block';
             document.getElementById('ft-subject').textContent = ftSubject;
             if (ftState.running && ftStartTime > 0 && !ftRunning) {
-                ftRunning = true;
-                ftSeconds = ftCalcSeconds();
-                ftUpdateDisplay();
-                document.getElementById('ft-pause').innerHTML = '||';
-                ftStartTimerLoop();
-                ftStartKeepalive();
+                var elapsed = Date.now() - ftStartTime;
+                if (elapsed > 0 && elapsed < 86400000) {
+                    ftRunning = true;
+                    ftSeconds = ftCalcSeconds();
+                    ftUpdateDisplay();
+                    document.getElementById('ft-pause').innerHTML = '||';
+                    ftStartTimerLoop();
+                    ftStartKeepalive();
+                } else {
+                    ftState.running = false;
+                    ftStartTime = 0;
+                    ftSaveState();
+                    document.getElementById('ft-pause').innerHTML = '&#9654;';
+                    ftUpdateDisplay();
+                    ftStartPauseTimer();
+                }
             } else if (!ftRunning) {
                 if (ftState.running && ftStartTime === 0) {
                     ftState.running = false;

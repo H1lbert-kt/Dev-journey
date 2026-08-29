@@ -31,7 +31,7 @@ services:
       - "${APP_PORT:-8001}:8000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-devjourney}:${POSTGRES_PASSWORD:-devjourney_secure_password}@db:5432/${POSTGRES_DB:-devjourney}
-      SECRET_KEY: ${SECRET_KEY:-$(openssl rand -hex 32)}
+      SECRET_KEY: ${SECRET_KEY:-devjourney-change-in-production}
     depends_on:
       db:
         condition: service_healthy

@@ -119,7 +119,7 @@
         <h2 class="section-title">Todos os Flashcards ({{ flashcards|length }})</h2>
         <div class="flashcards-grid">
             {% for card in flashcards %}
-            <div class="flashcard-mini" onclick="this.classList.toggle('flipped')">
+            <div class="flashcard-mini" onclick="this.classList.toggle('flipped')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('flipped')}">
                 <div class="flashcard-mini-inner">
                     <div class="flashcard-mini-front">
                         <div class="flashcard-mini-subject" style="background-color: {{ card.subject.color if card.subject else 'var(--accent)' }}18; color: {{ card.subject.color if card.subject else 'var(--accent)' }}">{{ card.subject.name if card.subject else 'Geral' }}</div>

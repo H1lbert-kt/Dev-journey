@@ -32,7 +32,7 @@
                 <span class="simulado-detail-label">Método</span>
                 <span class="simulado-detail-value">{{ simulado.correction_method|upper }}</span>
             </div>
-            {% if simulado.wrong_answers > 0 %}
+            {% if simulado.wrong_answers and simulado.wrong_answers > 0 %}
             <div class="simulado-detail-item">
                 <span class="simulado-detail-label">Erros</span>
                 <span class="simulado-detail-value">{{ simulado.wrong_answers }}</span>
