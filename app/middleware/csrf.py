@@ -18,6 +18,10 @@ def _generate_token() -> str:
 
 
 class CSRFMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, secret_key: str = ""):
+        super().__init__(app)
+        self.secret_key = secret_key
+
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
 
