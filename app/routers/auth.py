@@ -4,10 +4,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 import re
 import logging
+import secrets
 from app.database.connection import get_db
 from app.models.user import User
 from app.utils.auth import hash_password, verify_password, create_session, get_session, delete_session, sanitize_input
 from app.config.settings import IS_RENDER
+from app.middleware.csrf import CSRF_COOKIE
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +38,13 @@ def auth_redirect(request: Request):
 
 @router.get("/login")
 async def login_page(request: Request):
+    csrf_token = request.cookies.get(CSRF_COOKIE, "")
+    if not csrf_token:
+        csrf_token = secrets.token_hex(32)
     return request.app.state.templates.TemplateResponse(
         request,
         "login.html",
-        context={"error": None},
+        context={"error": None, "csrf_token": csrf_token},
     )
 
 
@@ -52,18 +57,20 @@ async def login(
 ):
     username = sanitize_input(username)
     if not username or len(username) < 3:
+        csrf_token = request.cookies.get(CSRF_COOKIE, "")
         return request.app.state.templates.TemplateResponse(
             request,
             "login.html",
-            context={"error": "Usuario invalido"},
+            context={"error": "Usuario invalido", "csrf_token": csrf_token},
         )
 
     user = db.query(User).filter(User.username == username).first()
     if not user or not verify_password(password, user.password_hash, user.id, db):
+        csrf_token = request.cookies.get(CSRF_COOKIE, "")
         return request.app.state.templates.TemplateResponse(
             request,
             "login.html",
-            context={"error": "Usuario ou senha invalidos"},
+            context={"error": "Usuario ou senha invalidos", "csrf_token": csrf_token},
         )
 
     token = create_session(user.id, db)
@@ -75,10 +82,13 @@ async def login(
 
 @router.get("/register")
 async def register_page(request: Request):
+    csrf_token = request.cookies.get(CSRF_COOKIE, "")
+    if not csrf_token:
+        csrf_token = secrets.token_hex(32)
     return request.app.state.templates.TemplateResponse(
         request,
         "register.html",
-        context={"error": None},
+        context={"error": None, "csrf_token": csrf_token},
     )
 
 
@@ -95,32 +105,34 @@ async def register(
     username = sanitize_input(username)
     email = sanitize_input(email)
 
+    csrf_token = request.cookies.get(CSRF_COOKIE, "")
+
     if not USERNAME_REGEX.match(username):
         return request.app.state.templates.TemplateResponse(
             request,
             "register.html",
-            context={"error": "Usuario invalido (3-30 caracteres, apenas letras, numeros e _)"},
+            context={"error": "Usuario invalido (3-30 caracteres, apenas letras, numeros e _)", "csrf_token": csrf_token},
         )
 
     if not EMAIL_REGEX.match(email):
         return request.app.state.templates.TemplateResponse(
             request,
             "register.html",
-            context={"error": "Email invalido"},
+            context={"error": "Email invalido", "csrf_token": csrf_token},
         )
 
     if len(password) < 6:
         return request.app.state.templates.TemplateResponse(
             request,
             "register.html",
-            context={"error": "Senha deve ter no minimo 6 caracteres"},
+            context={"error": "Senha deve ter no minimo 6 caracteres", "csrf_token": csrf_token},
         )
 
     if password != password_confirm:
         return request.app.state.templates.TemplateResponse(
             request,
             "register.html",
-            context={"error": "As senhas nao coincidem"},
+            context={"error": "As senhas nao coincidem", "csrf_token": csrf_token},
         )
 
     if study_mode not in ["programacao", "concursos", "vestibulares"]:
@@ -133,7 +145,7 @@ async def register(
         return request.app.state.templates.TemplateResponse(
             request,
             "register.html",
-            context={"error": "Usuario ou email ja cadastrado"},
+            context={"error": "Usuario ou email ja cadastrado", "csrf_token": csrf_token},
         )
 
     user = User(
@@ -151,7 +163,7 @@ async def register(
         return request.app.state.templates.TemplateResponse(
             request,
             "register.html",
-            context={"error": "Usuario ou email ja cadastrado"},
+            context={"error": "Usuario ou email ja cadastrado", "csrf_token": csrf_token},
         )
 
     token = create_session(user.id, db)
