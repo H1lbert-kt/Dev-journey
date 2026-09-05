@@ -1,3 +1,12 @@
+# ============================================
+# DevJourney - Docker Compose
+# ============================================
+# IMPORTANTE: Copie .env.example para .env e configure
+# as variáveis de ambiente antes de rodar docker-compose up
+#
+# Nunca use as senhas padrão em produção!
+# ============================================
+
 version: '3.8'
 
 services:
@@ -8,7 +17,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-devjourney}
       POSTGRES_USER: ${POSTGRES_USER:-devjourney}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devjourney_secure_password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD no arquivo .env}
       TZ: America/Sao_Paulo
     ports:
       - "${POSTGRES_PORT:-5431}:5432"
@@ -30,8 +39,8 @@ services:
     ports:
       - "${APP_PORT:-8001}:8000"
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-devjourney}:${POSTGRES_PASSWORD:-devjourney_secure_password}@db:5432/${POSTGRES_DB:-devjourney}
-      SECRET_KEY: ${SECRET_KEY:-devjourney-change-in-production}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-devjourney}:${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD no arquivo .env}@db:5432/${POSTGRES_DB:-devjourney}
+      SECRET_KEY: ${SECRET_KEY:?Configure SECRET_KEY no arquivo .env}
     depends_on:
       db:
         condition: service_healthy

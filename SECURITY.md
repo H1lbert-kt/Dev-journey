@@ -1,106 +1,146 @@
-# Security Policy - DevJourney
+# Política de Segurança - DevJourney
 
-## Reporting Vulnerabilities
+## Reportando Vulnerabilidades
 
-If you discover a security vulnerability, please report it responsibly:
+Se você descobrir uma vulnerabilidade de segurança, por favor reporte de forma responsável:
 
-1. **DO NOT** open a public GitHub issue
-2. Email the maintainers with details of the vulnerability
-3. Include steps to reproduce the issue
-4. Allow reasonable time for a fix before public disclosure
+1. **NÃO** abra um issue público no GitHub
+2. Envie um email para os mantenedores com detalhes da vulnerabilidade
+3. Inclua passos para reproduzir o problema
+4. Aguarde um tempo razoável para uma correção antes da divulgação pública
 
-## Security Measures
+## Medidas de Segurança Implementadas
 
-### Authentication
-- Passwords hashed with Argon2id (memory-hard, salted)
-- Legacy SHA-256 hashes auto-upgraded to Argon2 on login
-- Session tokens: 256-bit random, stored in HttpOnly/Secure/SameSite=Lax cookies
-- Sessions expire after 24 hours
-- Expired sessions cleaned up on startup and hourly
+### Autenticação
+- Senhas hasheadas com Argon2id (memory-hard, com salt)
+- Hashes SHA-256 legados são migrados automaticamente para Argon2 no login
+- Tokens de sessão: 256-bit aleatório, armazenados em cookies HttpOnly/Secure/SameSite=Lax
+- Sessões expiram após 24 horas
+- Sessões expiradas são limpas no startup e a cada hora
 
-### Authorization
-- All data-modification endpoints require authentication
-- All queries filtered by `user_id` to prevent IDOR
-- Session tokens validated on every request
+### Autorização
+- Todos os endpoints de modificação de dados requerem autenticação
+- Todas as queries são filtradas por `user_id` para prevenir IDOR
+- Tokens de sessão são validados em cada requisição
 
-### HTTP Security Headers
-- `Content-Security-Policy`: restricts script/style/connect/frame sources
+### Headers de Segurança HTTP
+- `Content-Security-Policy`: restringe fontes de script/style/connect/frame
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
-- `X-XSS-Protection: 1; mode=block`
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 - `Cross-Origin-Opener-Policy: same-origin`
 - `Cross-Origin-Resource-Policy: same-origin`
-- `Strict-Transport-Security` (production only): max-age=31536000; includeSubDomains; preload
+- `Strict-Transport-Security` (apenas em produção): max-age=31536000; includeSubDomains; preload
+
+### Proteção CSRF
+- Middleware CSRF ativo que bloqueia requisições sem token válido
+- Tokens gerados via `secrets.token_hex(32)`
+- Validação via cookie, header X-CSRF-Token, ou campo de formulário
+- Paths isentos: `/timer/ping`, `/health`, `/timer/save-state`, `/timer/clear-state`, `/timer/get-state`
 
 ### Rate Limiting
-- Login: 10 attempts per 15 minutes per IP
-- Registration: 5 attempts per hour per IP
-- General: 120 requests per minute per IP
+- Login: 10 tentativas por 15 minutos por IP
+- Registro: 5 tentativas por hora por IP
+- Geral: 120 requisições por minuto por IP
 
-### Input Validation
-- Username: regex-validated (3-30 chars, alphanumeric + underscore)
-- Email: regex-validated
-- Password: minimum 6 characters
-- File uploads: 1 MB max size, 500 lines max for imports
-- Numeric inputs: bounds-checked
-- Enum fields: whitelist-validated
+### Validação de Entrada
+- Username: validado via regex (3-30 chars, alfanumérico + underscore)
+- Email: validado via regex
+- Senha: mínimo 6 caracteres
+- Uploads de arquivo: máximo 1 MB, máximo 500 linhas para importações
+- Inputs numéricos: verificados com limites
+- Campos enum: validados com whitelist
 
-### Database
-- SQLAlchemy ORM (parameterized queries)
-- Foreign keys with CASCADE/SET NULL
-- Unique constraints on critical fields
-- Database user should have least-privilege permissions
+### Banco de Dados
+- SQLAlchemy ORM (queries parametrizadas)
+- Foreign keys com CASCADE/SET NULL
+- Constraints de unicidade em campos críticos
+- Usuário do banco deve ter permissões de mínimo necessário
 
-### Cookie Security
-- `HttpOnly`: prevents JavaScript access
-- `Secure`: HTTPS-only (production)
-- `SameSite=Lax`: CSRF protection for most attacks
-- `Max-Age`: 86400 seconds (24 hours)
+### Segurança de Cookies
+- `HttpOnly`: impede acesso via JavaScript
+- `Secure`: apenas HTTPS (em produção)
+- `SameSite=Lax`: proteção CSRF para a maioria dos ataques
+- `Max-Age`: 86400 segundos (24 horas)
 
-## Environment Variables
+### Rate Limiting
+- Login: 10 tentativas por 15 minutos por IP
+- Registro: 5 tentativas por hora por IP
+- Geral: 120 requisições por minuto por IP
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `SECRET_KEY` | Yes (production) | Random secret for session signing (min 32 bytes hex) |
-| `DATABASE_URL` | Yes (production) | PostgreSQL connection string |
-| `PORT` | No | Server port (default: 8000) |
-| `RENDER` | Auto-set | Set by Render.com platform |
+### Segurança do Banco de Dados
+- Queries parametrizadas via SQLAlchemy ORM
+- Foreign keys com CASCADE/SET NULL
+- Constraints de unicidade em campos críticos
+- Usuário do banco deve ter permissões de mínimo necessário
 
-**NEVER commit `.env` files to version control.**
+### Validação de SQL
+- Validação de nomes de tabelas e colunas contra lista permitida
+- Validação de tipos de colunas contra lista permitida
+- Verificação de identificadores válidos
 
-## Production Checklist
+## Variáveis de Ambiente
 
-- [ ] Set strong `SECRET_KEY` (generate with `python -c "import secrets; print(secrets.token_hex(32))"`)
-- [ ] Set `DATABASE_URL` to PostgreSQL
-- [ ] Enable HTTPS (via reverse proxy or platform)
-- [ ] Disable debug mode
-- [ ] Remove `/docs` and `/redoc` endpoints (auto-disabled in production)
-- [ ] Set secure CORS policies if needed
-- [ ] Configure backup for database
-- [ ] Monitor logs for suspicious activity
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `SECRET_KEY` | Sim (produção) | Chave secreta aleatória para assinatura de sessões (mínimo 32 bytes hex) |
+| `DATABASE_URL` | Sim (produção) | String de conexão PostgreSQL |
+| `PORT` | Não | Porta do servidor (padrão: 8000) |
+| `RENDER` | Automático | Definido pela plataforma Render.com |
 
-## Development
+**NUNCA versione arquivos `.env`.**
 
-- SQLite used for local development (data ephemeral)
-- Debug endpoints available at `/docs` and `/redoc`
-- Rate limits apply in development too
+## Checklist de Produção
 
-## Dependencies
+- [ ] Configure `SECRET_KEY` forte (gere com `python -c "import secrets; print(secrets.token_hex(32))"`)
+- [ ] Configure `DATABASE_URL` para PostgreSQL
+- [ ] Habilite HTTPS (via proxy reverso ou plataforma)
+- [ ] Desabilite modo debug
+- [ ] Remova endpoints `/docs` e `/redoc` (desabilitados automaticamente em produção)
+- [ ] Configure políticas CORS seguras se necessário
+- [ ] Configure backup do banco de dados
+- [] Monitore logs para atividades suspeitas
 
-Audit dependencies regularly:
+## Desenvolvimento
+
+- SQLite usado para desenvolvimento local (dados efêmeros)
+- Endpoints de debug disponíveis em `/docs` e `/redoc`
+- Rate limits também se aplicam em desenvolvimento
+
+## Dependências
+
+Audite dependências regularmente:
 ```bash
 pip-audit
-# or
+# ou
 safety check
 ```
 
-## Known Limitations
+## Limitações Conhecidas
 
-- No account lockout after failed passwords (rate limiting mitigates)
-- No email verification on registration
-- No password reset functionality
-- No 2FA/MFA
-- No audit log of user actions
-- CSRF protection relies on SameSite cookies (not CSRF tokens)
+- Sem bloqueio de conta após senhas incorretas (rate limiting mitiga)
+- Sem verificação de email no registro
+- Sem funcionalidade de redefinição de senha
+- Sem 2FA/MFA
+- Sem log de auditoria de ações do usuário
+- Proteção CSRF depende de cookies SameSite (não usa tokens CSRF tradicionais)
+- CSP usa `'unsafe-inline'` para scripts (necessário para templates Jinja2 com JavaScript inline)
+
+## Status das Correções
+
+| Data | Correção | Status |
+|------|----------|--------|
+| 2026-09-05 | CSRF middleware agora bloqueia requisições | ✅ |
+| 2026-09-05 | IS_PRODUCTION importado de settings centralizado | ✅ |
+| 2026-09-05 | Erros detalhados não expostos em desenvolvimento | ✅ |
+| 2026-09-05 | Screenshot pessoal removido do repositório | ✅ |
+| 2026-09-05 | .gitignore atualizado com entradas faltantes | ✅ |
+| 2026-09-05 | Schemas não utilizados removidos | ✅ |
+| 2026-09-05 | Migration órfã removida | ✅ |
+| 2026-09-05 | initialize_default_achievements() agora cria conquistas padrão | ✅ |
+| 2026-09-05 | docker-compose.yml exige senhas configuradas | ✅ |
+| 2026-09-05 | .env.example atualizado com instruções claras | ✅ |
+| 2026-09-05 | requirements-dev.txt criado | ✅ |
+| 2026-09-05 | datetime.now() com timezone UTC nos models | ✅ |
+| 2026-09-05 | Validação de SQL em _add_missing_columns | ✅ |

@@ -149,6 +149,12 @@ def _add_missing_columns(inspector):
         ],
     }
 
+    ALLOWED_TABLES = set(columns_map.keys())
+    ALLOWED_COL_TYPES = {
+        "INTEGER", "VARCHAR(7)", "VARCHAR(20)", "VARCHAR(100)",
+        "FLOAT", "TIMESTAMP", "TEXT", "BOOLEAN", "DATE",
+    }
+
     for table_name, expected_columns in columns_map.items():
         if table_name not in inspector.get_table_names():
             continue
@@ -158,11 +164,21 @@ def _add_missing_columns(inspector):
         for col_name, col_type, default_val in expected_columns:
             if col_name not in existing_cols:
                 try:
-                    sql = f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}"
+                    if table_name not in ALLOWED_TABLES:
+                        logger.warning(f"Table {table_name} not in allowed list, skipping")
+                        continue
+                    if col_type not in ALLOWED_COL_TYPES:
+                        logger.warning(f"Column type {col_type} not in allowed list, skipping")
+                        continue
+                    if not col_name.isidentifier():
+                        logger.warning(f"Column name {col_name} is not a valid identifier, skipping")
+                        continue
+
+                    sql = text(f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}")
                     if default_val is not None:
-                        sql += f" DEFAULT {default_val}"
+                        sql = text(f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type} DEFAULT {default_val}")
                     with engine.begin() as conn:
-                        conn.execute(text(sql))
+                        conn.execute(sql)
                     logger.info(f"Added missing column {table_name}.{col_name}")
                 except Exception as e:
                     if "already exists" in str(e).lower():

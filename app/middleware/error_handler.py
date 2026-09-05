@@ -3,10 +3,11 @@ import uuid
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, HTMLResponse
+from app.config.settings import IS_RENDER
 
 logger = logging.getLogger(__name__)
 
-IS_PRODUCTION = bool(__import__("os").environ.get("RENDER"))
+IS_PRODUCTION = IS_RENDER
 
 
 class ErrorHandlerMiddleware(BaseHTTPMiddleware):
@@ -86,8 +87,6 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                     status_code=500,
                     content={
                         "error": "Internal Server Error",
-                        "detail": str(exc),
-                        "type": type(exc).__name__,
                         "request_id": request_id,
                     },
                     headers={"X-Request-ID": request_id},

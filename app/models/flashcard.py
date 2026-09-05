@@ -2,7 +2,11 @@ from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Floa
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database.connection import Base
-from datetime import datetime
+from datetime import datetime, timezone
+
+
+def _utcnow():
+    return datetime.now(timezone.utc)
 
 
 class Flashcard(Base):
@@ -14,7 +18,7 @@ class Flashcard(Base):
     subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
     ease_factor = Column(Float, nullable=False, default=2.5)
     interval_days = Column(Integer, nullable=False, default=0)
-    next_review = Column(DateTime, nullable=False, default=datetime.now, index=True)
+    next_review = Column(DateTime, nullable=False, default=_utcnow, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     study_mode = Column(String(20), nullable=False, default="programacao")
     review_count = Column(Integer, nullable=False, default=0)
@@ -40,6 +44,6 @@ class FlashcardReview(Base):
     ease_factor_before = Column(Float, nullable=False)
     ease_factor_after = Column(Float, nullable=False)
     study_mode = Column(String(20), nullable=False, default="programacao")
-    reviewed_at = Column(DateTime, default=datetime.now)
+    reviewed_at = Column(DateTime, default=_utcnow)
 
     flashcard = relationship("Flashcard", back_populates="reviews")

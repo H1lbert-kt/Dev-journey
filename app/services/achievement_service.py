@@ -45,4 +45,36 @@ class AchievementService:
         return len(self.achievement_repo.get_unlocked())
 
     def initialize_default_achievements(self) -> List[Achievement]:
-        return self.achievement_repo.get_all()
+        existing = self.achievement_repo.get_all()
+        if existing:
+            return existing
+
+        default_achievements = [
+            ("Primeiro Estudo", "Complete sua primeira sessão de estudo", "📚"),
+            ("Streak de 3 Dias", "Estude por 3 dias consecutivos", "🔥"),
+            ("Streak de 7 Dias", "Estude por 7 dias consecutivos", "⚡"),
+            ("Streak de 30 Dias", "Estude por 30 dias consecutivos", "🏆"),
+            ("10 Horas Estudadas", "Acumule 10 horas de estudo", "⏰"),
+            ("50 Horas Estudadas", "Acumule 50 horas de estudo", "🎯"),
+            ("100 Horas Estudadas", "Acumule 100 horas de estudo", "👑"),
+            ("Primeiro Projeto", "Crie seu primeiro projeto", "🚀"),
+            ("5 Projetos", "Crie 5 projetos", "📦"),
+            ("Primeiro Flashcard", "Crie seu primeiro flashcard", "🃏"),
+            ("100 Flashcards", "Crie 100 flashcards", "🎴"),
+            ("Simulado Completo", "Complete um simulado", "📝"),
+            ("Nota 10", "Tire nota máxima em um simulado", "💯"),
+            ("Diário de 7 Dias", "Escreva no diário por 7 dias", "📖"),
+            ("Polímata", "Estude mais de 5 matérias diferentes", "🧠"),
+        ]
+
+        created = []
+        for name, description, icon in default_achievements:
+            achievement = Achievement(
+                name=name,
+                description=description,
+                icon=icon,
+                user_id=self.user_id,
+            )
+            created.append(self.achievement_repo.create(achievement))
+
+        return created

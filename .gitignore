@@ -46,6 +46,7 @@ env/
 *.db-journal
 *.db-wal
 *.db-shm
+*.sqlite3
 
 # Docker
 .dockerignore
@@ -59,5 +60,28 @@ LICENSE
 *.temp
 .cache/
 
+# Pytest
+.pytest_cache/
+
 # Alembic
 alembic/versions/__pycache__/
+
+# Screenshots
+Captura de tela*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# SSL certificates
+*.pem
+*.key
+
+# Backup env files
+.env.bak
+.env.*.bak
+.env.test
+.env.staging
+
+# IDE
+*.code-workspace

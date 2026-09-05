@@ -56,8 +56,23 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
         if not cookie_token and not header_token and not form_token:
             logger.warning("CSRF token missing for %s %s", request.method, path)
+            return JSONResponse(
+                status_code=403,
+                content={"error": "CSRF token ausente"},
+            )
 
         if cookie_token and header_token and cookie_token != header_token:
             logger.warning("CSRF token mismatch for %s %s", request.method, path)
+            return JSONResponse(
+                status_code=403,
+                content={"error": "CSRF token inválido"},
+            )
+
+        if not cookie_token and (header_token or form_token):
+            logger.warning("CSRF token in header/form but no cookie for %s %s", request.method, path)
+            return JSONResponse(
+                status_code=403,
+                content={"error": "CSRF token inválido"},
+            )
 
         return await call_next(request)
