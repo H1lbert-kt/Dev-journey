@@ -10,7 +10,7 @@ CSRF_COOKIE = "csrf_token"
 CSRF_HEADER = "X-CSRF-Token"
 CSRF_FIELD = "csrf_token"
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS", "TRACE"}
-EXEMPT_PATHS = {"/timer/ping", "/health", "/timer/save-state", "/timer/clear-state", "/timer/get-state"}
+EXEMPT_PATHS = {"/timer/ping", "/health", "/timer/save-state", "/timer/clear-state", "/timer/get-state", "/timer/keepalive"}
 
 
 def _generate_token() -> str:

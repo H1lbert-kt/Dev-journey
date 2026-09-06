@@ -330,6 +330,11 @@ async def timer_ping():
     return JSONResponse(content={"status": "ok"})
 
 
+@router.get("/keepalive")
+async def timer_keepalive():
+    return JSONResponse(content={"status": "ok"})
+
+
 @router.post("/save-state")
 async def save_timer_state(
     request: Request,

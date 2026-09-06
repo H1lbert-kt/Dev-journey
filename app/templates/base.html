@@ -909,6 +909,15 @@
             navigator.serviceWorker.register('/static/js/sw.js').catch(function() {});
         });
     }
+
+    var globalKeepaliveInterval = null;
+    function startGlobalKeepalive() {
+        if (globalKeepaliveInterval) return;
+        globalKeepaliveInterval = setInterval(function() {
+            fetch('/timer/keepalive').catch(function() {});
+        }, 60000);
+    }
+    startGlobalKeepalive();
     </script>
     {% block scripts %}{% endblock %}
 </body>
